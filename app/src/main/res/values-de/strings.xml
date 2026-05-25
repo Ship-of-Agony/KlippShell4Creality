@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KlippShell 4 Creality</string>
+    
+    <string name="add_printer">Drucker hinzufügen</string>
+    <string name="add_printer_down">Drucker hinzufügen ▼</string>
+    <string name="add_printer_up">Drucker hinzufügen ▲</string>
+    <string name="printer_name_hint">Drucker Name</string>
+    <string name="printer_ip_hint">IP-Adresse (z.B. 192.168.1.50)</string>
+    <string name="printer_port_hint">Port (Standard: 4408)</string>
+    <string name="printer_model_hint">Modell wählen</string>
+    <string name="btn_add">Hinzufügen</string>
+    <string name="btn_search_network">Netzwerk durchsuchen</string>
+    <string name="saved_printers">Gespeicherte Drucker</string>
+    <string name="no_printers">Keine Drucker hinzugefügt</string>
+    <string name="btn_exit">Beenden</string>
+    
+    <string name="settings_title">Einstellungen</string>
+    <string name="dark_mode">Dunkles Design (Dark Mode)</string>
+    <string name="change_language">Sprache ändern / Language</string>
+    <string name="reset_app">App zurücksetzen</string>
+    <string name="btn_back">Zurück</string>
+    
+    <string name="search_network">Netzwerk durchsuchen...</string>
+    <string name="found_printers">Gefundene Drucker</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="yes_delete">Ja, alles löschen</string>
+    <string name="reset_confirm_title">App wirklich zurücksetzen?</string>
+    <string name="reset_confirm_msg">Bist du sicher? Alle gespeicherten Drucker und Einstellungen gehen unwiderruflich verloren. Die App wird danach neu gestartet.</string>
+    <string name="choose_default_view">Standardansicht wählen</string>
+</resources>

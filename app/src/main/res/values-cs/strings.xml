@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KlippShell 4 Creality</string>
+    
+    <string name="add_printer">Přidat tiskárnu</string>
+    <string name="add_printer_down">Přidat tiskárnu ▼</string>
+    <string name="add_printer_up">Přidat tiskárnu ▲</string>
+    <string name="printer_name_hint">Název tiskárny</string>
+    <string name="printer_ip_hint">IP adresa (např. 192.168.1.50)</string>
+    <string name="printer_port_hint">Port (Výchozí: 4408)</string>
+    <string name="printer_model_hint">Vybrat model</string>
+    <string name="btn_add">Přidat</string>
+    <string name="btn_search_network">Prohledat síť</string>
+    <string name="saved_printers">Uložené tiskárny</string>
+    <string name="no_printers">Nebyly přidány žádné tiskárny</string>
+    <string name="btn_exit">Ukončit</string>
+    
+    <string name="settings_title">Nastavení</string>
+    <string name="dark_mode">Tmavý režim (Dark Mode)</string>
+    <string name="change_language">Změnit jazyk / Language</string>
+    <string name="reset_app">Resetovat aplikaci</string>
+    <string name="btn_back">Zpět</string>
+    
+    <string name="search_network">Prohledávám síť...</string>
+    <string name="found_printers">Nalezené tiskárny</string>
+    <string name="cancel">Zrušit</string>
+    <string name="yes_delete">Ano, smazat vše</string>
+    <string name="reset_confirm_title">Opravdu resetovat aplikaci?</string>
+    <string name="reset_confirm_msg">Jste si jistí? Všechny uložené tiskárny a nastavení budou trvale ztraceny. Aplikace se poté restartuje.</string>
+    <string name="choose_default_view">Vybrat výchozí zobrazení</string>
+</resources>
