@@ -108,7 +108,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="by Ship of Agony LABs"
+                    android:text="Ship of Agony LABs"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:gravity="center"

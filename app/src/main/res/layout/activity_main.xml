@@ -114,31 +114,42 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="12dp"
-                        android:baselineAligned="false">
+                        android:layout_marginBottom="12dp">
 
                         <EditText
                             android:id="@+id/etMainPrinterIP"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="0.7"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.65"
                             android:hint="@string/printer_ip_hint"
                             android:inputType="textUri"
                             android:background="@drawable/bg_input_rounded"
                             android:padding="14dp"
                             android:layout_marginEnd="8dp" />
 
-                        <EditText
-                            android:id="@+id/etMainPrinterPort"
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSystemSelect"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="0.3"
-                            android:hint="@string/printer_port_hint"
-                            android:inputType="number"
-                            android:text="4408"
-                            android:background="@drawable/bg_input_rounded"
-                            android:padding="14dp" />
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.35"
+                            android:text="Creality\n(4408)"
+                            android:textAllCaps="false"
+                            android:textSize="13sp"
+                            app:cornerRadius="12dp"
+                            android:backgroundTint="#424242"
+                            android:textColor="#FFFFFF" />
                     </LinearLayout>
+
+                    <EditText
+                        android:id="@+id/etMainPrinterPort"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/printer_port_hint"
+                        android:inputType="number"
+                        android:background="@drawable/bg_input_rounded"
+                        android:padding="14dp"
+                        android:layout_marginBottom="12dp"
+                        android:visibility="gone" />
 
                     <AutoCompleteTextView
                         android:id="@+id/actvMainPrinterModel"
@@ -220,5 +231,35 @@
         android:paddingVertical="12dp"
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/viewStartupVeil"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?android:attr/colorBackground"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:elevation="24dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:src="@mipmap/ic_launcher"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#2196F3" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

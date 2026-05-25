@@ -14,6 +14,10 @@
     <string name="no_printers">No printers added</string>
     <string name="btn_exit">Exit</string>
 
+    <string name="system_creality">Creality OS (Port 4408)</string>
+    <string name="system_standard">Standard Klipper (Port 80)</string>
+    <string name="system_manual">Manual (Custom Port)</string>
+
     <string name="settings_title">Settings</string>
     <string name="dark_mode">Dark Mode</string>
     <string name="change_language">Change Language / Sprache ändern</string>

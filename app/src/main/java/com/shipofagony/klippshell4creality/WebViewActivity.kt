@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -29,11 +30,22 @@ import java.net.URL
 class WebViewActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
-    private lateinit var layoutOsd: LinearLayout
+    private lateinit var layoutOsd: View
 
     private var currentActiveUrl: String = ""
     private var isCameraMode: Boolean = false
     private var isOsdEnabled: Boolean = false
+
+    private var knownChamberSensor: String? = "temperature_sensor chamber"
+    private var chamberSearchIndex = 0
+    private val chamberNamesToTry = listOf(
+        "temperature_sensor chamber",
+        "temperature_sensor chamber_temp",
+        "heater_generic chamber"
+    )
+
+    // NEU: Kurzzeitgedächtnis für den Druckstatus
+    private var lastPrintState: String = ""
 
     private val osdHandler = Handler(Looper.getMainLooper())
     private val osdRunnable = object : Runnable {
@@ -132,7 +144,6 @@ class WebViewActivity : AppCompatActivity() {
 
         currentActiveUrl = intent.getStringExtra("TARGET_URL") ?: "http://google.com"
 
-        // Prüfen, ob die übergebene URL bereits eine Kamera-URL ist
         val initialIp = Uri.parse(currentActiveUrl).host ?: ""
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedRatio = prefs.getFloat("camera_ratio_$initialIp", 56.25f)
@@ -141,7 +152,6 @@ class WebViewActivity : AppCompatActivity() {
 
         btnClose.setOnClickListener { finish() }
 
-        // --- Das Optionen-Menü mit Kamera-Quellen-Auswahl ---
         btnMenu.setOnClickListener {
             val hostIp = Uri.parse(currentActiveUrl).host ?: ""
             val optionsList = mutableListOf<String>()
@@ -155,7 +165,7 @@ class WebViewActivity : AppCompatActivity() {
             if (isCameraMode) {
                 optionsList.add(if (isOsdEnabled) strOsdHide else strOsdShow)
                 optionsList.add(strRatio)
-                optionsList.add(strCamType) // Neu im Kamera-Modus: Quelle wechseln!
+                optionsList.add(strCamType)
             }
             optionsList.add(strEmergency)
 
@@ -185,7 +195,6 @@ class WebViewActivity : AppCompatActivity() {
                         }
                     }
                     strCamType -> {
-                        // Sub-Menü für die Kamera-Quellen
                         val camOptions = arrayOf(
                             getString(R.string.camera_type_html),
                             getString(R.string.camera_type_port),
@@ -197,11 +206,9 @@ class WebViewActivity : AppCompatActivity() {
                                 2 -> "webcam"
                                 else -> "html"
                             }
-                            // Speichere den gewählten Typ dauerhaft für diese IP
                             getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit()
                                 .putString("camera_type_$hostIp", typeString).apply()
 
-                            // Neue URL direkt laden
                             val newUrl = when (typeString) {
                                 "port" -> "http://$hostIp:8080/?action=stream"
                                 "webcam" -> "http://$hostIp/webcam/?action=stream"
@@ -218,7 +225,7 @@ class WebViewActivity : AppCompatActivity() {
                             .setTitle(getString(R.string.dialog_stop_title))
                             .setMessage(getString(R.string.dialog_stop_msg))
                             .setPositiveButton(getString(R.string.dialog_stop_confirm)) { _, _ ->
-                                sendEmergencyStop(hostIp)
+                                sendEmergencyStop()
                             }
                             .setNegativeButton(getString(R.string.dialog_cancel), null)
                             .create()
@@ -230,13 +237,11 @@ class WebViewActivity : AppCompatActivity() {
             }
         }
 
-        // --- JETZT DIREKT: Smarter Wechsel ohne nervige Zwischenfragen ---
         btnToggle.setOnClickListener {
             val hostIp = Uri.parse(currentActiveUrl).host ?: ""
             val currentPrefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
 
             if (!isCameraMode) {
-                // Von Klipper -> WECHSEL ZU KAMERA: Lade direkt die gespeicherte Quelle!
                 val savedType = currentPrefs.getString("camera_type_$hostIp", "html") ?: "html"
                 val cameraUrl = when (savedType) {
                     "port" -> "http://$hostIp:8080/?action=stream"
@@ -246,7 +251,6 @@ class WebViewActivity : AppCompatActivity() {
                 val currentRatio = currentPrefs.getFloat("camera_ratio_$hostIp", 56.25f)
                 loadStreamOrUrl(cameraUrl, currentRatio)
             } else {
-                // Von Kamera -> WECHSEL ZU KLIPPER INTERFACE
                 showModernMenu("Interface", arrayOf("Standard", "Port 4408")) { subWhich ->
                     loadStreamOrUrl(if (subWhich == 0) "http://$hostIp" else "http://$hostIp:4408", 0f)
                 }
@@ -256,7 +260,6 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun loadStreamOrUrl(url: String, paddingTopPercent: Float) {
         currentActiveUrl = url
-
         val isMjpegStream = url.contains("action=stream")
         val isHtmlCamera = url.contains("camera.html")
         isCameraMode = isMjpegStream || isHtmlCamera
@@ -296,82 +299,218 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+    // NEU: Hilfsfunktion zum Abspielen von System-Sounds
+    private fun playSystemSound(isError: Boolean) {
+        try {
+            // Bei Fehler spielen wir den Alarm-Ton, sonst den normalen Benachrichtigungston
+            val alertType = if (isError) RingtoneManager.TYPE_ALARM else RingtoneManager.TYPE_NOTIFICATION
+            val uri = RingtoneManager.getDefaultUri(alertType)
+            val ringtone = RingtoneManager.getRingtone(applicationContext, uri)
+            ringtone.play()
+
+            // Falls es ein Fehler (Alarm) ist, stoppen wir ihn nach 3 Sekunden wieder,
+            // damit der TV nicht endlos weiter klingelt.
+            if (isError) {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    if (ringtone.isPlaying) {
+                        ringtone.stop()
+                    }
+                }, 3000)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun fetchMoonrakerData() {
-        val hostIp = Uri.parse(currentActiveUrl).host ?: return
-        val apiUrl = "http://$hostIp/printer/objects/query?extruder&heater_bed&print_stats"
+        val uri = Uri.parse(currentActiveUrl)
+        val hostIp = uri.host ?: return
+        val hostAuthority = uri.authority ?: hostIp
+
+        val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status"
+        val currentChamberQuery = if (knownChamberSensor != null) "&${knownChamberSensor!!.replace(" ", "%20")}" else ""
+
+        val urlsToTry = listOf(
+            "http://$hostIp:7125/$baseQuery$currentChamberQuery",
+            "http://$hostAuthority/$baseQuery$currentChamberQuery"
+        )
 
         Thread {
-            try {
-                val url = URL(apiUrl)
-                val conn = url.openConnection() as HttpURLConnection
-                conn.connectTimeout = 2000
-                conn.readTimeout = 2000
+            var responseText = ""
+            var lastErrorMsg = ""
+            var gotBadRequest = false
 
-                val response = conn.inputStream.bufferedReader().use { it.readText() }
-                val json = JSONObject(response)
-                val status = json.getJSONObject("result").getJSONObject("status")
+            for (urlStr in urlsToTry) {
+                try {
+                    val url = URL(urlStr)
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.connectTimeout = 3000
+                    conn.readTimeout = 3000
 
-                val extruder = status.getJSONObject("extruder")
-                val tempExtruder = extruder.getDouble("temperature")
-                val targetExtruder = extruder.getDouble("target")
-
-                val bed = status.getJSONObject("heater_bed")
-                val tempBed = bed.getDouble("temperature")
-                val targetBed = bed.getDouble("target")
-
-                val printStats = status.getJSONObject("print_stats")
-                val progress = printStats.getDouble("progress")
-                val duration = printStats.getInt("print_duration")
-
-                runOnUiThread {
-                    findViewById<TextView>(R.id.tvOsdExtruder).text =
-                        String.format("Düse: %.1f°C / %.0f°C", tempExtruder, targetExtruder)
-                    findViewById<TextView>(R.id.tvOsdBed).text =
-                        String.format("Bett: %.1f°C / %.0f°C", tempBed, targetBed)
-                    findViewById<TextView>(R.id.tvOsdProgress).text =
-                        String.format("%.1f%%", progress * 100)
-
-                    val passedMin = duration / 60
-                    val passedSec = duration % 60
-                    val passedStr = String.format("%02d:%02d", passedMin, passedSec)
-
-                    val totalStr = if (progress > 0.001) {
-                        val totalTimeEstimated = (duration / progress).toInt()
-                        val totMin = totalTimeEstimated / 60
-                        val totSec = totalTimeEstimated % 60
-                        String.format("%02d:%02d", totMin, totSec)
+                    val code = conn.responseCode
+                    if (code == 200) {
+                        responseText = conn.inputStream.bufferedReader().use { it.readText() }
+                        break
+                    } else if (code == 400 && knownChamberSensor != null) {
+                        gotBadRequest = true
+                        break
                     } else {
-                        "--:--"
+                        lastErrorMsg = "HTTP Error: $code"
                     }
-                    findViewById<TextView>(R.id.tvOsdTime).text = "Zeit: $passedStr / $totalStr"
+                } catch (e: Exception) {
+                    lastErrorMsg = e.message ?: "Connection failed"
                 }
-            } catch (e: Exception) {
+            }
+
+            if (gotBadRequest) {
+                chamberSearchIndex++
+                if (chamberSearchIndex < chamberNamesToTry.size) {
+                    knownChamberSensor = chamberNamesToTry[chamberSearchIndex]
+                } else {
+                    knownChamberSensor = null
+                }
+                fetchMoonrakerData()
+                return@Thread
+            }
+
+            if (responseText.isNotEmpty()) {
+                try {
+                    val json = JSONObject(responseText)
+                    val status = json.optJSONObject("result")?.optJSONObject("status")
+
+                    if (status != null) {
+                        val extruder = status.optJSONObject("extruder")
+                        val tempExtruder = extruder?.optDouble("temperature", 0.0) ?: 0.0
+                        val targetExtruder = extruder?.optDouble("target", 0.0) ?: 0.0
+
+                        val bed = status.optJSONObject("heater_bed")
+                        val tempBed = bed?.optDouble("temperature", 0.0) ?: 0.0
+                        val targetBed = bed?.optDouble("target", 0.0) ?: 0.0
+
+                        val displayStatus = status.optJSONObject("display_status")
+                        val progress = displayStatus?.optDouble("progress", 0.0) ?: 0.0
+
+                        val printStats = status.optJSONObject("print_stats")
+                        val duration = printStats?.optInt("print_duration", 0) ?: 0
+
+                        // NEU: Status-Logik für den Sound auslesen
+                        val currentState = printStats?.optString("state", "") ?: ""
+
+                        runOnUiThread {
+                            // Sound-Trigger: Wenn wir vorher einen bekannten Status hatten und dieser sich
+                            // jetzt auf 'complete' (Fertig) oder 'error' (Fehler) ändert.
+                            if (lastPrintState.isNotEmpty() && lastPrintState != currentState) {
+                                if (currentState == "complete") {
+                                    playSystemSound(false)
+                                    Toast.makeText(this@WebViewActivity, "Druck erfolgreich beendet!", Toast.LENGTH_LONG).show()
+                                } else if (currentState == "error") {
+                                    playSystemSound(true)
+                                    Toast.makeText(this@WebViewActivity, "ACHTUNG: Klipper Fehler!", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                            // Status für die nächste Abfrage merken
+                            lastPrintState = currentState
+
+                            // --- UI Aktualisierung ---
+                            findViewById<TextView>(R.id.tvOsdExtruder).text =
+                                String.format("Düse: %.1f°C / %.0f°C", tempExtruder, targetExtruder)
+                            findViewById<TextView>(R.id.tvOsdBed).text =
+                                String.format("Bett: %.1f°C / %.0f°C", tempBed, targetBed)
+                            findViewById<TextView>(R.id.tvOsdProgress).text =
+                                String.format("%.1f%%", progress * 100)
+
+                            val passedMin = duration / 60
+                            val passedSec = duration % 60
+                            val passedStr = String.format("%02d:%02d", passedMin, passedSec)
+
+                            val totalStr = if (progress > 0.001) {
+                                val totalTimeEstimated = (duration / progress).toInt()
+                                val totMin = totalTimeEstimated / 60
+                                val totSec = totalTimeEstimated % 60
+                                String.format("%02d:%02d", totMin, totSec)
+                            } else {
+                                "--:--"
+                            }
+                            findViewById<TextView>(R.id.tvOsdTime).text = "Zeit: $passedStr / $totalStr"
+
+                            val tvChamber = findViewById<TextView?>(R.id.tvOsdChamber)
+                            if (tvChamber != null) {
+                                if (knownChamberSensor != null) {
+                                    val chamberData = status.optJSONObject(knownChamberSensor)
+                                    val tempChamber = chamberData?.optDouble("temperature", 0.0) ?: 0.0
+                                    val targetChamber = chamberData?.optDouble("target", 0.0) ?: 0.0
+
+                                    if (tempChamber > 0.0) {
+                                        if (targetChamber > 0.0) {
+                                            tvChamber.text = String.format("Kammer: %.1f°C / %.0f°C", tempChamber, targetChamber)
+                                        } else {
+                                            tvChamber.text = String.format("Kammer: %.1f°C", tempChamber)
+                                        }
+                                        tvChamber.visibility = View.VISIBLE
+                                    } else {
+                                        tvChamber.visibility = View.GONE
+                                    }
+                                } else {
+                                    tvChamber.visibility = View.GONE
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        findViewById<TextView>(R.id.tvOsdExtruder).text = "JSON Fehler"
+                        findViewById<TextView>(R.id.tvOsdBed).text = e.message ?: "Parser Error"
+                    }
+                }
+            } else {
                 runOnUiThread {
                     findViewById<TextView>(R.id.tvOsdExtruder).text = getString(R.string.osd_no_connection)
+                    findViewById<TextView>(R.id.tvOsdBed).text = lastErrorMsg
                 }
             }
         }.start()
     }
 
-    private fun sendEmergencyStop(hostIp: String) {
-        Thread {
-            try {
-                val url = URL("http://$hostIp/printer/emergency_stop")
-                val conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "POST"
-                conn.connectTimeout = 3000
+    private fun sendEmergencyStop() {
+        val uri = Uri.parse(currentActiveUrl)
+        val hostIp = uri.host ?: return
+        val hostAuthority = uri.authority ?: hostIp
 
-                val responseCode = conn.responseCode
-                runOnUiThread {
-                    if (responseCode in 200..299) {
-                        Toast.makeText(this@WebViewActivity, getString(R.string.toast_stop_success), Toast.LENGTH_LONG).show()
-                    } else {
-                        Toast.makeText(this@WebViewActivity, getString(R.string.toast_stop_error) + responseCode, Toast.LENGTH_SHORT).show()
+        val urlsToTry = listOf(
+            "http://$hostIp:7125/printer/emergency_stop",
+            "http://$hostAuthority/printer/emergency_stop"
+        )
+
+        Thread {
+            var success = false
+            var lastResponseCode = -1
+
+            for (urlStr in urlsToTry) {
+                try {
+                    val url = URL(urlStr)
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.connectTimeout = 3000
+                    lastResponseCode = conn.responseCode
+
+                    if (lastResponseCode in 200..299) {
+                        success = true
+                        break
                     }
+                } catch (e: Exception) {
+                    // Loop versucht Backup-Adresse
                 }
-            } catch (e: Exception) {
-                runOnUiThread {
-                    Toast.makeText(this@WebViewActivity, getString(R.string.toast_no_connection), Toast.LENGTH_SHORT).show()
+            }
+
+            runOnUiThread {
+                if (success) {
+                    Toast.makeText(this@WebViewActivity, getString(R.string.toast_stop_success), Toast.LENGTH_LONG).show()
+                } else {
+                    if (lastResponseCode != -1) {
+                        Toast.makeText(this@WebViewActivity, getString(R.string.toast_stop_error) + lastResponseCode, Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@WebViewActivity, getString(R.string.toast_no_connection), Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }.start()
@@ -409,7 +548,6 @@ class WebViewActivity : AppCompatActivity() {
                 }
 
                 cornerRadius = 24
-
                 isFocusable = true
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {

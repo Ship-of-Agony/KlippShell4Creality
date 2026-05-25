@@ -14,6 +14,10 @@
     <string name="no_printers">No hay impresoras añadidas</string>
     <string name="btn_exit">Salir</string>
 
+    <string name="system_creality">Creality OS (Puerto 4408)</string>
+    <string name="system_standard">Klipper Estándar (Puerto 80)</string>
+    <string name="system_manual">Manual (Puerto Personalizado)</string>
+
     <string name="settings_title">Ajustes</string>
     <string name="dark_mode">Modo oscuro (Dark Mode)</string>
     <string name="change_language">Cambiar idioma / Language</string>

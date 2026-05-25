@@ -14,6 +14,10 @@
     <string name="no_printers">Žádné přidané tiskárny</string>
     <string name="btn_exit">Ukončit</string>
 
+    <string name="system_creality">Creality OS (Port 4408)</string>
+    <string name="system_standard">Standardní Klipper (Port 80)</string>
+    <string name="system_manual">Manuální (Vlastní Port)</string>
+
     <string name="settings_title">Nastavení</string>
     <string name="dark_mode">Tmavý režim (Dark Mode)</string>
     <string name="change_language">Změnit jazyk / Language</string>
