@@ -12,9 +12,9 @@ android {
         targetSdk = 36
 
         // Interner Code für Updates (immer +1 bei einer neuen Version)
-        versionCode = 5
+        versionCode = 6
         // Deine neue RC-Versionsnummer!
-        versionName = "0.5.250526-rc"
+        versionName = "0.6.250526-rc"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -1,31 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell 4 Creality</string>
-    
     <string name="add_printer">Přidat tiskárnu</string>
     <string name="add_printer_down">Přidat tiskárnu ▼</string>
     <string name="add_printer_up">Přidat tiskárnu ▲</string>
     <string name="printer_name_hint">Název tiskárny</string>
     <string name="printer_ip_hint">IP adresa (např. 192.168.1.50)</string>
     <string name="printer_port_hint">Port (Výchozí: 4408)</string>
-    <string name="printer_model_hint">Vybrat model</string>
+    <string name="printer_model_hint">Vyberte model</string>
     <string name="btn_add">Přidat</string>
-    <string name="btn_search_network">Prohledat síť</string>
+    <string name="btn_search_network">Hledat v síti</string>
     <string name="saved_printers">Uložené tiskárny</string>
-    <string name="no_printers">Nebyly přidány žádné tiskárny</string>
+    <string name="no_printers">Žádné přidané tiskárny</string>
     <string name="btn_exit">Ukončit</string>
-    
+
     <string name="settings_title">Nastavení</string>
     <string name="dark_mode">Tmavý režim (Dark Mode)</string>
     <string name="change_language">Změnit jazyk / Language</string>
     <string name="reset_app">Resetovat aplikaci</string>
     <string name="btn_back">Zpět</string>
-    
-    <string name="search_network">Prohledávám síť...</string>
+    <string name="search_network">Vyhledávání v síti...</string>
     <string name="found_printers">Nalezené tiskárny</string>
     <string name="cancel">Zrušit</string>
     <string name="yes_delete">Ano, smazat vše</string>
-    <string name="reset_confirm_title">Opravdu resetovat aplikaci?</string>
-    <string name="reset_confirm_msg">Jste si jistí? Všechny uložené tiskárny a nastavení budou trvale ztraceny. Aplikace se poté restartuje.</string>
+    <string name="reset_confirm_title">Zcela resetovat aplikaci?</string>
+    <string name="reset_confirm_msg">Jste si jisti? Všechny uložené tiskárny a nastavení budou trvale ztraceny. Aplikace se poté restartuje.</string>
     <string name="choose_default_view">Vybrat výchozí zobrazení</string>
+
+    <string name="menu_options_title">Možnosti</string>
+    <string name="menu_osd_show">Zobrazit OSD</string>
+    <string name="menu_osd_hide">Skrýt OSD</string>
+    <string name="menu_ratio">Upravit formát obrazu</string>
+    <string name="menu_change_camera_type">Změnit zdroj kamery</string>
+    <string name="camera_type_html">přes HTML (camera.html)</string>
+    <string name="camera_type_port">přes Port (:8080)</string>
+    <string name="camera_type_webcam">přes Webcam (/webcam/)</string>
+    <string name="menu_emergency_stop">NOUZOVÉ ZASTAVENÍ</string>
+
+    <string name="dialog_stop_title">SPUSTIT NOUZOVÉ ZASTAVENÍ</string>
+    <string name="dialog_stop_msg">Opravdu chcete tiskárnu okamžitě zastavit?\n(Toto odešle příkaz M112)</string>
+    <string name="dialog_stop_confirm">ANO, ZASTAVIT</string>
+    <string name="dialog_cancel">Zrušit</string>
+
+    <string name="toast_stop_success">Nouzové zastavení provedeno!</string>
+    <string name="toast_stop_error">Chyba při odesílání: </string>
+    <string name="toast_no_connection">Žádné připojení k tiskárně!</string>
+    <string name="osd_no_connection">HUD: Žádné připojení</string>
 </resources>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell 4 Creality</string>
-    
     <string name="add_printer">Drucker hinzufügen</string>
     <string name="add_printer_down">Drucker hinzufügen ▼</string>
     <string name="add_printer_up">Drucker hinzufügen ▲</string>
@@ -14,13 +13,12 @@
     <string name="saved_printers">Gespeicherte Drucker</string>
     <string name="no_printers">Keine Drucker hinzugefügt</string>
     <string name="btn_exit">Beenden</string>
-    
+
     <string name="settings_title">Einstellungen</string>
     <string name="dark_mode">Dunkles Design (Dark Mode)</string>
     <string name="change_language">Sprache ändern / Language</string>
     <string name="reset_app">App zurücksetzen</string>
     <string name="btn_back">Zurück</string>
-    
     <string name="search_network">Netzwerk durchsuchen...</string>
     <string name="found_printers">Gefundene Drucker</string>
     <string name="cancel">Abbrechen</string>
@@ -28,4 +26,24 @@
     <string name="reset_confirm_title">App wirklich zurücksetzen?</string>
     <string name="reset_confirm_msg">Bist du sicher? Alle gespeicherten Drucker und Einstellungen gehen unwiderruflich verloren. Die App wird danach neu gestartet.</string>
     <string name="choose_default_view">Standardansicht wählen</string>
+
+    <string name="menu_options_title">Optionen</string>
+    <string name="menu_osd_show">OSD einblenden</string>
+    <string name="menu_osd_hide">OSD ausblenden</string>
+    <string name="menu_ratio">Bildformat anpassen</string>
+    <string name="menu_change_camera_type">Kamera-Quelle wechseln</string>
+    <string name="camera_type_html">über HTML (camera.html)</string>
+    <string name="camera_type_port">über Port (:8080)</string>
+    <string name="camera_type_webcam">über Webcam (/webcam/)</string>
+    <string name="menu_emergency_stop">NOT-AUS (Panik-Stopp)</string>
+
+    <string name="dialog_stop_title">NOT-AUS AUSLÖSEN</string>
+    <string name="dialog_stop_msg">Willst du den Drucker wirklich sofort stoppen?\n(Dies sendet einen M112 Befehl)</string>
+    <string name="dialog_stop_confirm">JA, STOPPEN</string>
+    <string name="dialog_cancel">Abbrechen</string>
+
+    <string name="toast_stop_success">Not-Aus ausgeführt!</string>
+    <string name="toast_stop_error">Fehler beim Senden: </string>
+    <string name="toast_no_connection">Keine Verbindung zum Drucker!</string>
+    <string name="osd_no_connection">HUD: Keine Verbindung</string>
 </resources>

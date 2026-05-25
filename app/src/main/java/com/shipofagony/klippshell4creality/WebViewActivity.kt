@@ -1,10 +1,13 @@
 package com.shipofagony.klippshell4creality
 
+import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -13,54 +16,102 @@ import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import com.google.android.material.button.MaterialButton
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
 class WebViewActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
+    private lateinit var layoutOsd: LinearLayout
+
     private var currentActiveUrl: String = ""
+    private var isCameraMode: Boolean = false
+    private var isOsdEnabled: Boolean = false
+
+    private val osdHandler = Handler(Looper.getMainLooper())
+    private val osdRunnable = object : Runnable {
+        override fun run() {
+            if (isOsdEnabled && isCameraMode) {
+                fetchMoonrakerData()
+                osdHandler.postDelayed(this, 3000)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_webview)
 
         webView = findViewById(R.id.webView)
-        val btnBack = findViewById<Button>(R.id.btnWebBack)
-        val btnToggle = findViewById<Button>(R.id.btnWebToggle)
-        val btnClose = findViewById<Button>(R.id.btnWebClose)
-        val btnWebRatio = findViewById<Button>(R.id.btnWebRatio)
+        layoutOsd = findViewById(R.id.layoutOsd)
 
-        // TV-Box Fernbedienungs-Fokus (Leuchtrand + Schatten)
+        val btnMenu = findViewById<MaterialButton>(R.id.btnWebMenu)
+        val btnToggle = findViewById<MaterialButton>(R.id.btnWebToggle)
+        val btnClose = findViewById<MaterialButton>(R.id.btnWebClose)
+
         val tvFocusListener = View.OnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
                 view.animate().scaleX(1.1f).scaleY(1.1f).alpha(1.0f).translationZ(8f).setDuration(150).start()
-                if (view is com.google.android.material.button.MaterialButton) {
+                if (view is MaterialButton) {
                     view.strokeWidth = 6
-                    view.strokeColor = android.content.res.ColorStateList.valueOf(Color.WHITE)
+                    view.strokeColor = ColorStateList.valueOf(Color.WHITE)
                 }
             } else {
                 view.animate().scaleX(1.0f).scaleY(1.0f).alpha(0.8f).translationZ(0f).setDuration(150).start()
-                if (view is com.google.android.material.button.MaterialButton) {
+                if (view is MaterialButton) {
                     view.strokeWidth = 0
                 }
             }
         }
 
-        arrayOf(btnBack, btnToggle, btnClose, btnWebRatio).forEach { btn ->
+        val dpadUpListener = View.OnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                webView.requestFocus()
+                return@OnKeyListener true
+            }
+            false
+        }
+
+        arrayOf(btnMenu, btnToggle, btnClose).forEach { btn ->
             btn.isFocusable = true
             btn.alpha = 0.8f
             btn.onFocusChangeListener = tvFocusListener
+            btn.setOnKeyListener(dpadUpListener)
         }
 
-        webView.webViewClient = WebViewClient()
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                val jsInjection = """
+                    var style = document.createElement('style');
+                    style.innerHTML = '*:focus { outline: 4px solid #FFFFFF !important; outline-offset: -2px !important; background-color: rgba(255, 255, 255, 0.15) !important; border-radius: 4px !important; }';
+                    document.head.appendChild(style);
+                    
+                    var retryCount = 0;
+                    var interval = setInterval(function() {
+                        var items = document.querySelectorAll('.v-list-item, .v-btn, a, button, input');
+                        items.forEach(function(item) {
+                            if (!item.hasAttribute('tabindex')) {
+                                item.setAttribute('tabindex', '0');
+                            }
+                        });
+                        retryCount++;
+                        if (retryCount > 5) clearInterval(interval);
+                    }, 1000);
+                """.trimIndent()
+                view?.evaluateJavascript(jsInjection, null)
+            }
+        }
+
         webView.webChromeClient = WebChromeClient()
 
-        // DAUERHAFT SICHTBARER SCROLLBALKEN
         webView.isVerticalScrollBarEnabled = true
         webView.isScrollbarFadingEnabled = false
         webView.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
@@ -80,39 +131,124 @@ class WebViewActivity : AppCompatActivity() {
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
         currentActiveUrl = intent.getStringExtra("TARGET_URL") ?: "http://google.com"
-        loadStreamOrUrl(currentActiveUrl, 56.25f)
 
-        btnBack.setOnClickListener { if (webView.canGoBack()) webView.goBack() else finish() }
+        // Prüfen, ob die übergebene URL bereits eine Kamera-URL ist
+        val initialIp = Uri.parse(currentActiveUrl).host ?: ""
+        val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+        val savedRatio = prefs.getFloat("camera_ratio_$initialIp", 56.25f)
+
+        loadStreamOrUrl(currentActiveUrl, savedRatio)
+
         btnClose.setOnClickListener { finish() }
 
-        btnWebRatio.setOnClickListener {
-            showModernMenu("Format wählen", arrayOf("1:1", "16:9", "4:3")) { which ->
-                val ratio = when (which) {
-                    0 -> 100f
-                    1 -> 56.25f
-                    else -> 75f
+        // --- Das Optionen-Menü mit Kamera-Quellen-Auswahl ---
+        btnMenu.setOnClickListener {
+            val hostIp = Uri.parse(currentActiveUrl).host ?: ""
+            val optionsList = mutableListOf<String>()
+
+            val strOsdShow = getString(R.string.menu_osd_show)
+            val strOsdHide = getString(R.string.menu_osd_hide)
+            val strRatio = getString(R.string.menu_ratio)
+            val strCamType = getString(R.string.menu_change_camera_type)
+            val strEmergency = getString(R.string.menu_emergency_stop)
+
+            if (isCameraMode) {
+                optionsList.add(if (isOsdEnabled) strOsdHide else strOsdShow)
+                optionsList.add(strRatio)
+                optionsList.add(strCamType) // Neu im Kamera-Modus: Quelle wechseln!
+            }
+            optionsList.add(strEmergency)
+
+            showModernMenu(getString(R.string.menu_options_title), optionsList.toTypedArray()) { selectedIndex ->
+                val chosenOption = optionsList[selectedIndex]
+
+                when (chosenOption) {
+                    strOsdShow, strOsdHide -> {
+                        isOsdEnabled = !isOsdEnabled
+                        layoutOsd.visibility = if (isOsdEnabled && isCameraMode) View.VISIBLE else View.GONE
+                        if (isOsdEnabled) {
+                            osdHandler.removeCallbacks(osdRunnable)
+                            osdHandler.post(osdRunnable)
+                        }
+                    }
+                    strRatio -> {
+                        showModernMenu("Format", arrayOf("1:1", "16:9", "4:3")) { ratioIndex ->
+                            val ratio = when (ratioIndex) {
+                                0 -> 100f
+                                1 -> 56.25f
+                                else -> 75f
+                            }
+                            getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit()
+                                .putFloat("camera_ratio_$hostIp", ratio).apply()
+
+                            loadStreamOrUrl(currentActiveUrl, ratio)
+                        }
+                    }
+                    strCamType -> {
+                        // Sub-Menü für die Kamera-Quellen
+                        val camOptions = arrayOf(
+                            getString(R.string.camera_type_html),
+                            getString(R.string.camera_type_port),
+                            getString(R.string.camera_type_webcam)
+                        )
+                        showModernMenu(strCamType, camOptions) { camIndex ->
+                            val typeString = when (camIndex) {
+                                1 -> "port"
+                                2 -> "webcam"
+                                else -> "html"
+                            }
+                            // Speichere den gewählten Typ dauerhaft für diese IP
+                            getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit()
+                                .putString("camera_type_$hostIp", typeString).apply()
+
+                            // Neue URL direkt laden
+                            val newUrl = when (typeString) {
+                                "port" -> "http://$hostIp:8080/?action=stream"
+                                "webcam" -> "http://$hostIp/webcam/?action=stream"
+                                else -> "http://$hostIp/camera.html"
+                            }
+                            val currentRatio = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+                                .getFloat("camera_ratio_$hostIp", 56.25f)
+
+                            loadStreamOrUrl(newUrl, currentRatio)
+                        }
+                    }
+                    strEmergency -> {
+                        val confirmDialog = AlertDialog.Builder(this@WebViewActivity)
+                            .setTitle(getString(R.string.dialog_stop_title))
+                            .setMessage(getString(R.string.dialog_stop_msg))
+                            .setPositiveButton(getString(R.string.dialog_stop_confirm)) { _, _ ->
+                                sendEmergencyStop(hostIp)
+                            }
+                            .setNegativeButton(getString(R.string.dialog_cancel), null)
+                            .create()
+
+                        confirmDialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
+                        confirmDialog.show()
+                    }
                 }
-                loadStreamOrUrl(currentActiveUrl, ratio)
             }
         }
 
+        // --- JETZT DIREKT: Smarter Wechsel ohne nervige Zwischenfragen ---
         btnToggle.setOnClickListener {
             val hostIp = Uri.parse(currentActiveUrl).host ?: ""
+            val currentPrefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
 
-            showModernMenu("Ansicht wechseln", arrayOf("Interface", "Kamera")) { mainWhich ->
-                if (mainWhich == 0) {
-                    showModernMenu("Interface wählen", arrayOf("Standard", "Port 4408")) { subWhich ->
-                        loadStreamOrUrl(if (subWhich == 0) "http://$hostIp" else "http://$hostIp:4408", 0f)
-                    }
-                } else {
-                    showModernMenu("Kamera wählen", arrayOf("über HTML", "über Port", "über Webcam")) { subWhich ->
-                        val url = when (subWhich) {
-                            0 -> "http://$hostIp/camera.html"
-                            1 -> "http://$hostIp:8080/?action=stream"
-                            else -> "http://$hostIp/webcam/?action=stream"
-                        }
-                        loadStreamOrUrl(url, 56.25f)
-                    }
+            if (!isCameraMode) {
+                // Von Klipper -> WECHSEL ZU KAMERA: Lade direkt die gespeicherte Quelle!
+                val savedType = currentPrefs.getString("camera_type_$hostIp", "html") ?: "html"
+                val cameraUrl = when (savedType) {
+                    "port" -> "http://$hostIp:8080/?action=stream"
+                    "webcam" -> "http://$hostIp/webcam/?action=stream"
+                    else -> "http://$hostIp/camera.html"
+                }
+                val currentRatio = currentPrefs.getFloat("camera_ratio_$hostIp", 56.25f)
+                loadStreamOrUrl(cameraUrl, currentRatio)
+            } else {
+                // Von Kamera -> WECHSEL ZU KLIPPER INTERFACE
+                showModernMenu("Interface", arrayOf("Standard", "Port 4408")) { subWhich ->
+                    loadStreamOrUrl(if (subWhich == 0) "http://$hostIp" else "http://$hostIp:4408", 0f)
                 }
             }
         }
@@ -120,16 +256,17 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun loadStreamOrUrl(url: String, paddingTopPercent: Float) {
         currentActiveUrl = url
-        val btnWebRatio = findViewById<Button>(R.id.btnWebRatio)
 
         val isMjpegStream = url.contains("action=stream")
         val isHtmlCamera = url.contains("camera.html")
-        val isCamera = isMjpegStream || isHtmlCamera
+        isCameraMode = isMjpegStream || isHtmlCamera
 
-        if (isCamera) {
-            // Kamera-Modus: Button voll aktivieren und einblenden
-            btnWebRatio.visibility = View.VISIBLE
-            btnWebRatio.isFocusable = true
+        if (isCameraMode) {
+            layoutOsd.visibility = if (isOsdEnabled) View.VISIBLE else View.GONE
+            if (isOsdEnabled) {
+                osdHandler.removeCallbacks(osdRunnable)
+                osdHandler.post(osdRunnable)
+            }
 
             val mediaElement = if (isHtmlCamera) {
                 "<iframe src=\"$url\" scrolling=\"no\" style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; overflow: hidden;\"></iframe>"
@@ -144,29 +281,100 @@ class WebViewActivity : AppCompatActivity() {
                     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
                     <style>
                         body { margin: 0; padding: 0; background-color: #000000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-                        .container {
-                            position: relative;
-                            width: 100%;
-                            height: 0;
-                            padding-top: ${paddingTopPercent}%;
-                        }
+                        .container { position: relative; width: 100%; height: 0; padding-top: ${paddingTopPercent}%; }
                     </style>
                 </head>
-                <body>
-                    <div class="container">
-                        $mediaElement
-                    </div>
-                </body>
+                <body> <div class="container"> $mediaElement </div> </body>
                 </html>
             """.trimIndent()
 
             webView.loadDataWithBaseURL(url, html, "text/html", "UTF-8", null)
         } else {
-            // Klipper-Interface: Button komplett verschwinden lassen und Fokus sperren
-            btnWebRatio.visibility = View.GONE
-            btnWebRatio.isFocusable = false
+            layoutOsd.visibility = View.GONE
+            osdHandler.removeCallbacks(osdRunnable)
             webView.loadUrl(url)
         }
+    }
+
+    private fun fetchMoonrakerData() {
+        val hostIp = Uri.parse(currentActiveUrl).host ?: return
+        val apiUrl = "http://$hostIp/printer/objects/query?extruder&heater_bed&print_stats"
+
+        Thread {
+            try {
+                val url = URL(apiUrl)
+                val conn = url.openConnection() as HttpURLConnection
+                conn.connectTimeout = 2000
+                conn.readTimeout = 2000
+
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                val json = JSONObject(response)
+                val status = json.getJSONObject("result").getJSONObject("status")
+
+                val extruder = status.getJSONObject("extruder")
+                val tempExtruder = extruder.getDouble("temperature")
+                val targetExtruder = extruder.getDouble("target")
+
+                val bed = status.getJSONObject("heater_bed")
+                val tempBed = bed.getDouble("temperature")
+                val targetBed = bed.getDouble("target")
+
+                val printStats = status.getJSONObject("print_stats")
+                val progress = printStats.getDouble("progress")
+                val duration = printStats.getInt("print_duration")
+
+                runOnUiThread {
+                    findViewById<TextView>(R.id.tvOsdExtruder).text =
+                        String.format("Düse: %.1f°C / %.0f°C", tempExtruder, targetExtruder)
+                    findViewById<TextView>(R.id.tvOsdBed).text =
+                        String.format("Bett: %.1f°C / %.0f°C", tempBed, targetBed)
+                    findViewById<TextView>(R.id.tvOsdProgress).text =
+                        String.format("%.1f%%", progress * 100)
+
+                    val passedMin = duration / 60
+                    val passedSec = duration % 60
+                    val passedStr = String.format("%02d:%02d", passedMin, passedSec)
+
+                    val totalStr = if (progress > 0.001) {
+                        val totalTimeEstimated = (duration / progress).toInt()
+                        val totMin = totalTimeEstimated / 60
+                        val totSec = totalTimeEstimated % 60
+                        String.format("%02d:%02d", totMin, totSec)
+                    } else {
+                        "--:--"
+                    }
+                    findViewById<TextView>(R.id.tvOsdTime).text = "Zeit: $passedStr / $totalStr"
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    findViewById<TextView>(R.id.tvOsdExtruder).text = getString(R.string.osd_no_connection)
+                }
+            }
+        }.start()
+    }
+
+    private fun sendEmergencyStop(hostIp: String) {
+        Thread {
+            try {
+                val url = URL("http://$hostIp/printer/emergency_stop")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.connectTimeout = 3000
+
+                val responseCode = conn.responseCode
+                runOnUiThread {
+                    if (responseCode in 200..299) {
+                        Toast.makeText(this@WebViewActivity, getString(R.string.toast_stop_success), Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(this@WebViewActivity, getString(R.string.toast_stop_error) + responseCode, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this@WebViewActivity, getString(R.string.toast_no_connection), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
     }
 
     private fun showModernMenu(title: String, items: Array<String>, onItemSelected: (Int) -> Unit) {
@@ -181,14 +389,25 @@ class WebViewActivity : AppCompatActivity() {
         val textColor = if (isNightMode) Color.WHITE else Color.BLACK
         val buttonBgColor = if (isNightMode) Color.parseColor("#424242") else Color.parseColor("#E0E0E0")
 
+        val strEmergency = getString(R.string.menu_emergency_stop)
+
         items.forEachIndexed { index, itemText ->
-            val btn = com.google.android.material.button.MaterialButton(this).apply {
+            val btn = MaterialButton(this).apply {
                 text = itemText
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                     setMargins(0, 10, 0, 10)
                 }
-                backgroundTintList = ColorStateList.valueOf(buttonBgColor)
-                setTextColor(textColor)
+
+                if (itemText == strEmergency) {
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#33E53935"))
+                    setTextColor(Color.parseColor("#E53935"))
+                    strokeColor = ColorStateList.valueOf(Color.parseColor("#E53935"))
+                    strokeWidth = 3
+                } else {
+                    backgroundTintList = ColorStateList.valueOf(buttonBgColor)
+                    setTextColor(textColor)
+                }
+
                 cornerRadius = 24
 
                 isFocusable = true
@@ -196,13 +415,16 @@ class WebViewActivity : AppCompatActivity() {
                     if (hasFocus) {
                         v.animate().scaleX(1.05f).scaleY(1.05f).translationZ(8f).setDuration(150).start()
                         strokeWidth = 6
-                        strokeColor = android.content.res.ColorStateList.valueOf(Color.WHITE)
+                        strokeColor = if (itemText == strEmergency) {
+                            ColorStateList.valueOf(Color.parseColor("#FF5252"))
+                        } else {
+                            ColorStateList.valueOf(Color.WHITE)
+                        }
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(150).start()
-                        strokeWidth = 0
+                        strokeWidth = if (itemText == strEmergency) 3 else 0
                     }
                 }
-
                 setOnClickListener { onItemSelected(index); dialog.dismiss() }
             }
             container.addView(btn)
@@ -212,18 +434,12 @@ class WebViewActivity : AppCompatActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK && webView.hasFocus()) {
-            val btnToggle = findViewById<Button>(R.id.btnWebToggle)
-            btnToggle.requestFocus()
+            findViewById<MaterialButton>(R.id.btnWebToggle).requestFocus()
             return true
         }
-
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (webView.canGoBack()) {
-                webView.goBack()
-                return true
-            }
+            if (webView.canGoBack()) { webView.goBack(); return true }
         }
-
         return super.onKeyDown(keyCode, event)
     }
 }

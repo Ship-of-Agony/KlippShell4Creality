@@ -2,6 +2,7 @@ package com.shipofagony.klippshell4creality
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -76,6 +77,17 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
+        // --- NEU: Dark Mode Wasserzeichen Fix ---
+        val ivBackgroundWatermark = findViewById<ImageView>(R.id.ivBackgroundWatermark)
+        if (ivBackgroundWatermark != null) {
+            val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+                ivBackgroundWatermark.alpha = 0.15f // Im Dark Mode kräftiger
+            } else {
+                ivBackgroundWatermark.alpha = 0.08f // Im Light Mode dezent
+            }
+        }
+
         containerPrinters = findViewById(R.id.containerPrinters)
         tvNoPrinter = findViewById(R.id.tvNoPrinter)
         etMainPrinterName = findViewById(R.id.etMainPrinterName)
@@ -114,7 +126,7 @@ class MainActivity : AppCompatActivity() {
         val btnAddMainPrinter = findViewById<Button>(R.id.btnAddMainPrinter)
         val btnExitApp = findViewById<Button>(R.id.btnExitApp)
 
-        // --- NEU: Starker TV-Fokus ---
+        // --- Starker TV-Fokus ---
         val tvFocusListener = View.OnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
                 view.animate().scaleX(1.05f).scaleY(1.05f).alpha(1.0f).translationZ(8f).setDuration(150).start()
@@ -336,7 +348,7 @@ class MainActivity : AppCompatActivity() {
 
             itemView.isFocusable = true
 
-            // --- NEU: Leucht-Fokus für Druckerliste ---
+            // --- Leucht-Fokus für Druckerliste ---
             itemView.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
                     v.animate().scaleX(1.02f).scaleY(1.02f).translationZ(8f).setDuration(150).start()
