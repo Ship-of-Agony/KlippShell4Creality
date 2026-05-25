@@ -16,4 +16,7 @@ To install the app on your Android device:
 ## Source Code & Development
 This project is open-source. Feel free to clone the repository, open it in **Android Studio**, and customize it to your needs.
 
-Many thanks to DnG Crafts for the inspiration for this app. I really appreciate your work in the 3D scene.
+---
+
+## 🙏 Special Thanks
+> Many thanks to **DnG Crafts** for the inspiration for this app. I really appreciate your work in the 3D scene.
