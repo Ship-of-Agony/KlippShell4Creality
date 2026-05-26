@@ -1,3 +1,5 @@
+![Downloads](https://img.shields.io/github/downloads/ship-of-agony/KlippShell4Creality/total?style=flat-square&color=blue)
+
 # KlippShell 4 Creality
 
 An Android application designed to easily control your **Creality K2 Plus (Klipper)** 3D printer directly from an **Android TV box** (or smartphone/tablet), without needing a PC running constantly.
