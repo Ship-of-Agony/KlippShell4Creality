@@ -37,6 +37,58 @@ class MainActivity : AppCompatActivity() {
     // Status-Speicher: 0 = Creality (Standard), 1 = Klipper, 2 = Manuell
     private var selectedSystemIndex = 0
 
+    // --- NEU: UNSER "WÖRTERBUCH" (Schöner Name -> Dateiname) ---
+    // Hier wird das schöne Menü mit den korrekten Bild-Dateien verknüpft
+    private val printerMap = mapOf(
+        "CR-10" to "cr_10",
+        "CR-10 SE" to "cr_10se",
+        "CR-10 Smart" to "cr_10smart",
+        "CR-10 Smart Pro" to "cr_10smartpro",
+        "CR-10S Pro V2" to "cr_10sprov2",
+        "CR-20 Pro" to "cr_20pro",
+        "CR-30" to "cr_30",
+        "CR-6 SE" to "cr_6se",
+        "CR-M4" to "cr_m4",
+        "CR-M4 SE" to "cr_m4se",
+        "Ender 2 Pro" to "ender_2pro",
+        "Ender 3" to "ender_3",
+        "Ender 3 Max" to "ender_3max",
+        "Ender 3 Max Neo" to "ender_3maxneo",
+        "Ender 3 Neo" to "ender_3neo",
+        "Ender 3 S1" to "ender_3s1",
+        "Ender 3 S1 Plus" to "ender_3s1plus",
+        "Ender 3 S1 Pro" to "ender_3s1pro",
+        "Ender 3 V2" to "ender_3v2",
+        "Ender 3 V3" to "ender_3v3",
+        "Ender 3 V3 KE" to "ender_3v3ke",
+        "Ender 3 V3 Plus" to "ender_3v3plus",
+        "Ender 3 V3 SE" to "ender_3v3se",
+        "Ender 3 V4" to "ender_3v4",
+        "Ender 5 Max" to "ender_5max",
+        "Ender 5 Plus" to "ender_5plus",
+        "Ender 5 S1" to "ender_5s1",
+        "GS-01" to "gs_01",
+        "GS-02" to "gs_02",
+        "GS-03" to "gs_03",
+        "GS-04" to "gs_04",
+        "HI" to "hi",
+        "K1" to "k1",
+        "K1C" to "k1c",
+        "K1 Max" to "k1max",
+        "K1 SE" to "k1se",
+        "K2" to "k2",
+        "K2 Plus" to "k2plus",
+        "K2 Pro" to "k2pro",
+        "K2 SE" to "k2se",
+        "Sermoon D3" to "sermoond3",
+        "Sermoon D3 Pro" to "sermoond3pro",
+        "Sermoon M300" to "sermoonm300",
+        "Sermoon V1 Pro" to "sermoonv1pro",
+        "Sonic Pad (Ender 3 S1)" to "sonic_ender_3s1",
+        "Sonic Pad (Ender 5 S1)" to "sonic_ender_5s1",
+        "Spark Xi7" to "sparkxi7"
+    )
+
     private class CenteredDialogAdapter(context: Context, items: Array<String>) :
         ArrayAdapter<String>(context, android.R.layout.select_dialog_item, android.R.id.text1, items) {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -61,11 +113,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // --- NEU: Intelligentes Icon-Laden über das Wörterbuch ---
     private fun getPrinterImageResource(modelName: String): Int {
-        val formattedName = modelName.lowercase(Locale.getDefault())
-            .replace(" ", "").replace("-", "_")
-        val resourceName = "printer_$formattedName"
+        // Schaut nach, ob der hübsche Name in unserer Map steht.
+        // Falls nicht (z.B. bei alten Speicherdaten), wird als Fallback der übergebene Name direkt verarbeitet.
+        val mappedName = printerMap[modelName] ?: modelName.lowercase(Locale.getDefault()).replace(" ", "").replace("-", "_")
+
+        val resourceName = "printer_$mappedName"
         val resId = resources.getIdentifier(resourceName, "drawable", packageName)
+
         return if (resId != 0) resId else R.mipmap.ic_launcher
     }
 
@@ -136,9 +192,16 @@ class MainActivity : AppCompatActivity() {
             dialog.show()
         }
 
-        val printerModels = arrayOf("CR-10", "Ender 3 V3 KE", "K1", "K1 Max", "K2 Plus", "Sonic Pad (Ender 3 S1)", "Sonic Pad (Ender 5 S1)", "Sermoon D3", "GS-01")
+        // --- NEU: Wir laden die schönen Namen direkt aus unserem Lexikon! ---
+        val printerModels = printerMap.keys.toTypedArray()
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, printerModels)
         actvMainPrinterModel.setAdapter(adapter)
+
+        // TV-Fix: Die Liste klappt jetzt auf dem TV beim Fokussieren oder Anklicken direkt auf
+        actvMainPrinterModel.setOnClickListener { actvMainPrinterModel.showDropDown() }
+        actvMainPrinterModel.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) actvMainPrinterModel.showDropDown()
+        }
 
         val buttons = arrayOf(
             findViewById<View>(R.id.btnSettings),
@@ -195,6 +258,8 @@ class MainActivity : AppCompatActivity() {
                 val dialog = AlertDialog.Builder(this@MainActivity)
                     .setCustomTitle(createCenteredTitle(getString(R.string.choose_default_view)))
                     .setAdapter(CenteredDialogAdapter(this@MainActivity, arrayOf("Interface", "Kamera"))) { _, which ->
+
+                        // Hier wird jetzt der "schöne" Name (z.B. "K2 Plus") gespeichert
                         savePrinter(name, ip, port, actvMainPrinterModel.text.toString().trim(), if (which == 0) "interface" else "camera")
 
                         etMainPrinterName.text.clear()
@@ -225,7 +290,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Hier wird die Druckerliste beim Start geladen!
         loadPrinters()
     }
 
@@ -344,6 +408,7 @@ class MainActivity : AppCompatActivity() {
 
             val iconView = itemView.findViewById<ImageView>(R.id.ivPrinterIcon)
             if (iconView != null) {
+                // Das Wörterbuch kümmert sich um die Übersetzung
                 iconView.setImageResource(getPrinterImageResource(printer.getString("model")))
             }
 
@@ -361,7 +426,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             itemView.setOnLongClickListener {
-                val mainAdapter = CenteredDialogAdapter(this@MainActivity, arrayOf(getString(R.string.choose_default_view), "Drucker löschen"))
+                val mainAdapter = CenteredDialogAdapter(this@MainActivity, arrayOf(getString(R.string.choose_default_view), getString(R.string.yes_delete)))
                 val actionDialog = AlertDialog.Builder(this@MainActivity)
                     .setCustomTitle(createCenteredTitle(printer.getString("name")))
                     .setAdapter(mainAdapter) { _, whichAction ->
@@ -383,8 +448,7 @@ class MainActivity : AppCompatActivity() {
                             changeDialog.show()
                         } else {
                             val deleteDialog = AlertDialog.Builder(this@MainActivity)
-                                .setCustomTitle(createCenteredTitle("Drucker löschen?"))
-                                .setMessage(getString(R.string.reset_confirm_msg))
+                                .setCustomTitle(createCenteredTitle(getString(R.string.reset_confirm_msg)))
                                 .setPositiveButton(getString(R.string.yes_delete)) { _, _ ->
                                     val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
                                     val currentArray = JSONArray(prefs.getString("printers_list", "[]"))

@@ -15,7 +15,7 @@
     <string name="btn_exit">Quitter</string>
 
     <string name="system_creality">Creality OS (Port 4408)</string>
-    <string name="system_standard">Klipper Standard (Port 80)</string>
+    <string name="system_standard">Klipper standard (Port 80)</string>
     <string name="system_manual">Manuel (Port personnalisé)</string>
 
     <string name="settings_title">Paramètres</string>
@@ -25,16 +25,22 @@
     <string name="btn_back">Retour</string>
     <string name="search_network">Recherche sur le réseau...</string>
     <string name="found_printers">Imprimantes trouvées</string>
+
+    <string name="reset_app_title">Réinitialiser l\'application ?</string>
+    <string name="reset_app_msg">Êtes-vous sûr ? Toutes les imprimantes enregistrées et les paramètres seront définitivement supprimés.</string>
+    <string name="reset_app_yes">Oui, tout réinitialiser</string>
+    <string name="reset_app_cancel">Annuler</string>
+
+    <string name="reset_confirm_msg">Voulez-vous vraiment supprimer cette imprimante ?</string>
+    <string name="yes_delete">Oui, supprimer</string>
+
     <string name="cancel">Annuler</string>
-    <string name="yes_delete">Oui, tout supprimer</string>
-    <string name="reset_confirm_title">Réinitialiser complètement l\'application ?</string>
-    <string name="reset_confirm_msg">Êtes-vous sûr ? Toutes les imprimantes et paramètres enregistrés seront définitivement perdus. L\'application redémarrera ensuite.</string>
     <string name="choose_default_view">Choisir la vue par défaut</string>
 
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Afficher l\'OSD</string>
     <string name="menu_osd_hide">Masquer l\'OSD</string>
-    <string name="menu_ratio">Ajuster le format de l\'image</string>
+    <string name="menu_ratio">Ajuster le format d\'image</string>
     <string name="menu_change_camera_type">Changer la source de la caméra</string>
     <string name="camera_type_html">via HTML (camera.html)</string>
     <string name="camera_type_port">via Port (:8080)</string>
@@ -47,7 +53,7 @@
     <string name="dialog_cancel">Annuler</string>
 
     <string name="toast_stop_success">Arrêt d\'urgence exécuté !</string>
-    <string name="toast_stop_error">Erreur lors de l\'envoi : </string>
+    <string name="toast_stop_error">Erreur d\'envoi : </string>
     <string name="toast_no_connection">Aucune connexion à l\'imprimante !</string>
-    <string name="osd_no_connection">HUD : Aucune connexion</string>
+    <string name="osd_no_connection">HUD : Pas de connexion</string>
 </resources>

@@ -23,14 +23,12 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        // --- NEU: Der ultimative Dark Mode Fix für das Fenster ---
+        // --- Der ultimative Dark Mode Fix für das Fenster ---
         val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         if (isNightMode) {
-            // Färbt den gesamten Hintergrund und die Karte hart auf Dark Mode um
             window.decorView.setBackgroundColor(Color.parseColor("#121212"))
             findViewById<View>(R.id.panelSettings)?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor("#1E1E1E"))
         } else {
-            // Standard Light Mode
             window.decorView.setBackgroundColor(Color.parseColor("#F5F5F5"))
             findViewById<View>(R.id.panelSettings)?.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
         }
@@ -69,7 +67,7 @@ class SettingsActivity : AppCompatActivity() {
             btn.onFocusChangeListener = tvFocusListener
         }
 
-        // --- UNSERE EASTER EGG LOGIK (Mittig platziert & ohne das Wort Easter Egg) ---
+        // --- UNSERE EASTER EGG LOGIK ---
         var logoClicks = 0
         ivAboutStudioLogo.setOnClickListener {
             logoClicks++
@@ -80,7 +78,6 @@ class SettingsActivity : AppCompatActivity() {
                     toast.show()
                 }
                 7 -> {
-                    // Cleaner Text, sauber in der Mitte des Bildschirms!
                     val toast = Toast.makeText(this, "Möge dein First Layer immer perfekt sein!", Toast.LENGTH_LONG)
                     toast.setGravity(Gravity.CENTER, 0, 0)
                     toast.show()
@@ -102,7 +99,6 @@ class SettingsActivity : AppCompatActivity() {
             val codes = resources.getStringArray(R.array.language_codes)
             val names = resources.getStringArray(R.array.language_names)
 
-            // Zwingt auch das Sprach-Auswahlfenster in den richtigen Farbmodus
             val dialogTheme = if (isNightMode) android.R.style.Theme_DeviceDefault_Dialog_Alert else android.R.style.Theme_DeviceDefault_Light_Dialog_Alert
 
             AlertDialog.Builder(this, dialogTheme)
@@ -115,13 +111,36 @@ class SettingsActivity : AppCompatActivity() {
                 }.show()
         }
 
+        // --- VOLLSTÄNDIGER LÖSCH-DIALOG (Hard-Reset) ---
         btnResetApp.setOnClickListener {
-            prefs.edit().clear().apply()
-            Toast.makeText(this, "App zurückgesetzt", Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, MainActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            startActivity(intent)
-            finish()
+            val titleView = TextView(this).apply {
+                text = getString(R.string.reset_app_title)
+                setPadding(0, 40, 0, 10)
+                textSize = 20f
+                gravity = Gravity.CENTER
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                setTextColor(if (isNightMode) Color.WHITE else Color.BLACK)
+            }
+
+            val dialog = AlertDialog.Builder(this)
+                .setCustomTitle(titleView)
+                .setMessage(getString(R.string.reset_app_msg))
+                .setPositiveButton(getString(R.string.reset_app_yes)) { _, _ ->
+
+                    // WIRKLICH ALLES LÖSCHEN (Factory Reset)
+                    prefs.edit().clear().apply()
+
+                    Toast.makeText(this, "App komplett zurückgesetzt", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    startActivity(intent)
+                    finish()
+                }
+                .setNegativeButton(getString(R.string.reset_app_cancel), null)
+                .create()
+
+            dialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
+            dialog.show()
         }
 
         btnSettingsBack.setOnClickListener { finish() }

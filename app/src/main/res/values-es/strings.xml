@@ -11,12 +11,12 @@
     <string name="btn_add">Añadir</string>
     <string name="btn_search_network">Buscar en la red</string>
     <string name="saved_printers">Impresoras guardadas</string>
-    <string name="no_printers">No hay impresoras añadidas</string>
+    <string name="no_printers">No se han añadido impresoras</string>
     <string name="btn_exit">Salir</string>
 
     <string name="system_creality">Creality OS (Puerto 4408)</string>
-    <string name="system_standard">Klipper Estándar (Puerto 80)</string>
-    <string name="system_manual">Manual (Puerto Personalizado)</string>
+    <string name="system_standard">Klipper estándar (Puerto 80)</string>
+    <string name="system_manual">Manual (Puerto propio)</string>
 
     <string name="settings_title">Ajustes</string>
     <string name="dark_mode">Modo oscuro (Dark Mode)</string>
@@ -25,16 +25,22 @@
     <string name="btn_back">Volver</string>
     <string name="search_network">Buscando en la red...</string>
     <string name="found_printers">Impresoras encontradas</string>
+
+    <string name="reset_app_title">¿Restablecer aplicación?</string>
+    <string name="reset_app_msg">¿Estás seguro? Todas las impresoras guardadas y los ajustes se eliminarán de forma permanente.</string>
+    <string name="reset_app_yes">Sí, restablecer todo</string>
+    <string name="reset_app_cancel">Cancelar</string>
+
+    <string name="reset_confirm_msg">¿Realmente quieres eliminar esta impresora?</string>
+    <string name="yes_delete">Sí, eliminar</string>
+
     <string name="cancel">Cancelar</string>
-    <string name="yes_delete">Sí, borrar todo</string>
-    <string name="reset_confirm_title">¿Restablecer la aplicación por completo?</string>
-    <string name="reset_confirm_msg">¿Estás seguro? Todas las impresoras guardadas y los ajustes se perderán permanentemente. La aplicación se reiniciará después.</string>
     <string name="choose_default_view">Elegir vista predeterminada</string>
 
     <string name="menu_options_title">Opciones</string>
     <string name="menu_osd_show">Mostrar OSD</string>
     <string name="menu_osd_hide">Ocultar OSD</string>
-    <string name="menu_ratio">Ajustar formato de imagen</string>
+    <string name="menu_ratio">Ajustar relación de aspecto</string>
     <string name="menu_change_camera_type">Cambiar fuente de cámara</string>
     <string name="camera_type_html">vía HTML (camera.html)</string>
     <string name="camera_type_port">vía Puerto (:8080)</string>
@@ -47,7 +53,7 @@
     <string name="dialog_cancel">Cancelar</string>
 
     <string name="toast_stop_success">¡Parada de emergencia ejecutada!</string>
-    <string name="toast_stop_error">Error al enviar: </string>
-    <string name="toast_no_connection">¡Sin conexión con la impresora!</string>
+    <string name="toast_stop_error">Error de envío: </string>
+    <string name="toast_no_connection">¡Sin conexión a la impresora!</string>
     <string name="osd_no_connection">HUD: Sin conexión</string>
 </resources>

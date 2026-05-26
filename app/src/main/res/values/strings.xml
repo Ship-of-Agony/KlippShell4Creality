@@ -25,10 +25,16 @@
     <string name="btn_back">Zurück</string>
     <string name="search_network">Netzwerk durchsuchen...</string>
     <string name="found_printers">Gefundene Drucker</string>
+
+    <string name="reset_app_title">App zurücksetzen?</string>
+    <string name="reset_app_msg">Bist du sicher? Alle gespeicherten Drucker und Einstellungen werden unwiderruflich gelöscht.</string>
+    <string name="reset_app_yes">Ja, alles löschen</string>
+    <string name="reset_app_cancel">Abbrechen</string>
+
+    <string name="reset_confirm_msg">Möchtest du diesen Drucker wirklich löschen?</string>
+    <string name="yes_delete">Ja, löschen</string>
+
     <string name="cancel">Abbrechen</string>
-    <string name="yes_delete">Ja, alles löschen</string>
-    <string name="reset_confirm_title">App wirklich zurücksetzen?</string>
-    <string name="reset_confirm_msg">Bist du sicher? Alle gespeicherten Drucker und Einstellungen gehen unwiderruflich verloren. Die App wird danach neu gestartet.</string>
     <string name="choose_default_view">Standardansicht wählen</string>
 
     <string name="menu_options_title">Optionen</string>

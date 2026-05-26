@@ -5,21 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
+    android:fitsSystemWindows="true"
     tools:context=".WebViewActivity">
 
     <android.webkit.WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="match_parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutOsd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
         android:background="#B3000000"
         android:padding="10dp"
         android:visibility="gone"
@@ -104,9 +102,7 @@
             android:layout_marginEnd="16dp"
             app:cornerRadius="32dp"
             android:backgroundTint="#424242"
-            android:textColor="#FFFFFF"
-            android:insetTop="0dp"
-            android:insetBottom="0dp" />
+            android:textColor="#FFFFFF" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnWebToggle"
@@ -117,9 +113,7 @@
             android:layout_marginEnd="16dp"
             app:cornerRadius="32dp"
             android:backgroundTint="#424242"
-            android:textColor="#FFFFFF"
-            android:insetTop="0dp"
-            android:insetBottom="0dp" />
+            android:textColor="#FFFFFF" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnWebClose"
@@ -129,9 +123,7 @@
             android:textSize="20sp"
             app:cornerRadius="32dp"
             android:backgroundTint="#E53935"
-            android:textColor="#FFFFFF"
-            android:insetTop="0dp"
-            android:insetBottom="0dp" />
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

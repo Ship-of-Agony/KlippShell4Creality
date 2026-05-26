@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
@@ -31,6 +32,7 @@ class WebViewActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var layoutOsd: View
+    private lateinit var layoutWebButtons: LinearLayout
 
     private var currentActiveUrl: String = ""
     private var isCameraMode: Boolean = false
@@ -44,7 +46,6 @@ class WebViewActivity : AppCompatActivity() {
         "heater_generic chamber"
     )
 
-    // NEU: Kurzzeitgedächtnis für den Druckstatus
     private var lastPrintState: String = ""
 
     private val osdHandler = Handler(Looper.getMainLooper())
@@ -57,19 +58,34 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+    // --- IMMERSIVE MODE (Button Auto-Hide) ---
+    private val uiHandler = Handler(Looper.getMainLooper())
+    private val hideUiRunnable = Runnable { hideButtons() }
+    private val IMMERSIVE_TIMEOUT = 5000L // 5 Sekunden Timeout
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_webview)
 
         webView = findViewById(R.id.webView)
         layoutOsd = findViewById(R.id.layoutOsd)
+        layoutWebButtons = findViewById(R.id.layoutWebButtons)
 
         val btnMenu = findViewById<MaterialButton>(R.id.btnWebMenu)
         val btnToggle = findViewById<MaterialButton>(R.id.btnWebToggle)
         val btnClose = findViewById<MaterialButton>(R.id.btnWebClose)
 
+        // Touch-Erkennung
+        webView.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                showButtons()
+            }
+            false
+        }
+
         val tvFocusListener = View.OnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
+                showButtons()
                 view.animate().scaleX(1.1f).scaleY(1.1f).alpha(1.0f).translationZ(8f).setDuration(150).start()
                 if (view is MaterialButton) {
                     view.strokeWidth = 6
@@ -84,6 +100,7 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         val dpadUpListener = View.OnKeyListener { _, keyCode, event ->
+            showButtons()
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_UP) {
                 webView.requestFocus()
                 return@OnKeyListener true
@@ -150,9 +167,12 @@ class WebViewActivity : AppCompatActivity() {
 
         loadStreamOrUrl(currentActiveUrl, savedRatio)
 
+        showButtons()
+
         btnClose.setOnClickListener { finish() }
 
         btnMenu.setOnClickListener {
+            showButtons()
             val hostIp = Uri.parse(currentActiveUrl).host ?: ""
             val optionsList = mutableListOf<String>()
 
@@ -170,6 +190,7 @@ class WebViewActivity : AppCompatActivity() {
             optionsList.add(strEmergency)
 
             showModernMenu(getString(R.string.menu_options_title), optionsList.toTypedArray()) { selectedIndex ->
+                showButtons()
                 val chosenOption = optionsList[selectedIndex]
 
                 when (chosenOption) {
@@ -238,6 +259,7 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         btnToggle.setOnClickListener {
+            showButtons()
             val hostIp = Uri.parse(currentActiveUrl).host ?: ""
             val currentPrefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
 
@@ -258,6 +280,36 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+    // --- IMMERSIVE MODE STEUERUNG ---
+    private fun showButtons() {
+        if (layoutWebButtons.alpha < 1f) {
+            layoutWebButtons.animate().alpha(1f).setDuration(250).start()
+
+            for (i in 0 until layoutWebButtons.childCount) {
+                layoutWebButtons.getChildAt(i).isClickable = true
+            }
+        }
+
+        uiHandler.removeCallbacks(hideUiRunnable)
+        uiHandler.postDelayed(hideUiRunnable, IMMERSIVE_TIMEOUT)
+    }
+
+    private fun hideButtons() {
+        // NEU: Die "if (isCameraMode)" Abfrage ist weg!
+        // Die Buttons faden jetzt in jeder Ansicht sanft aus.
+        layoutWebButtons.animate().alpha(0f).setDuration(500).start()
+
+        for (i in 0 until layoutWebButtons.childCount) {
+            layoutWebButtons.getChildAt(i).isClickable = false
+        }
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        showButtons()
+    }
+    // ------------------------------------
+
     private fun loadStreamOrUrl(url: String, paddingTopPercent: Float) {
         currentActiveUrl = url
         val isMjpegStream = url.contains("action=stream")
@@ -270,6 +322,8 @@ class WebViewActivity : AppCompatActivity() {
                 osdHandler.removeCallbacks(osdRunnable)
                 osdHandler.post(osdRunnable)
             }
+
+            showButtons()
 
             val mediaElement = if (isHtmlCamera) {
                 "<iframe src=\"$url\" scrolling=\"no\" style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; overflow: hidden;\"></iframe>"
@@ -295,21 +349,21 @@ class WebViewActivity : AppCompatActivity() {
         } else {
             layoutOsd.visibility = View.GONE
             osdHandler.removeCallbacks(osdRunnable)
+
+            // NEU: Timer auch im Fluidd-Modus starten!
+            showButtons()
+
             webView.loadUrl(url)
         }
     }
 
-    // NEU: Hilfsfunktion zum Abspielen von System-Sounds
     private fun playSystemSound(isError: Boolean) {
         try {
-            // Bei Fehler spielen wir den Alarm-Ton, sonst den normalen Benachrichtigungston
             val alertType = if (isError) RingtoneManager.TYPE_ALARM else RingtoneManager.TYPE_NOTIFICATION
             val uri = RingtoneManager.getDefaultUri(alertType)
             val ringtone = RingtoneManager.getRingtone(applicationContext, uri)
             ringtone.play()
 
-            // Falls es ein Fehler (Alarm) ist, stoppen wir ihn nach 3 Sekunden wieder,
-            // damit der TV nicht endlos weiter klingelt.
             if (isError) {
                 Handler(Looper.getMainLooper()).postDelayed({
                     if (ringtone.isPlaying) {
@@ -393,12 +447,9 @@ class WebViewActivity : AppCompatActivity() {
                         val printStats = status.optJSONObject("print_stats")
                         val duration = printStats?.optInt("print_duration", 0) ?: 0
 
-                        // NEU: Status-Logik für den Sound auslesen
                         val currentState = printStats?.optString("state", "") ?: ""
 
                         runOnUiThread {
-                            // Sound-Trigger: Wenn wir vorher einen bekannten Status hatten und dieser sich
-                            // jetzt auf 'complete' (Fertig) oder 'error' (Fehler) ändert.
                             if (lastPrintState.isNotEmpty() && lastPrintState != currentState) {
                                 if (currentState == "complete") {
                                     playSystemSound(false)
@@ -408,10 +459,8 @@ class WebViewActivity : AppCompatActivity() {
                                     Toast.makeText(this@WebViewActivity, "ACHTUNG: Klipper Fehler!", Toast.LENGTH_LONG).show()
                                 }
                             }
-                            // Status für die nächste Abfrage merken
                             lastPrintState = currentState
 
-                            // --- UI Aktualisierung ---
                             findViewById<TextView>(R.id.tvOsdExtruder).text =
                                 String.format("Düse: %.1f°C / %.0f°C", tempExtruder, targetExtruder)
                             findViewById<TextView>(R.id.tvOsdBed).text =
@@ -498,7 +547,6 @@ class WebViewActivity : AppCompatActivity() {
                         break
                     }
                 } catch (e: Exception) {
-                    // Loop versucht Backup-Adresse
                 }
             }
 
@@ -571,6 +619,8 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        showButtons()
+
         if (keyCode == KeyEvent.KEYCODE_BACK && webView.hasFocus()) {
             findViewById<MaterialButton>(R.id.btnWebToggle).requestFocus()
             return true

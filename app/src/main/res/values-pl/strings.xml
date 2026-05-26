@@ -12,42 +12,48 @@
     <string name="btn_search_network">Szukaj w sieci</string>
     <string name="saved_printers">Zapisane drukarki</string>
     <string name="no_printers">Brak dodanych drukarek</string>
-    <string name="btn_exit">Wyjdź</string>
+    <string name="btn_exit">Wyjście</string>
 
     <string name="system_creality">Creality OS (Port 4408)</string>
     <string name="system_standard">Standardowy Klipper (Port 80)</string>
-    <string name="system_manual">Ręcznie (Własny Port)</string>
+    <string name="system_manual">Ręcznie (Własny port)</string>
 
     <string name="settings_title">Ustawienia</string>
     <string name="dark_mode">Tryb ciemny (Dark Mode)</string>
     <string name="change_language">Zmień język / Language</string>
-    <string name="reset_app">Resetuj aplikację</string>
-    <string name="btn_back">Wróć</string>
+    <string name="reset_app">Zresetuj aplikację</string>
+    <string name="btn_back">Wstecz</string>
     <string name="search_network">Wyszukiwanie w sieci...</string>
     <string name="found_printers">Znalezione drukarki</string>
+
+    <string name="reset_app_title">Zresetować aplikację?</string>
+    <string name="reset_app_msg">Czy na pewno? Wszystkie zapisane drukarki i ustawienia zostaną trwale usunięte.</string>
+    <string name="reset_app_yes">Tak, zresetuj wszystko</string>
+    <string name="reset_app_cancel">Anuluj</string>
+
+    <string name="reset_confirm_msg">Czy na pewno chcesz usunąć tę drukarkę?</string>
+    <string name="yes_delete">Tak, usuń</string>
+
     <string name="cancel">Anuluj</string>
-    <string name="yes_delete">Tak, usuń wszystko</string>
-    <string name="reset_confirm_title">Całkowicie zresetować aplikację?</string>
-    <string name="reset_confirm_msg">Jesteś pewien? Wszystkie zapisane drukarki i ustawienia zostaną bezpowrotnie utracone. Aplikacja zostanie ponownie uruchomiona.</string>
     <string name="choose_default_view">Wybierz widok domyślny</string>
 
     <string name="menu_options_title">Opcje</string>
     <string name="menu_osd_show">Pokaż OSD</string>
     <string name="menu_osd_hide">Ukryj OSD</string>
-    <string name="menu_ratio">Dostosuj format obrazu</string>
+    <string name="menu_ratio">Dostosuj proporcje obrazu</string>
     <string name="menu_change_camera_type">Zmień źródło kamery</string>
     <string name="camera_type_html">przez HTML (camera.html)</string>
     <string name="camera_type_port">przez Port (:8080)</string>
-    <string name="camera_type_webcam">przez Webcam (/webcam/)</string>
+    <string name="camera_type_webcam">przez kamerę (/webcam/)</string>
     <string name="menu_emergency_stop">ZATRZYMANIE AWARYJNE</string>
 
     <string name="dialog_stop_title">WYWOŁAJ ZATRZYMANIE AWARYJNE</string>
-    <string name="dialog_stop_msg">Czy na pewno chcesz natychmiast zatrzymać drukarkę?\n(To wysyła polecenie M112)</string>
+    <string name="dialog_stop_msg">Czy na pewno chcesz natychmiast zatrzymać drukarkę?\n(Wysyła polecenie M112)</string>
     <string name="dialog_stop_confirm">TAK, ZATRZYMAJ</string>
     <string name="dialog_cancel">Anuluj</string>
 
-    <string name="toast_stop_success">Wykonano zatrzymanie awaryjne!</string>
-    <string name="toast_stop_error">Błąd podczas wysyłania: </string>
+    <string name="toast_stop_success">Zatrzymanie awaryjne wykonane!</string>
+    <string name="toast_stop_error">Błąd wysyłania: </string>
     <string name="toast_no_connection">Brak połączenia z drukarką!</string>
     <string name="osd_no_connection">HUD: Brak połączenia</string>
 </resources>
