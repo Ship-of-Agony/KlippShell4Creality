@@ -2,7 +2,7 @@
 
 # KlippShell 4 Creality
 
-An Android application designed to easily control your **Creality K2 Plus (Klipper)** 3D printer directly from an **Android TV box** (or smartphone/tablet), without needing a PC running constantly.
+"A dedicated Android application designed to easily control your Creality or any other Klipper-based 3D printer (via Fluidd or Mainsail) directly from your Android TV box, smartphone, or tablet – no PC required."
 
 ## Features
 * 📱 Optimized for display on Android TV boxes and mobile devices.
