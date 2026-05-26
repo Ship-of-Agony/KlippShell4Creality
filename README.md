@@ -1,4 +1,4 @@
-![Downloads](https://img.shields.io/github/downloads/ship-of-agony/KlippShell4Creality/total?style=flat-square&color=blue)
+![Downloads](https://img.shields.io/github/downloads/Ship-of-Agony/KlippShell4Creality/total?style=flat-square&color=blue)
 
 # KlippShell 4 Creality
 
