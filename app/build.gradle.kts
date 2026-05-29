@@ -11,10 +11,10 @@ android {
         minSdk = 24
         targetSdk = 36
 
-        // Interner Code für Updates
-        versionCode = 8
-        // Deine finale, korrekte RC-Versionsnummer
-        versionName = "0.8.1.290526-rc"
+        // Interner Code für Updates (auf 9 erhöht)
+        versionCode = 9
+        // Deine neue, korrekte RC-Versionsnummer
+        versionName = "0.8.2.290526-rc"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

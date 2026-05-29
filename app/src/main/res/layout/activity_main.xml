@@ -60,6 +60,8 @@
         android:layout_height="0dp"
         android:paddingHorizontal="16dp"
         android:focusable="false"
+        android:clipToPadding="false"
+        android:clipChildren="false"
         android:descendantFocusability="afterDescendants"
         app:layout_constraintTop_toBottomOf="@id/headerLayout"
         app:layout_constraintBottom_toTopOf="@id/btnExitApp"
@@ -69,6 +71,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clipChildren="false"
             android:orientation="vertical">
 
             <LinearLayout
@@ -76,6 +79,8 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_card"
                 android:orientation="vertical"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:layout_marginBottom="16dp">
 
                 <LinearLayout
@@ -102,7 +107,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp"
+                    android:paddingHorizontal="16dp"
+                    android:paddingBottom="16dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
                     android:visibility="gone">
 
                     <EditText
@@ -111,10 +119,10 @@
                         android:layout_height="wrap_content"
                         android:hint="@string/printer_name_hint"
                         android:background="@drawable/bg_pill_input"
-                        android:paddingHorizontal="20dp"
-                        android:paddingVertical="14dp"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="12dp"
                         android:layout_marginBottom="12dp"
-                        android:textSize="16sp"
+                        android:textSize="15sp"
                         android:textColor="?android:attr/textColorPrimary"
                         android:focusable="true" />
 
@@ -122,31 +130,31 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
+                        android:clipChildren="false"
                         android:layout_marginBottom="12dp">
 
                         <EditText
                             android:id="@+id/etMainPrinterIP"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="0.60"
+                            android:layout_weight="1"
                             android:hint="@string/printer_ip_hint"
                             android:inputType="textUri"
                             android:background="@drawable/bg_pill_input"
-                            android:paddingHorizontal="20dp"
-                            android:paddingVertical="14dp"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="12dp"
                             android:layout_marginEnd="8dp"
-                            android:textSize="16sp"
+                            android:textSize="15sp"
                             android:textColor="?android:attr/textColorPrimary"
                             android:focusable="true" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnSystemSelect"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:layout_weight="0.40"
-                            android:text="Creality\n(4408)"
+                            android:text="Port: 4408"
                             android:textAllCaps="false"
-                            android:textSize="13sp"
+                            android:textSize="14sp"
                             app:cornerRadius="100dp"
                             android:backgroundTint="#424242"
                             android:textColor="#FFFFFF"
@@ -160,10 +168,10 @@
                         android:hint="@string/printer_port_hint"
                         android:inputType="number"
                         android:background="@drawable/bg_pill_input"
-                        android:paddingHorizontal="20dp"
-                        android:paddingVertical="14dp"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="12dp"
                         android:layout_marginBottom="12dp"
-                        android:textSize="16sp"
+                        android:textSize="15sp"
                         android:textColor="?android:attr/textColorPrimary"
                         android:visibility="gone"
                         android:focusable="true" />
@@ -171,6 +179,7 @@
                     <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clipChildren="false"
                         android:layout_marginBottom="20dp">
 
                         <AutoCompleteTextView
@@ -180,10 +189,10 @@
                             android:hint="@string/printer_model_hint"
                             android:completionThreshold="1"
                             android:background="@drawable/bg_pill_input"
-                            android:paddingStart="20dp"
+                            android:paddingStart="16dp"
                             android:paddingEnd="46dp"
-                            android:paddingVertical="14dp"
-                            android:textSize="16sp"
+                            android:paddingVertical="12dp"
+                            android:textSize="15sp"
                             android:textColor="?android:attr/textColorPrimary"
                             android:focusable="true" />
 
@@ -200,6 +209,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clipChildren="false"
                         android:orientation="horizontal">
 
                         <Button
@@ -252,6 +262,7 @@
                 android:id="@+id/containerPrinters"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clipChildren="false"
                 android:orientation="vertical" />
         </LinearLayout>
     </ScrollView>

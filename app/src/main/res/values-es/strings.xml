@@ -4,8 +4,8 @@
     <string name="add_printer">Añadir impresora</string>
     <string name="add_printer_down">Añadir impresora ▼</string>
     <string name="add_printer_up">Añadir impresora ▲</string>
-    <string name="printer_name_hint">Nombre de la impresora</string>
-    <string name="printer_ip_hint">Dirección IP (ej. 192.168.1.50)</string>
+    <string name="printer_name_hint">Nombre de impresora</string>
+    <string name="printer_ip_hint">Dirección IP</string>
     <string name="printer_port_hint">Puerto (Por defecto: 4408)</string>
     <string name="printer_model_hint">Seleccionar modelo</string>
     <string name="btn_add">Añadir</string>
@@ -15,24 +15,25 @@
     <string name="btn_exit">Salir</string>
 
     <string name="system_creality">Creality OS (Puerto 4408)</string>
-    <string name="system_standard">Klipper estándar (Puerto 80)</string>
-    <string name="system_manual">Manual (Puerto propio)</string>
+    <string name="system_standard">Klipper Estándar (Puerto 80)</string>
+    <string name="system_manual">Manual (Puerto personalizado)</string>
+    <string name="choose_port">Puerto</string>
 
     <string name="settings_title">Ajustes</string>
     <string name="dark_mode">Modo oscuro (Dark Mode)</string>
     <string name="change_language">Cambiar idioma / Language</string>
-    <string name="reset_app">Restablecer aplicación</string>
+    <string name="reset_app">Restablecer app</string>
     <string name="btn_back">Volver</string>
     <string name="search_network">Buscando en la red...</string>
     <string name="found_printers">Impresoras encontradas</string>
 
-    <string name="reset_app_title">¿Restablecer aplicación?</string>
-    <string name="reset_app_msg">¿Estás seguro? Todas las impresoras guardadas y los ajustes se eliminarán de forma permanente.</string>
-    <string name="reset_app_yes">Sí, restablecer todo</string>
+    <string name="reset_app_title">¿Restablecer app?</string>
+    <string name="reset_app_msg">¿Estás seguro? Todas las impresoras guardadas y ajustes se eliminarán permanentemente.</string>
+    <string name="reset_app_yes">Sí, borrar todo</string>
     <string name="reset_app_cancel">Cancelar</string>
 
-    <string name="reset_confirm_msg">¿Realmente quieres eliminar esta impresora?</string>
-    <string name="yes_delete">Sí, eliminar</string>
+    <string name="reset_confirm_msg">¿De verdad quieres borrar esta impresora?</string>
+    <string name="yes_delete">Sí, borrar</string>
 
     <string name="cancel">Cancelar</string>
     <string name="choose_default_view">Elegir vista predeterminada</string>
@@ -40,20 +41,20 @@
     <string name="menu_options_title">Opciones</string>
     <string name="menu_osd_show">Mostrar OSD</string>
     <string name="menu_osd_hide">Ocultar OSD</string>
-    <string name="menu_ratio">Ajustar relación de aspecto</string>
-    <string name="menu_change_camera_type">Cambiar fuente de cámara</string>
+    <string name="menu_ratio">Ajustar formato</string>
+    <string name="menu_change_camera_type">Cambiar cámara</string>
     <string name="camera_type_html">vía HTML (camera.html)</string>
     <string name="camera_type_port">vía Puerto (:8080)</string>
     <string name="camera_type_webcam">vía Webcam (/webcam/)</string>
     <string name="menu_emergency_stop">PARADA DE EMERGENCIA</string>
 
     <string name="dialog_stop_title">ACTIVAR PARADA DE EMERGENCIA</string>
-    <string name="dialog_stop_msg">¿Realmente quieres detener la impresora inmediatamente?\n(Esto envía un comando M112)</string>
+    <string name="dialog_stop_msg">¿De verdad quieres detener la impresora inmediatamente?\n(Esto envía un comando M112)</string>
     <string name="dialog_stop_confirm">SÍ, DETENER</string>
     <string name="dialog_cancel">Cancelar</string>
 
     <string name="toast_stop_success">¡Parada de emergencia ejecutada!</string>
-    <string name="toast_stop_error">Error de envío: </string>
+    <string name="toast_stop_error">Error al enviar: </string>
     <string name="toast_no_connection">¡Sin conexión a la impresora!</string>
     <string name="osd_no_connection">HUD: Sin conexión</string>
 </resources>

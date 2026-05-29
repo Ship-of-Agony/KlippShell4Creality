@@ -5,7 +5,7 @@
     <string name="add_printer_down">Drucker hinzufügen ▼</string>
     <string name="add_printer_up">Drucker hinzufügen ▲</string>
     <string name="printer_name_hint">Drucker Name</string>
-    <string name="printer_ip_hint">IP-Adresse (z.B. 192.168.1.50)</string>
+    <string name="printer_ip_hint">IP-Adresse</string>
     <string name="printer_port_hint">Port (Standard: 4408)</string>
     <string name="printer_model_hint">Modell wählen</string>
     <string name="btn_add">Hinzufügen</string>
@@ -17,6 +17,7 @@
     <string name="system_creality">Creality OS (Port 4408)</string>
     <string name="system_standard">Standard Klipper (Port 80)</string>
     <string name="system_manual">Manuell (Eigener Port)</string>
+    <string name="choose_port">Port</string>
 
     <string name="settings_title">Einstellungen</string>
     <string name="dark_mode">Dunkles Design (Dark Mode)</string>

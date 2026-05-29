@@ -42,6 +42,8 @@ class WebViewActivity : AppCompatActivity() {
     private var isOsdEnabled: Boolean = false
 
     private var knownChamberSensor: String? = "temperature_sensor chamber"
+    private var cachedChamberSensorString: String = "&temperature_sensor%20chamber"
+
     private var chamberSearchIndex = 0
     private val chamberNamesToTry = listOf(
         "temperature_sensor chamber",
@@ -116,25 +118,43 @@ class WebViewActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+
                 val jsInjection = """
                     var style = document.createElement('style');
-                    style.innerHTML = '*:focus { outline: 4px solid #FFFFFF !important; outline-offset: -2px !important; background-color: rgba(255, 255, 255, 0.15) !important; border-radius: 4px !important; }';
+                    style.innerHTML = '*:focus { outline: 4px solid #FFFFFF !important; outline-offset: -2px !important; background-color: rgba(255, 255, 255, 0.15) !important; border-radius: 4px !important; } ' +
+                                      '::-webkit-scrollbar { width: 18px !important; display: block !important; } ' +
+                                      '::-webkit-scrollbar-track { background: transparent !important; } ' +
+                                      '::-webkit-scrollbar-thumb { background-color: #2196F3 !important; border-radius: 9px !important; } ' +
+                                      '*::-webkit-scrollbar { width: 18px !important; display: block !important; } ' +
+                                      '*::-webkit-scrollbar-track { background: transparent !important; } ' +
+                                      '*::-webkit-scrollbar-thumb { background-color: #2196F3 !important; border-radius: 9px !important; }';
                     document.head.appendChild(style);
-                    var retryCount = 0;
-                    var interval = setInterval(function() {
+                    
+                    function makeDpadFriendly() {
                         var items = document.querySelectorAll('.v-list-item, .v-btn, a, button, input');
                         items.forEach(function(item) {
                             if (!item.hasAttribute('tabindex')) item.setAttribute('tabindex', '0');
                         });
-                        retryCount++;
-                        if (retryCount > 5) clearInterval(interval);
-                    }, 1000);
+                    }
+                    
+                    makeDpadFriendly(); 
+                    
+                    var observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.addedNodes.length > 0) {
+                                makeDpadFriendly();
+                            }
+                        });
+                    });
+                    
+                    observer.observe(document.body, { childList: true, subtree: true });
                 """.trimIndent()
                 view?.evaluateJavascript(jsInjection, null)
             }
         }
 
         webView.webChromeClient = WebChromeClient()
+
         webView.isVerticalScrollBarEnabled = true
         webView.isScrollbarFadingEnabled = false
         webView.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
@@ -151,7 +171,6 @@ class WebViewActivity : AppCompatActivity() {
             mediaPlaybackRequiresUserGesture = false
         }
 
-        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         currentActiveUrl = intent.getStringExtra("TARGET_URL") ?: "http://google.com"
 
         val initialIp = Uri.parse(currentActiveUrl).host ?: ""
@@ -248,11 +267,18 @@ class WebViewActivity : AppCompatActivity() {
                 }
                 loadStreamOrUrl(cameraUrl, currentPrefs.getFloat("camera_ratio_$hostIp", 56.25f))
             } else {
-                showModernMenu("Interface", arrayOf("Standard", "Port 4408")) { subWhich ->
+                // HIER WURDE INTERFACE ZU DASHBOARD GEÄNDERT
+                showModernMenu("Dashboard", arrayOf("Standard", "Port 4408")) { subWhich ->
                     loadStreamOrUrl(if (subWhich == 0) "http://$hostIp" else "http://$hostIp:4408", 0f)
                 }
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        osdHandler.removeCallbacks(osdRunnable)
+        uiHandler.removeCallbacks(hideUiRunnable)
     }
 
     private fun showButtons() {
@@ -281,6 +307,7 @@ class WebViewActivity : AppCompatActivity() {
         isCameraMode = isMjpegStream || isHtmlCamera
 
         if (isCameraMode) {
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
             layoutOsd.visibility = if (isOsdEnabled) View.VISIBLE else View.GONE
             if (isOsdEnabled) {
                 osdHandler.removeCallbacks(osdRunnable)
@@ -309,6 +336,7 @@ class WebViewActivity : AppCompatActivity() {
             """.trimIndent()
             webView.loadDataWithBaseURL(url, html, "text/html", "UTF-8", null)
         } else {
+            webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
             layoutOsd.visibility = View.GONE
             osdHandler.removeCallbacks(osdRunnable)
             showButtons()
@@ -321,7 +349,8 @@ class WebViewActivity : AppCompatActivity() {
         val hostIp = uri.host ?: return
         val hostAuthority = uri.authority ?: hostIp
         val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status"
-        val currentChamberQuery = if (knownChamberSensor != null) "&${knownChamberSensor!!.replace(" ", "%20")}" else ""
+
+        val currentChamberQuery = if (knownChamberSensor != null) cachedChamberSensorString else ""
 
         val urlsToTry = listOf("http://$hostIp:7125/$baseQuery$currentChamberQuery", "http://$hostAuthority/$baseQuery$currentChamberQuery")
 
@@ -348,7 +377,13 @@ class WebViewActivity : AppCompatActivity() {
 
             if (gotBadRequest) {
                 chamberSearchIndex++
-                knownChamberSensor = if (chamberSearchIndex < chamberNamesToTry.size) chamberNamesToTry[chamberSearchIndex] else null
+                if (chamberSearchIndex < chamberNamesToTry.size) {
+                    knownChamberSensor = chamberNamesToTry[chamberSearchIndex]
+                    cachedChamberSensorString = "&${knownChamberSensor!!.replace(" ", "%20")}"
+                } else {
+                    knownChamberSensor = null
+                    cachedChamberSensorString = ""
+                }
                 fetchMoonrakerData()
                 return@Thread
             }
@@ -448,7 +483,6 @@ class WebViewActivity : AppCompatActivity() {
         }.start()
     }
 
-    // FIXED: Diese Funktion war verschwunden und ist nun wieder korrekt in der Activity verankert
     private fun playSystemSound(isError: Boolean) {
         try {
             val alertType = if (isError) RingtoneManager.TYPE_ALARM else RingtoneManager.TYPE_NOTIFICATION

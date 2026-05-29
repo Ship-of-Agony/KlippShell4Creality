@@ -11,7 +11,12 @@
     <android.webkit.WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        android:scrollbarSize="18dp"
+        android:scrollbarThumbVertical="@drawable/bg_scrollbar_tv"
+        android:scrollbarTrackVertical="@android:color/transparent"
+        android:fadeScrollbars="false" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutOsd"

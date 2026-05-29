@@ -5,7 +5,7 @@
     <string name="add_printer_down">Add Printer ▼</string>
     <string name="add_printer_up">Add Printer ▲</string>
     <string name="printer_name_hint">Printer Name</string>
-    <string name="printer_ip_hint">IP Address (e.g. 192.168.1.50)</string>
+    <string name="printer_ip_hint">IP Address</string>
     <string name="printer_port_hint">Port (Default: 4408)</string>
     <string name="printer_model_hint">Select Model</string>
     <string name="btn_add">Add</string>
@@ -17,25 +17,26 @@
     <string name="system_creality">Creality OS (Port 4408)</string>
     <string name="system_standard">Standard Klipper (Port 80)</string>
     <string name="system_manual">Manual (Custom Port)</string>
+    <string name="choose_port">Port</string>
 
     <string name="settings_title">Settings</string>
-    <string name="dark_mode">Dark Mode</string>
-    <string name="change_language">Change Language</string>
+    <string name="dark_mode">Dark Theme (Dark Mode)</string>
+    <string name="change_language">Change Language / Sprache ändern</string>
     <string name="reset_app">Reset App</string>
     <string name="btn_back">Back</string>
-    <string name="search_network">Searching Network...</string>
+    <string name="search_network">Searching network...</string>
     <string name="found_printers">Found Printers</string>
 
     <string name="reset_app_title">Reset App?</string>
     <string name="reset_app_msg">Are you sure? All saved printers and settings will be permanently deleted.</string>
-    <string name="reset_app_yes">Yes, reset everything</string>
+    <string name="reset_app_yes">Yes, delete everything</string>
     <string name="reset_app_cancel">Cancel</string>
 
     <string name="reset_confirm_msg">Do you really want to delete this printer?</string>
     <string name="yes_delete">Yes, delete</string>
 
     <string name="cancel">Cancel</string>
-    <string name="choose_default_view">Choose Default View</string>
+    <string name="choose_default_view">Choose default view</string>
 
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Show OSD</string>
@@ -45,15 +46,15 @@
     <string name="camera_type_html">via HTML (camera.html)</string>
     <string name="camera_type_port">via Port (:8080)</string>
     <string name="camera_type_webcam">via Webcam (/webcam/)</string>
-    <string name="menu_emergency_stop">EMERGENCY STOP</string>
+    <string name="menu_emergency_stop">EMERGENCY STOP (Panic)</string>
 
     <string name="dialog_stop_title">TRIGGER EMERGENCY STOP</string>
     <string name="dialog_stop_msg">Do you really want to stop the printer immediately?\n(This sends an M112 command)</string>
     <string name="dialog_stop_confirm">YES, STOP</string>
     <string name="dialog_cancel">Cancel</string>
 
-    <string name="toast_stop_success">Emergency Stop executed!</string>
-    <string name="toast_stop_error">Error sending command: </string>
-    <string name="toast_no_connection">No connection to printer!</string>
-    <string name="osd_no_connection">HUD: No Connection</string>
+    <string name="toast_stop_success">Emergency stop executed!</string>
+    <string name="toast_stop_error">Error sending: </string>
+    <string name="toast_no_connection">No connection to the printer!</string>
+    <string name="osd_no_connection">HUD: No connection</string>
 </resources>

@@ -5,21 +5,22 @@
     <string name="add_printer_down">Ajouter une imprimante ▼</string>
     <string name="add_printer_up">Ajouter une imprimante ▲</string>
     <string name="printer_name_hint">Nom de l\'imprimante</string>
-    <string name="printer_ip_hint">Adresse IP (ex. 192.168.1.50)</string>
-    <string name="printer_port_hint">Port (Défaut : 4408)</string>
+    <string name="printer_ip_hint">Adresse IP</string>
+    <string name="printer_port_hint">Port (Par défaut : 4408)</string>
     <string name="printer_model_hint">Sélectionner le modèle</string>
     <string name="btn_add">Ajouter</string>
-    <string name="btn_search_network">Rechercher sur le réseau</string>
+    <string name="btn_search_network">Rechercher le réseau</string>
     <string name="saved_printers">Imprimantes enregistrées</string>
     <string name="no_printers">Aucune imprimante ajoutée</string>
     <string name="btn_exit">Quitter</string>
 
     <string name="system_creality">Creality OS (Port 4408)</string>
-    <string name="system_standard">Klipper standard (Port 80)</string>
+    <string name="system_standard">Klipper Standard (Port 80)</string>
     <string name="system_manual">Manuel (Port personnalisé)</string>
+    <string name="choose_port">Port</string>
 
     <string name="settings_title">Paramètres</string>
-    <string name="dark_mode">Mode sombre (Dark Mode)</string>
+    <string name="dark_mode">Thème sombre (Dark Mode)</string>
     <string name="change_language">Changer de langue / Language</string>
     <string name="reset_app">Réinitialiser l\'application</string>
     <string name="btn_back">Retour</string>
@@ -28,7 +29,7 @@
 
     <string name="reset_app_title">Réinitialiser l\'application ?</string>
     <string name="reset_app_msg">Êtes-vous sûr ? Toutes les imprimantes enregistrées et les paramètres seront définitivement supprimés.</string>
-    <string name="reset_app_yes">Oui, tout réinitialiser</string>
+    <string name="reset_app_yes">Oui, tout supprimer</string>
     <string name="reset_app_cancel">Annuler</string>
 
     <string name="reset_confirm_msg">Voulez-vous vraiment supprimer cette imprimante ?</string>
@@ -40,8 +41,8 @@
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Afficher l\'OSD</string>
     <string name="menu_osd_hide">Masquer l\'OSD</string>
-    <string name="menu_ratio">Ajuster le format d\'image</string>
-    <string name="menu_change_camera_type">Changer la source de la caméra</string>
+    <string name="menu_ratio">Ajuster le format</string>
+    <string name="menu_change_camera_type">Changer de caméra</string>
     <string name="camera_type_html">via HTML (camera.html)</string>
     <string name="camera_type_port">via Port (:8080)</string>
     <string name="camera_type_webcam">via Webcam (/webcam/)</string>
@@ -54,6 +55,6 @@
 
     <string name="toast_stop_success">Arrêt d\'urgence exécuté !</string>
     <string name="toast_stop_error">Erreur d\'envoi : </string>
-    <string name="toast_no_connection">Aucune connexion à l\'imprimante !</string>
+    <string name="toast_no_connection">Pas de connexion à l\'imprimante !</string>
     <string name="osd_no_connection">HUD : Pas de connexion</string>
 </resources>

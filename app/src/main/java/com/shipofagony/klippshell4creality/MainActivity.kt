@@ -123,19 +123,20 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.system_manual)
             )
 
-            showPillDialog("System wählen", systemOptions) { which ->
+            // GEÄNDERT: "Port" statt "System wählen"
+            showPillDialog(getString(R.string.choose_port), systemOptions) { which ->
                 selectedSystemIndex = which
                 when (which) {
                     0 -> {
-                        btnSystemSelect.text = "Creality\n(4408)"
+                        btnSystemSelect.text = "Port: 4408"
                         etMainPrinterPort.visibility = View.GONE
                     }
                     1 -> {
-                        btnSystemSelect.text = "Klipper\n(80)"
+                        btnSystemSelect.text = "Port: 80"
                         etMainPrinterPort.visibility = View.GONE
                     }
                     2 -> {
-                        btnSystemSelect.text = "Manuell\n(Port)"
+                        btnSystemSelect.text = "Port"
                         etMainPrinterPort.visibility = View.VISIBLE
                         etMainPrinterPort.requestFocus()
                     }
@@ -201,7 +202,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (name.isNotEmpty() && ip.isNotEmpty()) {
-                showPillDialog(getString(R.string.choose_default_view), arrayOf("Interface", "Kamera")) { which ->
+                showPillDialog(getString(R.string.choose_default_view), arrayOf("Dashboard", "Kamera")) { which ->
                     savePrinter(name, ip, port, actvMainPrinterModel.text.toString().trim(), if (which == 0) "interface" else "camera")
 
                     etMainPrinterName.text.clear()
@@ -210,7 +211,7 @@ class MainActivity : AppCompatActivity() {
                     actvMainPrinterModel.text.clear()
 
                     selectedSystemIndex = 0
-                    btnSystemSelect.text = "Creality\n(4408)"
+                    btnSystemSelect.text = "Port: 4408"
                     etMainPrinterPort.visibility = View.GONE
                     containerAddPrinterForm.visibility = View.GONE
                     tvAddPrinterTitle.text = getString(R.string.add_printer_down)
@@ -276,15 +277,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun searchNetworkForPrinters() {
-        val ipAddress = getLocalIpAddress()
-        if (ipAddress == null) {
-            Toast.makeText(this, "Kein Netzwerk gefunden", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        val ipPrefix = ipAddress.substring(0, ipAddress.lastIndexOf(".") + 1)
-        val foundPrinters = mutableListOf<String>()
-
         val progressBar = ProgressBar(this)
         progressBar.setPadding(0, 50, 0, 50)
         progressBar.indeterminateTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
@@ -304,22 +296,34 @@ class MainActivity : AppCompatActivity() {
         progressDialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
         progressDialog.show()
 
-        val executor = Executors.newFixedThreadPool(50)
-        for (i in 1..254) {
-            val testIp = "$ipPrefix$i"
-            executor.execute {
-                try {
-                    val socket = Socket()
-                    socket.connect(InetSocketAddress(testIp, 4408), 300)
-                    socket.close()
-                    foundPrinters.add(testIp)
-                } catch (_: Exception) { }
-            }
-        }
-        executor.shutdown()
-
         Thread {
+            val ipAddress = getLocalIpAddress()
+            if (ipAddress == null) {
+                runOnUiThread {
+                    progressDialog.dismiss()
+                    Toast.makeText(this@MainActivity, "Kein Netzwerk gefunden", Toast.LENGTH_LONG).show()
+                }
+                return@Thread
+            }
+
+            val ipPrefix = ipAddress.substring(0, ipAddress.lastIndexOf(".") + 1)
+            val foundPrinters = mutableListOf<String>()
+
+            val executor = Executors.newFixedThreadPool(15)
+            for (i in 1..254) {
+                val testIp = "$ipPrefix$i"
+                executor.execute {
+                    try {
+                        val socket = Socket()
+                        socket.connect(InetSocketAddress(testIp, 4408), 300)
+                        socket.close()
+                        foundPrinters.add(testIp)
+                    } catch (_: Exception) { }
+                }
+            }
+            executor.shutdown()
             executor.awaitTermination(6, TimeUnit.SECONDS)
+
             runOnUiThread {
                 progressDialog.dismiss()
                 if (foundPrinters.isNotEmpty()) {
@@ -327,7 +331,7 @@ class MainActivity : AppCompatActivity() {
                     showPillDialog(getString(R.string.found_printers), uniquePrinters) { which ->
                         etMainPrinterIP.setText(uniquePrinters[which])
                         selectedSystemIndex = 0
-                        btnSystemSelect.text = "Creality\n(4408)"
+                        btnSystemSelect.text = "Port: 4408"
                         etMainPrinterPort.visibility = View.GONE
                     }
                 } else {
@@ -395,7 +399,7 @@ class MainActivity : AppCompatActivity() {
             itemView.setOnLongClickListener {
                 showPillDialog(printer.getString("name"), arrayOf(getString(R.string.choose_default_view), getString(R.string.yes_delete))) { whichAction ->
                     if (whichAction == 0) {
-                        showPillDialog(getString(R.string.choose_default_view), arrayOf("Interface", "Kamera")) { whichView ->
+                        showPillDialog(getString(R.string.choose_default_view), arrayOf("Dashboard", "Kamera")) { whichView ->
                             val newView = if (whichView == 0) "interface" else "camera"
                             val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
                             if (currentArray.length() > i) {
@@ -438,8 +442,8 @@ class MainActivity : AppCompatActivity() {
         items.forEachIndexed { index, itemText ->
             val btn = MaterialButton(this).apply {
                 text = itemText
-                isAllCaps = false // FIXED: Korrekte Methode für Kotlin
-                textSize = 16f    // FIXED: Float Literal statt XML "sp" Suffix
+                isAllCaps = false
+                textSize = 16f
                 cornerRadius = 100
                 setPadding(0, 35, 0, 35)
                 backgroundTintList = ColorStateList.valueOf(btnBgColor)
