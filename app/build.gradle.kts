@@ -11,10 +11,10 @@ android {
         minSdk = 24
         targetSdk = 36
 
-        // Interner Code für Updates (immer +1 bei einer neuen Version)
+        // Interner Code für Updates
         versionCode = 8
-        // Deine neue RC-Versionsnummer!
-        versionName = "0.8.260526-rc"
+        // Deine finale, korrekte RC-Versionsnummer
+        versionName = "0.8.1.290526-rc"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -31,6 +31,12 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
 }
 

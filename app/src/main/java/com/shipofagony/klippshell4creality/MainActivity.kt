@@ -2,8 +2,14 @@ package com.shipofagony.klippshell4creality
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.InputType
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +25,7 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.Locale
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,97 +38,33 @@ class MainActivity : AppCompatActivity() {
     private lateinit var headerAddPrinter: LinearLayout
     private lateinit var containerAddPrinterForm: LinearLayout
     private lateinit var tvAddPrinterTitle: TextView
-
     private lateinit var btnSystemSelect: MaterialButton
 
-    // Status-Speicher: 0 = Creality (Standard), 1 = Klipper, 2 = Manuell
     private var selectedSystemIndex = 0
 
-    // --- NEU: UNSER "WÖRTERBUCH" (Schöner Name -> Dateiname) ---
-    // Hier wird das schöne Menü mit den korrekten Bild-Dateien verknüpft
     private val printerMap = mapOf(
-        "CR-10" to "cr_10",
-        "CR-10 SE" to "cr_10se",
-        "CR-10 Smart" to "cr_10smart",
-        "CR-10 Smart Pro" to "cr_10smartpro",
-        "CR-10S Pro V2" to "cr_10sprov2",
-        "CR-20 Pro" to "cr_20pro",
-        "CR-30" to "cr_30",
-        "CR-6 SE" to "cr_6se",
-        "CR-M4" to "cr_m4",
-        "CR-M4 SE" to "cr_m4se",
-        "Ender 2 Pro" to "ender_2pro",
-        "Ender 3" to "ender_3",
-        "Ender 3 Max" to "ender_3max",
-        "Ender 3 Max Neo" to "ender_3maxneo",
-        "Ender 3 Neo" to "ender_3neo",
-        "Ender 3 S1" to "ender_3s1",
-        "Ender 3 S1 Plus" to "ender_3s1plus",
-        "Ender 3 S1 Pro" to "ender_3s1pro",
-        "Ender 3 V2" to "ender_3v2",
-        "Ender 3 V3" to "ender_3v3",
-        "Ender 3 V3 KE" to "ender_3v3ke",
-        "Ender 3 V3 Plus" to "ender_3v3plus",
-        "Ender 3 V3 SE" to "ender_3v3se",
-        "Ender 3 V4" to "ender_3v4",
-        "Ender 5 Max" to "ender_5max",
-        "Ender 5 Plus" to "ender_5plus",
-        "Ender 5 S1" to "ender_5s1",
-        "GS-01" to "gs_01",
-        "GS-02" to "gs_02",
-        "GS-03" to "gs_03",
-        "GS-04" to "gs_04",
-        "HI" to "hi",
-        "K1" to "k1",
-        "K1C" to "k1c",
-        "K1 Max" to "k1max",
-        "K1 SE" to "k1se",
-        "K2" to "k2",
-        "K2 Plus" to "k2plus",
-        "K2 Pro" to "k2pro",
-        "K2 SE" to "k2se",
-        "Sermoon D3" to "sermoond3",
-        "Sermoon D3 Pro" to "sermoond3pro",
-        "Sermoon M300" to "sermoonm300",
-        "Sermoon V1 Pro" to "sermoonv1pro",
-        "Sonic Pad (Ender 3 S1)" to "sonic_ender_3s1",
-        "Sonic Pad (Ender 5 S1)" to "sonic_ender_5s1",
+        "CR-10" to "cr_10", "CR-10 SE" to "cr_10se", "CR-10 Smart" to "cr_10smart",
+        "CR-10 Smart Pro" to "cr_10smartpro", "CR-10S Pro V2" to "cr_10sprov2",
+        "CR-20 Pro" to "cr_20pro", "CR-30" to "cr_30", "CR-6 SE" to "cr_6se",
+        "CR-M4" to "cr_m4", "CR-M4 SE" to "cr_m4se", "Ender 2 Pro" to "ender_2pro",
+        "Ender 3" to "ender_3", "Ender 3 Max" to "ender_3max", "Ender 3 Max Neo" to "ender_3maxneo",
+        "Ender 3 Neo" to "ender_3neo", "Ender 3 S1" to "ender_3s1", "Ender 3 S1 Plus" to "ender_3s1plus",
+        "Ender 3 S1 Pro" to "ender_3s1pro", "Ender 3 V2" to "ender_3v2", "Ender 3 V3" to "ender_3v3",
+        "Ender 3 V3 KE" to "ender_3v3ke", "Ender 3 V3 Plus" to "ender_3v3plus", "Ender 3 V3 SE" to "ender_3v3se",
+        "Ender 4" to "ender_4", "Ender 5 Max" to "ender_5max", "Ender 5 Plus" to "ender_5plus",
+        "Ender 5 S1" to "ender_5s1", "GS-01" to "gs_01", "GS-02" to "gs_02", "GS-03" to "gs_03",
+        "GS-04" to "gs_04", "HI" to "hi", "K1" to "k1", "K1C" to "k1c", "K1 Max" to "k1max",
+        "K1 SE" to "k1se", "K2" to "k2", "K2 Plus" to "k2plus", "K2 Pro" to "k2pro",
+        "K2 SE" to "k2se", "Sermoon D3" to "sermoond3", "Sermoon D3 Pro" to "sermoond3pro",
+        "Sermoon M300" to "sermoonm300", "Sermoon V1 Pro" to "sermoonv1pro",
+        "Sonic Pad (Ender 3 S1)" to "sonic_ender_3s1", "Sonic Pad (Ender 5 S1)" to "sonic_ender_5s1",
         "Spark Xi7" to "sparkxi7"
     )
 
-    private class CenteredDialogAdapter(context: Context, items: Array<String>) :
-        ArrayAdapter<String>(context, android.R.layout.select_dialog_item, android.R.id.text1, items) {
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = super.getView(position, convertView, parent) as TextView
-            view.gravity = Gravity.CENTER
-            val isNight = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-            view.setTextColor(if (isNight) android.graphics.Color.WHITE else android.graphics.Color.BLACK)
-            view.setPadding(0, 30, 0, 30)
-            return view
-        }
-    }
-
-    private fun createCenteredTitle(titleText: String): TextView {
-        return TextView(this).apply {
-            text = titleText
-            setPadding(0, 40, 0, 10)
-            textSize = 20f
-            gravity = Gravity.CENTER
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-            setTextColor(if (isNight) android.graphics.Color.WHITE else android.graphics.Color.BLACK)
-        }
-    }
-
-    // --- NEU: Intelligentes Icon-Laden über das Wörterbuch ---
     private fun getPrinterImageResource(modelName: String): Int {
-        // Schaut nach, ob der hübsche Name in unserer Map steht.
-        // Falls nicht (z.B. bei alten Speicherdaten), wird als Fallback der übergebene Name direkt verarbeitet.
         val mappedName = printerMap[modelName] ?: modelName.lowercase(Locale.getDefault()).replace(" ", "").replace("-", "_")
-
         val resourceName = "printer_$mappedName"
         val resId = resources.getIdentifier(resourceName, "drawable", packageName)
-
         return if (resId != 0) resId else R.mipmap.ic_launcher
     }
 
@@ -129,25 +72,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        AppCompatDelegate.setDefaultNightMode(if (prefs.getBoolean("dark_mode", false)) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO)
 
-        setContentView(R.layout.activity_main)
-
-        val startupVeil = findViewById<LinearLayout?>(R.id.viewStartupVeil)
-        startupVeil?.post {
-            startupVeil.animate()
-                .translationY(-(startupVeil.height.toFloat()))
-                .alpha(0f)
-                .setStartDelay(800)
-                .setDuration(1200)
-                .withEndAction {
-                    startupVeil.visibility = View.GONE
-                }
-                .start()
+        val savedTheme = try { prefs.getInt("theme_state", 0) } catch (e: Exception) { 0 }
+        when (savedTheme) {
+            1 -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            2 -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         }
 
-        val ivBackgroundWatermark = findViewById<ImageView>(R.id.ivBackgroundWatermark)
-        ivBackgroundWatermark?.alpha = if ((resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) 0.15f else 0.08f
+        setContentView(R.layout.activity_main)
 
         containerPrinters = findViewById(R.id.containerPrinters)
         tvNoPrinter = findViewById(R.id.tvNoPrinter)
@@ -160,6 +93,29 @@ class MainActivity : AppCompatActivity() {
         tvAddPrinterTitle = findViewById(R.id.tvAddPrinterTitle)
         btnSystemSelect = findViewById(R.id.btnSystemSelect)
 
+        val printerArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
+
+        val startupVeil = findViewById<LinearLayout?>(R.id.viewStartupVeil)
+        startupVeil?.post {
+            startupVeil.animate()
+                .translationY(-(startupVeil.height.toFloat()))
+                .alpha(0f)
+                .setStartDelay(500)
+                .setDuration(800)
+                .withEndAction {
+                    startupVeil.visibility = View.GONE
+                    if (printerArray.length() == 0) {
+                        etMainPrinterName.requestFocus()
+                    } else {
+                        findViewById<View>(R.id.btnSettings)?.requestFocus()
+                    }
+                }
+                .start()
+        }
+
+        val ivBackgroundWatermark = findViewById<ImageView>(R.id.ivBackgroundWatermark)
+        ivBackgroundWatermark?.alpha = if ((resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) 0.15f else 0.08f
+
         btnSystemSelect.setOnClickListener {
             val systemOptions = arrayOf(
                 getString(R.string.system_creality),
@@ -167,41 +123,33 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.system_manual)
             )
 
-            val dialog = AlertDialog.Builder(this@MainActivity)
-                .setCustomTitle(createCenteredTitle("System wählen"))
-                .setAdapter(CenteredDialogAdapter(this@MainActivity, systemOptions)) { _, which ->
-                    selectedSystemIndex = which
-                    when (which) {
-                        0 -> {
-                            btnSystemSelect.text = "Creality\n(4408)"
-                            etMainPrinterPort.visibility = View.GONE
-                        }
-                        1 -> {
-                            btnSystemSelect.text = "Klipper\n(80)"
-                            etMainPrinterPort.visibility = View.GONE
-                        }
-                        2 -> {
-                            btnSystemSelect.text = "Manuell\n(Port)"
-                            etMainPrinterPort.visibility = View.VISIBLE
-                            etMainPrinterPort.requestFocus()
-                        }
+            showPillDialog("System wählen", systemOptions) { which ->
+                selectedSystemIndex = which
+                when (which) {
+                    0 -> {
+                        btnSystemSelect.text = "Creality\n(4408)"
+                        etMainPrinterPort.visibility = View.GONE
+                    }
+                    1 -> {
+                        btnSystemSelect.text = "Klipper\n(80)"
+                        etMainPrinterPort.visibility = View.GONE
+                    }
+                    2 -> {
+                        btnSystemSelect.text = "Manuell\n(Port)"
+                        etMainPrinterPort.visibility = View.VISIBLE
+                        etMainPrinterPort.requestFocus()
                     }
                 }
-                .create()
-            dialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
-            dialog.show()
+            }
         }
 
-        // --- NEU: Wir laden die schönen Namen direkt aus unserem Lexikon! ---
         val printerModels = printerMap.keys.toTypedArray()
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, printerModels)
+        val adapter = ArrayAdapter(this, R.layout.item_dropdown_pill, printerModels)
         actvMainPrinterModel.setAdapter(adapter)
+        actvMainPrinterModel.inputType = InputType.TYPE_NULL
 
-        // TV-Fix: Die Liste klappt jetzt auf dem TV beim Fokussieren oder Anklicken direkt auf
         actvMainPrinterModel.setOnClickListener { actvMainPrinterModel.showDropDown() }
-        actvMainPrinterModel.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) actvMainPrinterModel.showDropDown()
-        }
+        actvMainPrinterModel.setOnFocusChangeListener { _, hasFocus -> if (hasFocus) actvMainPrinterModel.showDropDown() }
 
         val buttons = arrayOf(
             findViewById<View>(R.id.btnSettings),
@@ -209,41 +157,39 @@ class MainActivity : AppCompatActivity() {
             findViewById<Button>(R.id.btnAddMainPrinter),
             findViewById<Button>(R.id.btnExitApp),
             headerAddPrinter,
-            btnSystemSelect
+            btnSystemSelect,
+            etMainPrinterName,
+            etMainPrinterIP,
+            etMainPrinterPort,
+            actvMainPrinterModel
         )
 
         buttons.forEach { btn ->
-            btn.isFocusable = true
-            btn.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
-                v.animate().scaleX(if (hasFocus) 1.05f else 1.0f).scaleY(if (hasFocus) 1.05f else 1.0f).start()
+            btn?.isFocusable = true
+            btn?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
                 if (v is MaterialButton) {
                     v.strokeWidth = if (hasFocus) 6 else 0
-                    v.strokeColor = if (hasFocus) android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE) else null
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
                 }
             }
         }
 
         findViewById<View>(R.id.btnSettings).setOnClickListener {
-            try {
-                startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
-            } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, "Fehler beim Öffnen der Einstellungen!", Toast.LENGTH_SHORT).show()
-            }
+            startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
         }
 
         headerAddPrinter.setOnClickListener {
             val isVisible = containerAddPrinterForm.visibility == View.VISIBLE
             containerAddPrinterForm.visibility = if (isVisible) View.GONE else View.VISIBLE
             tvAddPrinterTitle.text = getString(if (isVisible) R.string.add_printer_down else R.string.add_printer_up)
+            if (!isVisible) {
+                etMainPrinterName.requestFocus()
+            }
         }
 
-        findViewById<Button>(R.id.btnSearchNetwork).setOnClickListener {
-            searchNetworkForPrinters()
-        }
-
-        findViewById<Button>(R.id.btnExitApp).setOnClickListener {
-            finishAffinity()
-        }
+        findViewById<Button>(R.id.btnSearchNetwork).setOnClickListener { searchNetworkForPrinters() }
+        findViewById<Button>(R.id.btnExitApp).setOnClickListener { finishAffinity() }
 
         findViewById<Button>(R.id.btnAddMainPrinter).setOnClickListener {
             val name = etMainPrinterName.text.toString().trim()
@@ -255,42 +201,65 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (name.isNotEmpty() && ip.isNotEmpty()) {
-                val dialog = AlertDialog.Builder(this@MainActivity)
-                    .setCustomTitle(createCenteredTitle(getString(R.string.choose_default_view)))
-                    .setAdapter(CenteredDialogAdapter(this@MainActivity, arrayOf("Interface", "Kamera"))) { _, which ->
+                showPillDialog(getString(R.string.choose_default_view), arrayOf("Interface", "Kamera")) { which ->
+                    savePrinter(name, ip, port, actvMainPrinterModel.text.toString().trim(), if (which == 0) "interface" else "camera")
 
-                        // Hier wird jetzt der "schöne" Name (z.B. "K2 Plus") gespeichert
-                        savePrinter(name, ip, port, actvMainPrinterModel.text.toString().trim(), if (which == 0) "interface" else "camera")
+                    etMainPrinterName.text.clear()
+                    etMainPrinterIP.text.clear()
+                    etMainPrinterPort.text.clear()
+                    actvMainPrinterModel.text.clear()
 
-                        etMainPrinterName.text.clear()
-                        etMainPrinterIP.text.clear()
-                        etMainPrinterPort.text.clear()
-                        actvMainPrinterModel.text.clear()
+                    selectedSystemIndex = 0
+                    btnSystemSelect.text = "Creality\n(4408)"
+                    etMainPrinterPort.visibility = View.GONE
+                    containerAddPrinterForm.visibility = View.GONE
+                    tvAddPrinterTitle.text = getString(R.string.add_printer_down)
 
-                        selectedSystemIndex = 0
-                        btnSystemSelect.text = "Creality\n(4408)"
-                        etMainPrinterPort.visibility = View.GONE
-
-                        containerAddPrinterForm.visibility = View.GONE
-                        tvAddPrinterTitle.text = getString(R.string.add_printer_down)
-
-                        Toast.makeText(this@MainActivity, "Drucker hinzugefügt", Toast.LENGTH_SHORT).show()
-                    }
-                    .create()
-                dialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
-                dialog.show()
+                    showCenteredPillToast("Drucker hinzugefügt")
+                }
             } else {
-                val errorDialog = AlertDialog.Builder(this@MainActivity)
-                    .setCustomTitle(createCenteredTitle("Fehlende Eingabe"))
-                    .setMessage("Bitte gib mindestens einen Namen und eine IP-Adresse ein.")
-                    .setPositiveButton("OK", null)
-                    .create()
-                errorDialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
-                errorDialog.show()
+                showPillDialog("Fehlende Eingabe", arrayOf("Verstanden")) { }
             }
         }
 
         loadPrinters()
+    }
+
+    private fun showCenteredPillToast(message: String) {
+        val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val container = FrameLayout(this).apply {
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        }
+
+        val pillDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 100f
+            if (isNight) {
+                setColor(Color.parseColor("#252B2E"))
+                setStroke(4, Color.WHITE)
+            } else {
+                setColor(Color.WHITE)
+                setStroke(4, Color.parseColor("#BDBDBD"))
+            }
+        }
+
+        val pillView = TextView(this).apply {
+            text = message
+            textSize = 16f
+            gravity = Gravity.CENTER
+            setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+            background = pillDrawable
+            setPadding(50, 35, 50, 35)
+            elevation = 12f
+            layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                setMargins(50, 0, 50, 240)
+            }
+        }
+        container.addView(pillView)
+        rootLayout.addView(container)
+        Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
     private fun getLocalIpAddress(): String? {
@@ -299,9 +268,7 @@ class MainActivity : AppCompatActivity() {
             for (intf in java.util.Collections.list(interfaces)) {
                 val addrs = java.util.Collections.list(intf.inetAddresses)
                 for (addr in addrs) {
-                    if (!addr.isLoopbackAddress && addr is java.net.Inet4Address) {
-                        return addr.hostAddress
-                    }
+                    if (!addr.isLoopbackAddress && addr is java.net.Inet4Address) return addr.hostAddress
                 }
             }
         } catch (ex: Exception) { ex.printStackTrace() }
@@ -320,10 +287,16 @@ class MainActivity : AppCompatActivity() {
 
         val progressBar = ProgressBar(this)
         progressBar.setPadding(0, 50, 0, 50)
-        progressBar.indeterminateTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#2196F3"))
+        progressBar.indeterminateTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
 
         val progressDialog = AlertDialog.Builder(this@MainActivity)
-            .setCustomTitle(createCenteredTitle(getString(R.string.search_network)))
+            .setCustomTitle(TextView(this).apply {
+                text = getString(R.string.search_network)
+                gravity = Gravity.CENTER
+                textSize = 20f
+                setPadding(0, 40, 0, 10)
+                setTypeface(null, android.graphics.Typeface.BOLD)
+            })
             .setView(progressBar)
             .setCancelable(false)
             .create()
@@ -346,28 +319,19 @@ class MainActivity : AppCompatActivity() {
         executor.shutdown()
 
         Thread {
-            executor.awaitTermination(6, java.util.concurrent.TimeUnit.SECONDS)
+            executor.awaitTermination(6, TimeUnit.SECONDS)
             runOnUiThread {
                 progressDialog.dismiss()
                 if (foundPrinters.isNotEmpty()) {
                     val uniquePrinters = foundPrinters.distinct().toTypedArray()
-                    val centeredAdapter = CenteredDialogAdapter(this@MainActivity, uniquePrinters)
-
-                    val foundDialog = AlertDialog.Builder(this@MainActivity)
-                        .setCustomTitle(createCenteredTitle(getString(R.string.found_printers)))
-                        .setAdapter(centeredAdapter) { _, which ->
-                            etMainPrinterIP.setText(uniquePrinters[which])
-                            selectedSystemIndex = 0
-                            btnSystemSelect.text = "Creality\n(4408)"
-                            etMainPrinterPort.visibility = View.GONE
-                        }
-                        .setPositiveButton(getString(R.string.cancel), null)
-                        .create()
-
-                    foundDialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
-                    foundDialog.show()
+                    showPillDialog(getString(R.string.found_printers), uniquePrinters) { which ->
+                        etMainPrinterIP.setText(uniquePrinters[which])
+                        selectedSystemIndex = 0
+                        btnSystemSelect.text = "Creality\n(4408)"
+                        etMainPrinterPort.visibility = View.GONE
+                    }
                 } else {
-                    Toast.makeText(this@MainActivity, "Keine Drucker gefunden.", Toast.LENGTH_SHORT).show()
+                    showCenteredPillToast("Keine Drucker gefunden.")
                 }
             }
         }.start()
@@ -375,7 +339,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun savePrinter(name: String, ip: String, port: String, model: String, defaultView: String) {
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        val printerArray = JSONArray(prefs.getString("printers_list", "[]"))
+        val printerArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
         printerArray.put(JSONObject().put("name", name).put("ip", ip).put("port", port).put("model", model).put("defaultView", defaultView))
         prefs.edit().putString("printers_list", printerArray.toString()).apply()
         loadPrinters()
@@ -383,7 +347,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadPrinters() {
         containerPrinters.removeAllViews()
-        val printerArray = JSONArray(getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).getString("printers_list", "[]"))
+        val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+        val printerArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
 
         tvNoPrinter.visibility = if (printerArray.length() == 0) View.VISIBLE else View.GONE
         if (printerArray.length() == 0) {
@@ -399,7 +364,7 @@ class MainActivity : AppCompatActivity() {
             itemView.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
                     v.animate().scaleX(1.02f).scaleY(1.02f).translationZ(8f).setDuration(150).start()
-                    v.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#44FFFFFF"))
+                    v.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#44FFFFFF"))
                 } else {
                     v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(150).start()
                     v.backgroundTintList = null
@@ -407,10 +372,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val iconView = itemView.findViewById<ImageView>(R.id.ivPrinterIcon)
-            if (iconView != null) {
-                // Das Wörterbuch kümmert sich um die Übersetzung
-                iconView.setImageResource(getPrinterImageResource(printer.getString("model")))
-            }
+            if (iconView != null) iconView.setImageResource(getPrinterImageResource(printer.getString("model")))
 
             itemView.findViewById<TextView>(R.id.tvPrinterNameAndAddress).apply {
                 text = printer.getString("name")
@@ -419,56 +381,93 @@ class MainActivity : AppCompatActivity() {
             }
 
             itemView.setOnClickListener {
-                val intent = Intent(this@MainActivity, WebViewActivity::class.java)
-                val targetUrl = if (printer.getString("defaultView") == "camera") "http://${printer.getString("ip")}/camera.html" else "http://${printer.getString("ip")}:${printer.getString("port")}"
-                intent.putExtra("TARGET_URL", targetUrl)
+                val intent = Intent(this@MainActivity, WebViewActivity::class.java).apply {
+                    val targetUrl = if (printer.getString("defaultView") == "camera") {
+                        "http://${printer.getString("ip")}/camera.html"
+                    } else {
+                        "http://${printer.getString("ip")}:${printer.getString("port")}"
+                    }
+                    putExtra("TARGET_URL", targetUrl)
+                }
                 startActivity(intent)
             }
 
             itemView.setOnLongClickListener {
-                val mainAdapter = CenteredDialogAdapter(this@MainActivity, arrayOf(getString(R.string.choose_default_view), getString(R.string.yes_delete)))
-                val actionDialog = AlertDialog.Builder(this@MainActivity)
-                    .setCustomTitle(createCenteredTitle(printer.getString("name")))
-                    .setAdapter(mainAdapter) { _, whichAction ->
-                        if (whichAction == 0) {
-                            val viewAdapter = CenteredDialogAdapter(this@MainActivity, arrayOf("Interface", "Kamera"))
-                            val changeDialog = AlertDialog.Builder(this@MainActivity)
-                                .setCustomTitle(createCenteredTitle(getString(R.string.choose_default_view)))
-                                .setAdapter(viewAdapter) { _, whichView ->
-                                    val newView = if (whichView == 0) "interface" else "camera"
-                                    val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-                                    val currentArray = JSONArray(prefs.getString("printers_list", "[]"))
-                                    currentArray.getJSONObject(i).put("defaultView", newView)
-                                    prefs.edit().putString("printers_list", currentArray.toString()).apply()
-                                    loadPrinters()
-                                    Toast.makeText(this@MainActivity, "Ansicht geändert", Toast.LENGTH_SHORT).show()
-                                }
-                                .create()
-                            changeDialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
-                            changeDialog.show()
-                        } else {
-                            val deleteDialog = AlertDialog.Builder(this@MainActivity)
-                                .setCustomTitle(createCenteredTitle(getString(R.string.reset_confirm_msg)))
-                                .setPositiveButton(getString(R.string.yes_delete)) { _, _ ->
-                                    val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-                                    val currentArray = JSONArray(prefs.getString("printers_list", "[]"))
-                                    val newList = JSONArray()
-                                    for (j in 0 until currentArray.length()) { if (j != i) newList.put(currentArray.get(j)) }
-                                    prefs.edit().putString("printers_list", newList.toString()).apply()
-                                    loadPrinters()
-                                }
-                                .setNegativeButton(getString(R.string.cancel), null)
-                                .create()
-                            deleteDialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
-                            deleteDialog.show()
+                showPillDialog(printer.getString("name"), arrayOf(getString(R.string.choose_default_view), getString(R.string.yes_delete))) { whichAction ->
+                    if (whichAction == 0) {
+                        showPillDialog(getString(R.string.choose_default_view), arrayOf("Interface", "Kamera")) { whichView ->
+                            val newView = if (whichView == 0) "interface" else "camera"
+                            val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
+                            if (currentArray.length() > i) {
+                                currentArray.getJSONObject(i).put("defaultView", newView)
+                                prefs.edit().putString("printers_list", currentArray.toString()).apply()
+                                loadPrinters()
+                                showCenteredPillToast("Ansicht geändert")
+                            }
+                        }
+                    } else {
+                        showPillDialog(getString(R.string.reset_confirm_msg), arrayOf(getString(R.string.yes_delete), getString(R.string.cancel))) { confirmDelete ->
+                            if (confirmDelete == 0) {
+                                val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
+                                val newList = JSONArray()
+                                for (j in 0 until currentArray.length()) { if (j != i) newList.put(currentArray.get(j)) }
+                                prefs.edit().putString("printers_list", newList.toString()).apply()
+                                loadPrinters()
+                            }
                         }
                     }
-                    .create()
-                actionDialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
-                actionDialog.show()
+                }
                 true
             }
             containerPrinters.addView(itemView)
         }
+    }
+
+    private fun showPillDialog(title: String, items: Array<String>, onSelected: (Int) -> Unit) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = title
+        val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val textColor = if (isNight) Color.WHITE else Color.BLACK
+        val btnBgColor = if (isNight) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888")
+
+        items.forEachIndexed { index, itemText ->
+            val btn = MaterialButton(this).apply {
+                text = itemText
+                isAllCaps = false // FIXED: Korrekte Methode für Kotlin
+                textSize = 16f    // FIXED: Float Literal statt XML "sp" Suffix
+                cornerRadius = 100
+                setPadding(0, 35, 0, 35)
+                backgroundTintList = ColorStateList.valueOf(btnBgColor)
+                setTextColor(textColor)
+                isFocusable = true
+
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    setMargins(0, 10, 0, 10)
+                }
+
+                onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                    if (hasFocus) {
+                        v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
+                        strokeWidth = 6
+                        strokeColor = ColorStateList.valueOf(Color.WHITE)
+                    } else {
+                        v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
+                        strokeWidth = 0
+                    }
+                }
+
+                setOnClickListener {
+                    onSelected(index)
+                    dialog.dismiss()
+                }
+            }
+            container.addView(btn)
+        }
+        dialog.show()
     }
 }

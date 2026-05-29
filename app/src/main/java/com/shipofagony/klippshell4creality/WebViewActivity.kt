@@ -4,11 +4,13 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -18,6 +20,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -47,7 +50,6 @@ class WebViewActivity : AppCompatActivity() {
     )
 
     private var lastPrintState: String = ""
-
     private val osdHandler = Handler(Looper.getMainLooper())
     private val osdRunnable = object : Runnable {
         override fun run() {
@@ -58,10 +60,9 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
-    // --- IMMERSIVE MODE (Button Auto-Hide) ---
     private val uiHandler = Handler(Looper.getMainLooper())
     private val hideUiRunnable = Runnable { hideButtons() }
-    private val IMMERSIVE_TIMEOUT = 5000L // 5 Sekunden Timeout
+    private val IMMERSIVE_TIMEOUT = 5000L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,11 +76,8 @@ class WebViewActivity : AppCompatActivity() {
         val btnToggle = findViewById<MaterialButton>(R.id.btnWebToggle)
         val btnClose = findViewById<MaterialButton>(R.id.btnWebClose)
 
-        // Touch-Erkennung
         webView.setOnTouchListener { _, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                showButtons()
-            }
+            if (event.action == MotionEvent.ACTION_DOWN) showButtons()
             false
         }
 
@@ -122,14 +120,11 @@ class WebViewActivity : AppCompatActivity() {
                     var style = document.createElement('style');
                     style.innerHTML = '*:focus { outline: 4px solid #FFFFFF !important; outline-offset: -2px !important; background-color: rgba(255, 255, 255, 0.15) !important; border-radius: 4px !important; }';
                     document.head.appendChild(style);
-                    
                     var retryCount = 0;
                     var interval = setInterval(function() {
                         var items = document.querySelectorAll('.v-list-item, .v-btn, a, button, input');
                         items.forEach(function(item) {
-                            if (!item.hasAttribute('tabindex')) {
-                                item.setAttribute('tabindex', '0');
-                            }
+                            if (!item.hasAttribute('tabindex')) item.setAttribute('tabindex', '0');
                         });
                         retryCount++;
                         if (retryCount > 5) clearInterval(interval);
@@ -140,7 +135,6 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         webView.webChromeClient = WebChromeClient()
-
         webView.isVerticalScrollBarEnabled = true
         webView.isScrollbarFadingEnabled = false
         webView.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
@@ -158,15 +152,13 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-
         currentActiveUrl = intent.getStringExtra("TARGET_URL") ?: "http://google.com"
 
         val initialIp = Uri.parse(currentActiveUrl).host ?: ""
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        val savedRatio = prefs.getFloat("camera_ratio_$initialIp", 56.25f)
+        val savedRatio = try { prefs.getFloat("camera_ratio_$initialIp", 56.25f) } catch(e: Exception) { 56.25f }
 
         loadStreamOrUrl(currentActiveUrl, savedRatio)
-
         showButtons()
 
         btnClose.setOnClickListener { finish() }
@@ -209,50 +201,34 @@ class WebViewActivity : AppCompatActivity() {
                                 1 -> 56.25f
                                 else -> 75f
                             }
-                            getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit()
-                                .putFloat("camera_ratio_$hostIp", ratio).apply()
-
+                            getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit().putFloat("camera_ratio_$hostIp", ratio).apply()
                             loadStreamOrUrl(currentActiveUrl, ratio)
                         }
                     }
                     strCamType -> {
-                        val camOptions = arrayOf(
-                            getString(R.string.camera_type_html),
-                            getString(R.string.camera_type_port),
-                            getString(R.string.camera_type_webcam)
-                        )
+                        val camOptions = arrayOf(getString(R.string.camera_type_html), getString(R.string.camera_type_port), getString(R.string.camera_type_webcam))
                         showModernMenu(strCamType, camOptions) { camIndex ->
                             val typeString = when (camIndex) {
                                 1 -> "port"
                                 2 -> "webcam"
                                 else -> "html"
                             }
-                            getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit()
-                                .putString("camera_type_$hostIp", typeString).apply()
+                            getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit().putString("camera_type_$hostIp", typeString).apply()
 
                             val newUrl = when (typeString) {
                                 "port" -> "http://$hostIp:8080/?action=stream"
                                 "webcam" -> "http://$hostIp/webcam/?action=stream"
                                 else -> "http://$hostIp/camera.html"
                             }
-                            val currentRatio = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-                                .getFloat("camera_ratio_$hostIp", 56.25f)
-
-                            loadStreamOrUrl(newUrl, currentRatio)
+                            loadStreamOrUrl(newUrl, getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).getFloat("camera_ratio_$hostIp", 56.25f))
                         }
                     }
                     strEmergency -> {
-                        val confirmDialog = AlertDialog.Builder(this@WebViewActivity)
-                            .setTitle(getString(R.string.dialog_stop_title))
-                            .setMessage(getString(R.string.dialog_stop_msg))
-                            .setPositiveButton(getString(R.string.dialog_stop_confirm)) { _, _ ->
+                        showModernMenu(getString(R.string.dialog_stop_title), arrayOf(getString(R.string.dialog_stop_confirm), getString(R.string.dialog_cancel))) { confirmIndex ->
+                            if (confirmIndex == 0) {
                                 sendEmergencyStop()
                             }
-                            .setNegativeButton(getString(R.string.dialog_cancel), null)
-                            .create()
-
-                        confirmDialog.window?.setBackgroundDrawableResource(R.drawable.bg_card)
-                        confirmDialog.show()
+                        }
                     }
                 }
             }
@@ -270,8 +246,7 @@ class WebViewActivity : AppCompatActivity() {
                     "webcam" -> "http://$hostIp/webcam/?action=stream"
                     else -> "http://$hostIp/camera.html"
                 }
-                val currentRatio = currentPrefs.getFloat("camera_ratio_$hostIp", 56.25f)
-                loadStreamOrUrl(cameraUrl, currentRatio)
+                loadStreamOrUrl(cameraUrl, currentPrefs.getFloat("camera_ratio_$hostIp", 56.25f))
             } else {
                 showModernMenu("Interface", arrayOf("Standard", "Port 4408")) { subWhich ->
                     loadStreamOrUrl(if (subWhich == 0) "http://$hostIp" else "http://$hostIp:4408", 0f)
@@ -280,35 +255,24 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
-    // --- IMMERSIVE MODE STEUERUNG ---
     private fun showButtons() {
         if (layoutWebButtons.alpha < 1f) {
             layoutWebButtons.animate().alpha(1f).setDuration(250).start()
-
-            for (i in 0 until layoutWebButtons.childCount) {
-                layoutWebButtons.getChildAt(i).isClickable = true
-            }
+            for (i in 0 until layoutWebButtons.childCount) layoutWebButtons.getChildAt(i).isClickable = true
         }
-
         uiHandler.removeCallbacks(hideUiRunnable)
         uiHandler.postDelayed(hideUiRunnable, IMMERSIVE_TIMEOUT)
     }
 
     private fun hideButtons() {
-        // NEU: Die "if (isCameraMode)" Abfrage ist weg!
-        // Die Buttons faden jetzt in jeder Ansicht sanft aus.
         layoutWebButtons.animate().alpha(0f).setDuration(500).start()
-
-        for (i in 0 until layoutWebButtons.childCount) {
-            layoutWebButtons.getChildAt(i).isClickable = false
-        }
+        for (i in 0 until layoutWebButtons.childCount) layoutWebButtons.getChildAt(i).isClickable = false
     }
 
     override fun onUserInteraction() {
         super.onUserInteraction()
         showButtons()
     }
-    // ------------------------------------
 
     private fun loadStreamOrUrl(url: String, paddingTopPercent: Float) {
         currentActiveUrl = url
@@ -322,7 +286,6 @@ class WebViewActivity : AppCompatActivity() {
                 osdHandler.removeCallbacks(osdRunnable)
                 osdHandler.post(osdRunnable)
             }
-
             showButtons()
 
             val mediaElement = if (isHtmlCamera) {
@@ -344,35 +307,12 @@ class WebViewActivity : AppCompatActivity() {
                 <body> <div class="container"> $mediaElement </div> </body>
                 </html>
             """.trimIndent()
-
             webView.loadDataWithBaseURL(url, html, "text/html", "UTF-8", null)
         } else {
             layoutOsd.visibility = View.GONE
             osdHandler.removeCallbacks(osdRunnable)
-
-            // NEU: Timer auch im Fluidd-Modus starten!
             showButtons()
-
             webView.loadUrl(url)
-        }
-    }
-
-    private fun playSystemSound(isError: Boolean) {
-        try {
-            val alertType = if (isError) RingtoneManager.TYPE_ALARM else RingtoneManager.TYPE_NOTIFICATION
-            val uri = RingtoneManager.getDefaultUri(alertType)
-            val ringtone = RingtoneManager.getRingtone(applicationContext, uri)
-            ringtone.play()
-
-            if (isError) {
-                Handler(Looper.getMainLooper()).postDelayed({
-                    if (ringtone.isPlaying) {
-                        ringtone.stop()
-                    }
-                }, 3000)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -380,14 +320,10 @@ class WebViewActivity : AppCompatActivity() {
         val uri = Uri.parse(currentActiveUrl)
         val hostIp = uri.host ?: return
         val hostAuthority = uri.authority ?: hostIp
-
         val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status"
         val currentChamberQuery = if (knownChamberSensor != null) "&${knownChamberSensor!!.replace(" ", "%20")}" else ""
 
-        val urlsToTry = listOf(
-            "http://$hostIp:7125/$baseQuery$currentChamberQuery",
-            "http://$hostAuthority/$baseQuery$currentChamberQuery"
-        )
+        val urlsToTry = listOf("http://$hostIp:7125/$baseQuery$currentChamberQuery", "http://$hostAuthority/$baseQuery$currentChamberQuery")
 
         Thread {
             var responseText = ""
@@ -396,11 +332,9 @@ class WebViewActivity : AppCompatActivity() {
 
             for (urlStr in urlsToTry) {
                 try {
-                    val url = URL(urlStr)
-                    val conn = url.openConnection() as HttpURLConnection
+                    val conn = URL(urlStr).openConnection() as HttpURLConnection
                     conn.connectTimeout = 3000
                     conn.readTimeout = 3000
-
                     val code = conn.responseCode
                     if (code == 200) {
                         responseText = conn.inputStream.bufferedReader().use { it.readText() }
@@ -408,21 +342,13 @@ class WebViewActivity : AppCompatActivity() {
                     } else if (code == 400 && knownChamberSensor != null) {
                         gotBadRequest = true
                         break
-                    } else {
-                        lastErrorMsg = "HTTP Error: $code"
-                    }
-                } catch (e: Exception) {
-                    lastErrorMsg = e.message ?: "Connection failed"
-                }
+                    } else { lastErrorMsg = "HTTP Error: $code" }
+                } catch (e: Exception) { lastErrorMsg = e.message ?: "Connection failed" }
             }
 
             if (gotBadRequest) {
                 chamberSearchIndex++
-                if (chamberSearchIndex < chamberNamesToTry.size) {
-                    knownChamberSensor = chamberNamesToTry[chamberSearchIndex]
-                } else {
-                    knownChamberSensor = null
-                }
+                knownChamberSensor = if (chamberSearchIndex < chamberNamesToTry.size) chamberNamesToTry[chamberSearchIndex] else null
                 fetchMoonrakerData()
                 return@Thread
             }
@@ -436,51 +362,38 @@ class WebViewActivity : AppCompatActivity() {
                         val extruder = status.optJSONObject("extruder")
                         val tempExtruder = extruder?.optDouble("temperature", 0.0) ?: 0.0
                         val targetExtruder = extruder?.optDouble("target", 0.0) ?: 0.0
-
                         val bed = status.optJSONObject("heater_bed")
                         val tempBed = bed?.optDouble("temperature", 0.0) ?: 0.0
                         val targetBed = bed?.optDouble("target", 0.0) ?: 0.0
-
                         val displayStatus = status.optJSONObject("display_status")
                         val progress = displayStatus?.optDouble("progress", 0.0) ?: 0.0
-
                         val printStats = status.optJSONObject("print_stats")
                         val duration = printStats?.optInt("print_duration", 0) ?: 0
-
                         val currentState = printStats?.optString("state", "") ?: ""
 
                         runOnUiThread {
                             if (lastPrintState.isNotEmpty() && lastPrintState != currentState) {
                                 if (currentState == "complete") {
                                     playSystemSound(false)
-                                    Toast.makeText(this@WebViewActivity, "Druck erfolgreich beendet!", Toast.LENGTH_LONG).show()
+                                    showCenteredPillToast("Druck erfolgreich beendet!")
                                 } else if (currentState == "error") {
                                     playSystemSound(true)
-                                    Toast.makeText(this@WebViewActivity, "ACHTUNG: Klipper Fehler!", Toast.LENGTH_LONG).show()
+                                    showCenteredPillToast("ACHTUNG: Klipper Fehler!")
                                 }
                             }
                             lastPrintState = currentState
 
-                            findViewById<TextView>(R.id.tvOsdExtruder).text =
-                                String.format("Düse: %.1f°C / %.0f°C", tempExtruder, targetExtruder)
-                            findViewById<TextView>(R.id.tvOsdBed).text =
-                                String.format("Bett: %.1f°C / %.0f°C", tempBed, targetBed)
-                            findViewById<TextView>(R.id.tvOsdProgress).text =
-                                String.format("%.1f%%", progress * 100)
+                            findViewById<TextView>(R.id.tvOsdExtruder).text = String.format("Düse: %.1f°C / %.0f°C", tempExtruder, targetExtruder)
+                            findViewById<TextView>(R.id.tvOsdBed).text = String.format("Bett: %.1f°C / %.0f°C", tempBed, targetBed)
+                            findViewById<TextView>(R.id.tvOsdProgress).text = String.format("%.1f%%", progress * 100)
 
                             val passedMin = duration / 60
                             val passedSec = duration % 60
-                            val passedStr = String.format("%02d:%02d", passedMin, passedSec)
-
                             val totalStr = if (progress > 0.001) {
                                 val totalTimeEstimated = (duration / progress).toInt()
-                                val totMin = totalTimeEstimated / 60
-                                val totSec = totalTimeEstimated % 60
-                                String.format("%02d:%02d", totMin, totSec)
-                            } else {
-                                "--:--"
-                            }
-                            findViewById<TextView>(R.id.tvOsdTime).text = "Zeit: $passedStr / $totalStr"
+                                String.format("%02d:%02d", totalTimeEstimated / 60, totalTimeEstimated % 60)
+                            } else { "--:--" }
+                            findViewById<TextView>(R.id.tvOsdTime).text = "Zeit: ${String.format("%02d:%02d", passedMin, passedSec)} / $totalStr"
 
                             val tvChamber = findViewById<TextView?>(R.id.tvOsdChamber)
                             if (tvChamber != null) {
@@ -488,20 +401,11 @@ class WebViewActivity : AppCompatActivity() {
                                     val chamberData = status.optJSONObject(knownChamberSensor)
                                     val tempChamber = chamberData?.optDouble("temperature", 0.0) ?: 0.0
                                     val targetChamber = chamberData?.optDouble("target", 0.0) ?: 0.0
-
                                     if (tempChamber > 0.0) {
-                                        if (targetChamber > 0.0) {
-                                            tvChamber.text = String.format("Kammer: %.1f°C / %.0f°C", tempChamber, targetChamber)
-                                        } else {
-                                            tvChamber.text = String.format("Kammer: %.1f°C", tempChamber)
-                                        }
+                                        tvChamber.text = if (targetChamber > 0.0) String.format("Kammer: %.1f°C / %.0f°C", tempChamber, targetChamber) else String.format("Kammer: %.1f°C", tempChamber)
                                         tvChamber.visibility = View.VISIBLE
-                                    } else {
-                                        tvChamber.visibility = View.GONE
-                                    }
-                                } else {
-                                    tvChamber.visibility = View.GONE
-                                }
+                                    } else { tvChamber.visibility = View.GONE }
+                                } else { tvChamber.visibility = View.GONE }
                             }
                         }
                     }
@@ -523,92 +427,125 @@ class WebViewActivity : AppCompatActivity() {
     private fun sendEmergencyStop() {
         val uri = Uri.parse(currentActiveUrl)
         val hostIp = uri.host ?: return
-        val hostAuthority = uri.authority ?: hostIp
-
-        val urlsToTry = listOf(
-            "http://$hostIp:7125/printer/emergency_stop",
-            "http://$hostAuthority/printer/emergency_stop"
-        )
+        val urlsToTry = listOf("http://$hostIp:7125/printer/emergency_stop", "http://${uri.authority ?: hostIp}/printer/emergency_stop")
 
         Thread {
             var success = false
             var lastResponseCode = -1
-
             for (urlStr in urlsToTry) {
                 try {
-                    val url = URL(urlStr)
-                    val conn = url.openConnection() as HttpURLConnection
+                    val conn = URL(urlStr).openConnection() as HttpURLConnection
                     conn.requestMethod = "POST"
                     conn.connectTimeout = 3000
                     lastResponseCode = conn.responseCode
-
-                    if (lastResponseCode in 200..299) {
-                        success = true
-                        break
-                    }
-                } catch (e: Exception) {
-                }
+                    if (lastResponseCode in 200..299) { success = true; break }
+                } catch (_: Exception) {}
             }
-
             runOnUiThread {
-                if (success) {
-                    Toast.makeText(this@WebViewActivity, getString(R.string.toast_stop_success), Toast.LENGTH_LONG).show()
-                } else {
-                    if (lastResponseCode != -1) {
-                        Toast.makeText(this@WebViewActivity, getString(R.string.toast_stop_error) + lastResponseCode, Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this@WebViewActivity, getString(R.string.toast_no_connection), Toast.LENGTH_SHORT).show()
-                    }
-                }
+                if (success) showCenteredPillToast(getString(R.string.toast_stop_success))
+                else showCenteredPillToast(if (lastResponseCode != -1) getString(R.string.toast_stop_error) + lastResponseCode else getString(R.string.toast_no_connection))
             }
         }.start()
+    }
+
+    // FIXED: Diese Funktion war verschwunden und ist nun wieder korrekt in der Activity verankert
+    private fun playSystemSound(isError: Boolean) {
+        try {
+            val alertType = if (isError) RingtoneManager.TYPE_ALARM else RingtoneManager.TYPE_NOTIFICATION
+            val uri = RingtoneManager.getDefaultUri(alertType)
+            val ringtone = RingtoneManager.getRingtone(applicationContext, uri)
+            ringtone.play()
+            if (isError) {
+                Handler(Looper.getMainLooper()).postDelayed({ if (ringtone.isPlaying) ringtone.stop() }, 3000)
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    private fun showCenteredPillToast(message: String) {
+        val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val container = FrameLayout(this).apply {
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        }
+
+        val pillDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 100f
+            if (isNight) {
+                setColor(Color.parseColor("#252B2E"))
+                setStroke(4, Color.WHITE)
+            } else {
+                setColor(Color.WHITE)
+                setStroke(4, Color.parseColor("#BDBDBD"))
+            }
+        }
+
+        val pillView = TextView(this).apply {
+            text = message
+            textSize = 16f
+            gravity = Gravity.CENTER
+            setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+            background = pillDrawable
+            setPadding(50, 35, 50, 35)
+            elevation = 12f
+            layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                setMargins(50, 0, 50, 240)
+            }
+        }
+        container.addView(pillView)
+        rootLayout.addView(container)
+        Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
     private fun showModernMenu(title: String, items: Array<String>, onItemSelected: (Int) -> Unit) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
         dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = title
         val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textColor = if (isNightMode) Color.WHITE else Color.BLACK
-        val buttonBgColor = if (isNightMode) Color.parseColor("#424242") else Color.parseColor("#E0E0E0")
-
+        val buttonBgColor = if (isNightMode) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888")
         val strEmergency = getString(R.string.menu_emergency_stop)
 
         items.forEachIndexed { index, itemText ->
             val btn = MaterialButton(this).apply {
                 text = itemText
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(0, 10, 0, 10)
-                }
+                isAllCaps = false
+                textSize = 16f
+                cornerRadius = 100
+                setPadding(0, 35, 0, 35)
 
-                if (itemText == strEmergency) {
-                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#33E53935"))
-                    setTextColor(Color.parseColor("#E53935"))
-                    strokeColor = ColorStateList.valueOf(Color.parseColor("#E53935"))
-                    strokeWidth = 3
+                if (itemText == strEmergency || itemText == getString(R.string.dialog_stop_confirm)) {
+                    val redColorHex = if (isNightMode) "#C62828" else "#D32F2F"
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(redColorHex))
+                    setTextColor(Color.WHITE)
+                    strokeWidth = 0
                 } else {
                     backgroundTintList = ColorStateList.valueOf(buttonBgColor)
                     setTextColor(textColor)
                 }
 
-                cornerRadius = 24
                 isFocusable = true
+
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    setMargins(0, 10, 0, 10)
+                }
+
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
-                        v.animate().scaleX(1.05f).scaleY(1.05f).translationZ(8f).setDuration(150).start()
+                        v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
                         strokeWidth = 6
-                        strokeColor = if (itemText == strEmergency) {
+                        strokeColor = if (itemText == strEmergency || itemText == getString(R.string.dialog_stop_confirm)) {
                             ColorStateList.valueOf(Color.parseColor("#FF5252"))
                         } else {
                             ColorStateList.valueOf(Color.WHITE)
                         }
                     } else {
-                        v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(150).start()
-                        strokeWidth = if (itemText == strEmergency) 3 else 0
+                        v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
+                        strokeWidth = 0
                     }
                 }
                 setOnClickListener { onItemSelected(index); dialog.dismiss() }
@@ -619,14 +556,18 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        showButtons()
-
-        if (keyCode == KeyEvent.KEYCODE_BACK && webView.hasFocus()) {
-            findViewById<MaterialButton>(R.id.btnWebToggle).requestFocus()
-            return true
-        }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (webView.canGoBack()) { webView.goBack(); return true }
+            if (layoutWebButtons.alpha < 1f) {
+                showButtons()
+                findViewById<MaterialButton>(R.id.btnWebClose).requestFocus()
+                return true
+            }
+            if (!isCameraMode && webView.canGoBack()) {
+                webView.goBack()
+                return true
+            }
+            finish()
+            return true
         }
         return super.onKeyDown(keyCode, event)
     }
