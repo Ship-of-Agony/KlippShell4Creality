@@ -14,6 +14,10 @@ To install the app on your Android device:
 2. Download the latest `.apk` file.
 3. Open the file on your Android device to install it (make sure to allow installation from "unknown sources" if prompted).
 
+## ⚙️ System Requirements
+* **Minimum Android Version:** Android 5.0 (API Level 21) or higher.
+* **Compatibility:** Because of the low hardware requirements, KlippShell runs smoothly on **virtually any Android TV box, smart TV, or Amazon Fire TV Stick** released in the last decade, as well as almost all modern Android smartphones and tablets.
+
 ## 🚀 Upcoming Features (Roadmap)
 We are constantly working to improve KlippShell. Here is a glimpse of what's coming in future updates:
 * **Push Notifications:** Get instant alerts on your phone or TV for printer errors, critical states, and successful print completions.
