@@ -189,7 +189,6 @@ class WebViewActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedRatio = try { prefs.getFloat("camera_ratio_$hostIp", 56.25f) } catch(e: Exception) { 56.25f }
 
-        // NEU: OSD-Zustand für diesen spezifischen Drucker aus den SharedPreferences laden
         isOsdEnabled = prefs.getBoolean("osd_enabled_$hostIp", false)
 
         loadStreamOrUrl(currentActiveUrl, savedRatio)
@@ -222,7 +221,6 @@ class WebViewActivity : AppCompatActivity() {
                     strOsdShow, strOsdHide -> {
                         isOsdEnabled = !isOsdEnabled
 
-                        // NEU: Zustand sofort persistent für diesen Drucker abspeichern
                         getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit()
                             .putBoolean("osd_enabled_$hostIp", isOsdEnabled).apply()
 
@@ -367,7 +365,9 @@ class WebViewActivity : AppCompatActivity() {
         val uri = Uri.parse(currentActiveUrl)
         val hostIp = uri.host ?: return
         val hostAuthority = uri.authority ?: hostIp
-        val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status"
+
+        val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status" +
+                "&output_pin%20fan0&output_pin%20fan2&temperature_fan%20chamber_fan"
 
         val urlsToTry = listOf(
             "http://$hostIp:7125/$baseQuery$cachedChamberQueryString",
@@ -430,6 +430,15 @@ class WebViewActivity : AppCompatActivity() {
                         val duration = printStats?.optInt("print_duration", 0) ?: 0
                         val currentState = printStats?.optString("state", "") ?: ""
 
+                        val fan0Obj = status.optJSONObject("output_pin fan0")
+                        val valFanModel = (fan0Obj?.optDouble("value", 0.0) ?: 0.0) * 100
+
+                        val fan2Obj = status.optJSONObject("output_pin fan2")
+                        val valFanAux = (fan2Obj?.optDouble("value", 0.0) ?: 0.0) * 100
+
+                        val fanChamberObj = status.optJSONObject("temperature_fan chamber_fan")
+                        val valFanChamber = (fanChamberObj?.optDouble("speed", 0.0) ?: 0.0) * 100
+
                         runOnUiThread {
                             if (lastPrintState.isNotEmpty() && lastPrintState != currentState) {
                                 if (currentState == "complete") {
@@ -445,6 +454,10 @@ class WebViewActivity : AppCompatActivity() {
                             findViewById<TextView>(R.id.tvOsdExtruder).text = getString(R.string.osd_extruder, tempExtruder, targetExtruder)
                             findViewById<TextView>(R.id.tvOsdBed).text = getString(R.string.osd_bed, tempBed, targetBed)
                             findViewById<TextView>(R.id.tvOsdProgress).text = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
+
+                            findViewById<TextView>(R.id.tvOsdFanModel)?.text = getString(R.string.osd_fan_model, valFanModel)
+                            findViewById<TextView>(R.id.tvOsdFanAux)?.text = getString(R.string.osd_fan_aux, valFanAux)
+                            findViewById<TextView>(R.id.tvOsdFanChamber)?.text = getString(R.string.osd_fan_chamber, valFanChamber)
 
                             val passedMin = duration / 60
                             val passedSec = duration % 60

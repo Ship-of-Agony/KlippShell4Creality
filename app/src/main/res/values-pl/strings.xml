@@ -1,78 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KlippShell 4 Creality</string>
-    <string name="add_printer">Dodaj drukarkę</string>
+    <!-- App Ogólne -->
+    <string name="app_name">KlippShell</string>
+    <string name="saved_printers">Zapisane drukarki</string>
+    <string name="no_printers">Nie znaleziono drukarek. Dodaj jedną poniżej!</string>
+
+    <!-- Menu główne i dodawanie drukarki -->
     <string name="add_printer_down">Dodaj drukarkę ▼</string>
     <string name="add_printer_up">Dodaj drukarkę ▲</string>
-    <string name="printer_name_hint">Nazwa drukarki</string>
-    <string name="printer_ip_hint">Adres IP</string>
-    <string name="printer_port_hint">Port (Domyślny: 4408)</string>
-    <string name="printer_model_hint">Wybierz model</string>
+    <string name="printer_name_hint">Nazwa drukarki (np. K1 Max)</string>
+    <string name="printer_ip_hint">Adres IP drukarki</string>
+    <string name="printer_port_hint">Port (Domyślny: 7125)</string>
+    <string name="printer_model_hint">Wybierz model drukarki</string>
+    <string name="btn_search_network">Skanuj sieć</string>
+    <string name="search_network">Wyszukiwanie w sieci…</string>
+    <string name="found_printers">Znalezione Drukarki</string>
     <string name="btn_add">Dodaj</string>
-    <string name="btn_search_network">Przeszukaj sieć</string>
-    <string name="saved_printers">Zapisane drukarki</string>
-    <string name="no_printers">Brak dodanych drukarek</string>
-    <string name="btn_exit">Zakończ</string>
+    <string name="btn_exit">Zamknij KlippShell</string>
 
-    <string name="system_creality">Creality OS (Port 4408)</string>
-    <string name="system_standard">Standardowy Klipper (Port 80)</string>
-    <string name="system_manual">Ręcznie (Własny port)</string>
-    <string name="choose_port">Port</string>
+    <!-- Okna dialogowe wyboru systemu (MainActivity) -->
+    <string name="choose_port">Wybierz Port Systemowy</string>
+    <string name="system_creality">Creality (4408)</string>
+    <string name="system_standard">Klipper Standard (7125)</string>
+    <string name="system_manual">Port Ręczny</string>
 
+    <!-- Ustawienia i motywy (SettingsActivity) -->
     <string name="settings_title">Ustawienia</string>
-    <string name="dark_mode">Ciemny motyw (Dark Mode)</string>
-    <string name="change_language">Zmień język / Language</string>
-    <string name="reset_app">Resetuj aplikację</string>
-    <string name="btn_back">Wstecz</string>
-    <string name="search_network">Przeszukiwanie sieci...</string>
-    <string name="found_printers">Znalezione drukarki</string>
-
-    <string name="reset_app_title">Resetować aplikację?</string>
-    <string name="reset_app_msg">Czy na pewno? Wszystkie zapisane drukarki i ustawienia zostaną nieodwracalnie usunięte.</string>
-    <string name="reset_app_yes">Tak, usuń wszystko</string>
+    <string name="change_language">Zmień język</string>
+    <string name="reset_app">Zresetuj aplikację</string>
+    <string name="settings_optimized_tv">KlippShell jest zoptymalizowany dla urządzeń Android TV.</string>
+    <string name="theme_title">Wybierz Motyw</string>
+    <string name="theme_light">Jasny</string>
+    <string name="theme_dark">Ciemny</string>
+    <string name="theme_system">Domyślny Systemu</string>
+    <string name="choose_default_view">Ustaw Widok Domyślny</string>
+    <string name="choose_default_view_title">Widok Domyślny</string>
+    <string name="reset_app_title">Zresetuj Aplikację</string>
     <string name="reset_app_cancel">Anuluj</string>
+    <string name="reset_app_yes">Tak, Zresetuj</string>
+    <string name="reset_confirm_msg">Czy na pewno chcesz zresetować widok domyślny?</string>
+    <string name="btn_back">Wstecz</string>
 
-    <string name="reset_confirm_msg">Czy na pewno chcesz usunąć tę drukarkę?</string>
-    <string name="yes_delete">Tak, usuń</string>
+    <!-- Credits & Easter Eggs -->
+    <string name="made_in_germany">Stworzono z ♥ w Niemczech</string>
+    <string name="studio_name">Ship of Agony</string>
+    <string name="dng_thanks">Wielkie dzięki dla DnG Crafts za inspirację do stworzenia tej aplikacji. Bardzo doceniam Twoją pracę na scenie 3D!</string>
+    <string name="easter_egg_clicks">Zostało tylko %d kliknięć do trybu deweloperskiego!</string>
+    <string name="easter_egg_success">Tryb deweloperski odblokowany!</string>
 
-    <string name="cancel">Anuluj</string>
-    <string name="choose_default_view">Wybierz widok domyślny</string>
-
+    <!-- Opcje menu OSD -->
     <string name="menu_options_title">Opcje</string>
     <string name="menu_osd_show">Pokaż OSD</string>
     <string name="menu_osd_hide">Ukryj OSD</string>
-    <string name="menu_ratio">Dostosuj proporcje ekranu</string>
-    <string name="menu_change_camera_type">Zmień źródło kamery</string>
-    <string name="camera_type_html">przez HTML (camera.html)</string>
-    <string name="camera_type_port">przez Port (:8080)</string>
-    <string name="camera_type_webcam">przez Webcam (/webcam/)</string>
-    <string name="menu_emergency_stop">ZATRZYMANIE AWARYJNE (M112)</string>
+    <string name="menu_ratio">Zmień proporcje obrazu</string>
+    <string name="menu_change_camera_type">Zmień typ kamery</string>
+    <string name="menu_emergency_stop">ZATRZYMANIE AWARYJNE</string>
 
-    <string name="dialog_stop_title">URUCHOM ZATRZYMANIE AWARYJNE</string>
-    <string name="dialog_stop_msg">Czy na pewno chcesz natychmiast zatrzymać drukarkę?\n(Spowoduje to wysłanie polecenia M112)</string>
-    <string name="dialog_stop_confirm">TAK, ZATRZYMAJ</string>
+    <!-- Typy kamer -->
+    <string name="camera_type_html">Strona www (camera.html)</string>
+    <string name="camera_type_port">Strumień (Port 8080)</string>
+    <string name="camera_type_webcam">Strumień (/webcam/)</string>
+
+    <!-- Dialogi i komunikaty typu Toast -->
+    <string name="dialog_stop_title">Czy na pewno chcesz natychmiast zatrzymać drukarkę?</string>
+    <string name="dialog_stop_confirm">TAK, HAMULEC AWARYJNY!</string>
     <string name="dialog_cancel">Anuluj</string>
+    <string name="yes_delete">Usuń</string>
+    <string name="cancel">Anuluj</string>
+    <string name="toast_stop_success">Zatrzymanie awaryjne wysłane pomyślnie!</string>
+    <string name="toast_stop_error">Błąd wysyłania. Kod statusu: </string>
+    <string name="toast_no_connection">Brak połączenia z drukarką.</string>
 
-    <string name="toast_stop_success">Zatrzymanie awaryjne wykonane!</string>
-    <string name="toast_stop_error">Błąd podczas wysyłania: </string>
-    <string name="toast_no_connection">Brak połączenia z drukarką!</string>
-    <string name="osd_no_connection">HUD: Brak połączenia</string>
-
-    <string name="osd_extruder">Dysza: %1$.1f°C / %2$.0f°C</string>
-    <string name="osd_bed">Stół: %1$.1f°C / %2$.0f°C</string>
-    <string name="osd_chamber_sensor">Komora: %1$.1f°C</string>
-    <string name="osd_chamber_heater">Grzałka: %1$.1f°C / %2$.0f°C</string>
+    <!-- Wartości OSD -->
+    <string name="osd_extruder">Dysza: %.1f°C / %.0f°C</string>
+    <string name="osd_bed">Stół: %.1f°C / %.0f°C</string>
+    <string name="osd_chamber_sensor">Komora: %.1f°C</string>
+    <string name="osd_chamber_heater">Grzałka: %.1f°C / %.0f°C</string>
     <string name="osd_time">Czas: %1$s / %2$s</string>
 
-    <string name="theme_title">Wybierz motyw</string>
-    <string name="theme_system">Domyślny systemu (Automatycznie)</string>
-    <string name="theme_light">Jasny motyw</string>
-    <string name="theme_dark">Ciemny motyw</string>
-
-    <string name="settings_optimized_tv">Zoptymalizowano dla Android TV</string>
-    <string name="easter_egg_clicks">Jeszcze 2 kliknięcia...</string>
-    <string name="easter_egg_success">Niech Twoja pierwsza warstwa będzie zawsze idealna!</string>
-    <string name="studio_name">Ship of Agony LABs</string>
-    <string name="made_in_germany">Made with ❤️ in Germany</string>
-    <string name="dng_thanks">Special thanks to DnG Crafts for the wonderful inspiration for this app!</string>
+    <!-- Precyzyjne oznaczenia wentylatorów -->
+    <string name="osd_fan_model">Wentylator wydruku: %.0f%%</string>
+    <string name="osd_fan_aux">Wentylator boczny: %.0f%%</string>
+    <string name="osd_fan_chamber">Wentylator komory: %.0f%%</string>
 </resources>

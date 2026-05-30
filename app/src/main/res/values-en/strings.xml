@@ -1,78 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KlippShell 4 Creality</string>
-    <string name="add_printer">Add Printer</string>
+    <!-- App General -->
+    <string name="app_name">KlippShell</string>
+    <string name="saved_printers">Saved Printers</string>
+    <string name="no_printers">No printers found. Add one below!</string>
+
+    <!-- Main Menu & Add Printer -->
     <string name="add_printer_down">Add Printer ▼</string>
     <string name="add_printer_up">Add Printer ▲</string>
-    <string name="printer_name_hint">Printer Name</string>
-    <string name="printer_ip_hint">IP Address</string>
-    <string name="printer_port_hint">Port (Default: 4408)</string>
-    <string name="printer_model_hint">Select Model</string>
-    <string name="btn_add">Add</string>
+    <string name="printer_name_hint">Printer Name (e.g. K1 Max)</string>
+    <string name="printer_ip_hint">Printer IP Address</string>
+    <string name="printer_port_hint">Port (Default: 7125)</string>
+    <string name="printer_model_hint">Select Printer Model</string>
     <string name="btn_search_network">Scan Network</string>
-    <string name="saved_printers">Saved Printers</string>
-    <string name="no_printers">No printers added</string>
-    <string name="btn_exit">Exit</string>
-
-    <string name="system_creality">Creality OS (Port 4408)</string>
-    <string name="system_standard">Standard Klipper (Port 80)</string>
-    <string name="system_manual">Manual (Custom Port)</string>
-    <string name="choose_port">Port</string>
-
-    <string name="settings_title">Settings</string>
-    <string name="dark_mode">Dark Mode</string>
-    <string name="change_language">Change Language / Sprache ändern</string>
-    <string name="reset_app">Reset App</string>
-    <string name="btn_back">Back</string>
-    <string name="search_network">Scanning network...</string>
+    <string name="search_network">Searching network…</string>
     <string name="found_printers">Found Printers</string>
+    <string name="btn_add">Add Printer</string>
+    <string name="btn_exit">Exit KlippShell</string>
 
-    <string name="reset_app_title">Reset App?</string>
-    <string name="reset_app_msg">Are you sure? All saved printers and settings will be permanently deleted.</string>
-    <string name="reset_app_yes">Yes, delete everything</string>
+    <!-- System Selection Dialogs (MainActivity) -->
+    <string name="choose_port">Select System Port</string>
+    <string name="system_creality">Creality (4408)</string>
+    <string name="system_standard">Klipper Standard (7125)</string>
+    <string name="system_manual">Manual Port</string>
+
+    <!-- Settings & Layout (SettingsActivity) -->
+    <string name="settings_title">Settings</string>
+    <string name="change_language">Change Language</string>
+    <string name="reset_app">Reset App</string>
+    <string name="settings_optimized_tv">KlippShell is optimized for Android TV boxes.</string>
+    <string name="theme_title">Select Design</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System Default</string>
+    <string name="choose_default_view">Set Default View</string>
+    <string name="choose_default_view_title">Default View</string>
+    <string name="reset_app_title">Reset App</string>
     <string name="reset_app_cancel">Cancel</string>
+    <string name="reset_app_yes">Yes, Reset</string>
+    <string name="reset_confirm_msg">Are you sure you want to reset the default view?</string>
+    <string name="btn_back">Back</string>
 
-    <string name="reset_confirm_msg">Do you really want to delete this printer?</string>
-    <string name="yes_delete">Yes, delete</string>
+    <!-- Credits & Easter Eggs -->
+    <string name="made_in_germany">Made with ♥ in Germany</string>
+    <string name="studio_name">Ship of Agony</string>
+    <string name="dng_thanks">Many thanks to DnG Crafts for the inspiration for this app. I really appreciate your work in the 3D scene.</string>
+    <string name="easter_egg_clicks">Only %d clicks left until developer mode!</string>
+    <string name="easter_egg_success">Developer mode unlocked!</string>
 
-    <string name="cancel">Cancel</string>
-    <string name="choose_default_view">Select Default View</string>
-
+    <!-- Web Control & OSD Menu Options -->
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Show OSD</string>
     <string name="menu_osd_hide">Hide OSD</string>
-    <string name="menu_ratio">Adjust Aspect Ratio</string>
-    <string name="menu_change_camera_type">Change Camera Source</string>
-    <string name="camera_type_html">via HTML (camera.html)</string>
-    <string name="camera_type_port">via Port (:8080)</string>
-    <string name="camera_type_webcam">via Webcam (/webcam/)</string>
-    <string name="menu_emergency_stop">EMERGENCY STOP (Panic Stop)</string>
+    <string name="menu_ratio">Change Aspect Ratio</string>
+    <string name="menu_change_camera_type">Change Camera Type</string>
+    <string name="menu_emergency_stop">EMERGENCY STOP</string>
 
-    <string name="dialog_stop_title">TRIGGER EMERGENCY STOP</string>
-    <string name="dialog_stop_msg">Do you really want to stop the printer immediately?\n(This sends an M112 command)</string>
-    <string name="dialog_stop_confirm">YES, STOP</string>
+    <!-- Camera Types -->
+    <string name="camera_type_html">Webpage (camera.html)</string>
+    <string name="camera_type_port">Stream (Port 8080)</string>
+    <string name="camera_type_webcam">Stream (/webcam/)</string>
+
+    <!-- Dialogs & Toasts -->
+    <string name="dialog_stop_title">Are you sure you want to stop the printer immediately?</string>
+    <string name="dialog_stop_confirm">YES, EMERGENCY STOP!</string>
     <string name="dialog_cancel">Cancel</string>
+    <string name="yes_delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="toast_stop_success">Emergency stop sent successfully!</string>
+    <string name="toast_stop_error">Failed to send. Status code: </string>
+    <string name="toast_no_connection">No connection to the printer.</string>
 
-    <string name="toast_stop_success">Emergency stop executed!</string>
-    <string name="toast_stop_error">Error sending: </string>
-    <string name="toast_no_connection">No connection to printer!</string>
-    <string name="osd_no_connection">HUD: No Connection</string>
-
-    <string name="osd_extruder">Nozzle: %1$.1f°C / %2$.0f°C</string>
-    <string name="osd_bed">Bed: %1$.1f°C / %2$.0f°C</string>
-    <string name="osd_chamber_sensor">Chamber: %1$.1f°C</string>
-    <string name="osd_chamber_heater">Heater: %1$.1f°C / %2$.0f°C</string>
+    <!-- On-Screen-Display (OSD) Core Values -->
+    <string name="osd_extruder">Nozzle: %.1f°C / %.0f°C</string>
+    <string name="osd_bed">Bed: %.1f°C / %.0f°C</string>
+    <string name="osd_chamber_sensor">Chamber: %.1f°C</string>
+    <string name="osd_chamber_heater">Heater: %.1f°C / %.0f°C</string>
     <string name="osd_time">Time: %1$s / %2$s</string>
 
-    <string name="theme_title">Select Theme</string>
-    <string name="theme_system">System Default (Automatic)</string>
-    <string name="theme_light">Light Theme</string>
-    <string name="theme_dark">Dark Theme</string>
-
-    <string name="settings_optimized_tv">Optimized for Android TV</string>
-    <string name="easter_egg_clicks">2 more clicks...</string>
-    <string name="easter_egg_success">May your first layer always be perfect!</string>
-    <string name="studio_name">Ship of Agony LABs</string>
-    <string name="made_in_germany">Made with ❤️ in Germany</string>
-    <string name="dng_thanks">Special thanks to DnG Crafts for the wonderful inspiration for this app!</string>
+    <!-- Precision Fan Labels -->
+    <string name="osd_fan_model">Part Cooling Fan: %.0f%%</string>
+    <string name="osd_fan_aux">Auxiliary Fan: %.0f%%</string>
+    <string name="osd_fan_chamber">Chamber Fan: %.0f%%</string>
 </resources>
