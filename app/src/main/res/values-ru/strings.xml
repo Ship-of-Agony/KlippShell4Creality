@@ -7,54 +7,72 @@
     <string name="printer_name_hint">Имя принтера</string>
     <string name="printer_ip_hint">IP-адрес</string>
     <string name="printer_port_hint">Порт (По умолчанию: 4408)</string>
-    <string name="printer_model_hint">Выбрать модель</string>
+    <string name="printer_model_hint">Выберите модель</string>
     <string name="btn_add">Добавить</string>
-    <string name="btn_search_network">Поиск в сети</string>
+    <string name="btn_search_network">Сканировать сеть</string>
     <string name="saved_printers">Сохраненные принтеры</string>
     <string name="no_printers">Нет добавленных принтеров</string>
     <string name="btn_exit">Выход</string>
 
     <string name="system_creality">Creality OS (Порт 4408)</string>
-    <string name="system_standard">Standard Klipper (Порт 80)</string>
+    <string name="system_standard">Стандартный Klipper (Порт 80)</string>
     <string name="system_manual">Вручную (Свой порт)</string>
     <string name="choose_port">Порт</string>
 
     <string name="settings_title">Настройки</string>
-    <string name="dark_mode">Темная тема (Dark Mode)</string>
+    <string name="dark_mode">Темный режим (Dark Mode)</string>
     <string name="change_language">Изменить язык / Language</string>
     <string name="reset_app">Сбросить приложение</string>
     <string name="btn_back">Назад</string>
-    <string name="search_network">Поиск в сети...</string>
+    <string name="search_network">Сканирование сети...</string>
     <string name="found_printers">Найденные принтеры</string>
 
     <string name="reset_app_title">Сбросить приложение?</string>
     <string name="reset_app_msg">Вы уверены? Все сохраненные принтеры и настройки будут безвозвратно удалены.</string>
-    <string name="reset_app_yes">Да, удалить все</string>
+    <string name="reset_app_yes">Да, удалить всё</string>
     <string name="reset_app_cancel">Отмена</string>
 
     <string name="reset_confirm_msg">Вы действительно хотите удалить этот принтер?</string>
     <string name="yes_delete">Да, удалить</string>
 
     <string name="cancel">Отмена</string>
-    <string name="choose_default_view">Выберите вид по умолчанию</string>
+    <string name="choose_default_view">Выберите представление по умолчанию</string>
 
     <string name="menu_options_title">Опции</string>
     <string name="menu_osd_show">Показать OSD</string>
     <string name="menu_osd_hide">Скрыть OSD</string>
-    <string name="menu_ratio">Изменить формат</string>
-    <string name="menu_change_camera_type">Изменить источник камеры</string>
+    <string name="menu_ratio">Настроить соотношение сторон</string>
+    <string name="menu_change_camera_type">Сменить источник камеры</string>
     <string name="camera_type_html">через HTML (camera.html)</string>
     <string name="camera_type_port">через Порт (:8080)</string>
-    <string name="camera_type_webcam">через веб-камеру (/webcam/)</string>
-    <string name="menu_emergency_stop">ЭКСТРЕННАЯ ОСТАНОВКА</string>
+    <string name="camera_type_webcam">через Веб-камеру (/webcam/)</string>
+    <string name="menu_emergency_stop">АВАРИЙНЫЙ СТОП (команда M112)</string>
 
-    <string name="dialog_stop_title">ВЫЗВАТЬ ЭКСТРЕННУЮ ОСТАНОВКУ</string>
-    <string name="dialog_stop_msg">Вы действительно хотите немедленно остановить принтер?\n(Отправляет команду M112)</string>
+    <string name="dialog_stop_title">ЗАПУСТИТЬ АВАРИЙНЫЙ СТОП</string>
+    <string name="dialog_stop_msg">Вы действительно хотите немедленно остановить принтер?\n(Это отправит команду M112)</string>
     <string name="dialog_stop_confirm">ДА, ОСТАНОВИТЬ</string>
     <string name="dialog_cancel">Отмена</string>
 
-    <string name="toast_stop_success">Экстренная остановка выполнена!</string>
+    <string name="toast_stop_success">Аварийная остановка выполнена!</string>
     <string name="toast_stop_error">Ошибка отправки: </string>
     <string name="toast_no_connection">Нет связи с принтером!</string>
-    <string name="osd_no_connection">HUD: Нет связи</string>
+    <string name="osd_no_connection">HUD: Нет подключения</string>
+
+    <string name="osd_extruder">Сопло: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_bed">Стол: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_chamber_sensor">Камера: %1$.1f°C</string>
+    <string name="osd_chamber_heater">Нагрев: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_time">Время: %1$s / %2$s</string>
+
+    <string name="theme_title">Выбрать тему</string>
+    <string name="theme_system">Системная (Автоматически)</string>
+    <string name="theme_light">Светлая тема</string>
+    <string name="theme_dark">Темная тема</string>
+
+    <string name="settings_optimized_tv">Оптимизировано для Android TV</string>
+    <string name="easter_egg_clicks">Еще 2 клика...</string>
+    <string name="easter_egg_success">Пусть ваш первый слой всегда будет идеальным!</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="made_in_germany">Made with ❤️ in Germany</string>
+    <string name="dng_thanks">Special thanks to DnG Crafts for the wonderful inspiration for this app!</string>
 </resources>

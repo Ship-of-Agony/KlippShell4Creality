@@ -9,26 +9,26 @@
     <string name="printer_port_hint">Port (Domyślny: 4408)</string>
     <string name="printer_model_hint">Wybierz model</string>
     <string name="btn_add">Dodaj</string>
-    <string name="btn_search_network">Szukaj w sieci</string>
+    <string name="btn_search_network">Przeszukaj sieć</string>
     <string name="saved_printers">Zapisane drukarki</string>
     <string name="no_printers">Brak dodanych drukarek</string>
-    <string name="btn_exit">Wyjdź</string>
+    <string name="btn_exit">Zakończ</string>
 
     <string name="system_creality">Creality OS (Port 4408)</string>
-    <string name="system_standard">Standard Klipper (Port 80)</string>
+    <string name="system_standard">Standardowy Klipper (Port 80)</string>
     <string name="system_manual">Ręcznie (Własny port)</string>
     <string name="choose_port">Port</string>
 
     <string name="settings_title">Ustawienia</string>
-    <string name="dark_mode">Tryb ciemny (Dark Mode)</string>
+    <string name="dark_mode">Ciemny motyw (Dark Mode)</string>
     <string name="change_language">Zmień język / Language</string>
     <string name="reset_app">Resetuj aplikację</string>
     <string name="btn_back">Wstecz</string>
-    <string name="search_network">Szukanie w sieci...</string>
+    <string name="search_network">Przeszukiwanie sieci...</string>
     <string name="found_printers">Znalezione drukarki</string>
 
     <string name="reset_app_title">Resetować aplikację?</string>
-    <string name="reset_app_msg">Jesteś pewien? Wszystkie zapisane drukarki i ustawienia zostaną trwale usunięte.</string>
+    <string name="reset_app_msg">Czy na pewno? Wszystkie zapisane drukarki i ustawienia zostaną nieodwracalnie usunięte.</string>
     <string name="reset_app_yes">Tak, usuń wszystko</string>
     <string name="reset_app_cancel">Anuluj</string>
 
@@ -41,20 +41,38 @@
     <string name="menu_options_title">Opcje</string>
     <string name="menu_osd_show">Pokaż OSD</string>
     <string name="menu_osd_hide">Ukryj OSD</string>
-    <string name="menu_ratio">Dostosuj proporcje</string>
+    <string name="menu_ratio">Dostosuj proporcje ekranu</string>
     <string name="menu_change_camera_type">Zmień źródło kamery</string>
     <string name="camera_type_html">przez HTML (camera.html)</string>
     <string name="camera_type_port">przez Port (:8080)</string>
-    <string name="camera_type_webcam">przez kamerę (/webcam/)</string>
-    <string name="menu_emergency_stop">ZATRZYMANIE AWARYJNE</string>
+    <string name="camera_type_webcam">przez Webcam (/webcam/)</string>
+    <string name="menu_emergency_stop">ZATRZYMANIE AWARYJNE (M112)</string>
 
-    <string name="dialog_stop_title">WYWOŁAJ ZATRZYMANIE AWARYJNE</string>
-    <string name="dialog_stop_msg">Czy na pewno chcesz natychmiast zatrzymać drukarkę?\n(Wysyła polecenie M112)</string>
+    <string name="dialog_stop_title">URUCHOM ZATRZYMANIE AWARYJNE</string>
+    <string name="dialog_stop_msg">Czy na pewno chcesz natychmiast zatrzymać drukarkę?\n(Spowoduje to wysłanie polecenia M112)</string>
     <string name="dialog_stop_confirm">TAK, ZATRZYMAJ</string>
     <string name="dialog_cancel">Anuluj</string>
 
-    <string name="toast_stop_success">Wykonano zatrzymanie awaryjne!</string>
-    <string name="toast_stop_error">Błąd wysyłania: </string>
+    <string name="toast_stop_success">Zatrzymanie awaryjne wykonane!</string>
+    <string name="toast_stop_error">Błąd podczas wysyłania: </string>
     <string name="toast_no_connection">Brak połączenia z drukarką!</string>
     <string name="osd_no_connection">HUD: Brak połączenia</string>
+
+    <string name="osd_extruder">Dysza: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_bed">Stół: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_chamber_sensor">Komora: %1$.1f°C</string>
+    <string name="osd_chamber_heater">Grzałka: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_time">Czas: %1$s / %2$s</string>
+
+    <string name="theme_title">Wybierz motyw</string>
+    <string name="theme_system">Domyślny systemu (Automatycznie)</string>
+    <string name="theme_light">Jasny motyw</string>
+    <string name="theme_dark">Ciemny motyw</string>
+
+    <string name="settings_optimized_tv">Zoptymalizowano dla Android TV</string>
+    <string name="easter_egg_clicks">Jeszcze 2 kliknięcia...</string>
+    <string name="easter_egg_success">Niech Twoja pierwsza warstwa będzie zawsze idealna!</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="made_in_germany">Made with ❤️ in Germany</string>
+    <string name="dng_thanks">Special thanks to DnG Crafts for the wonderful inspiration for this app!</string>
 </resources>

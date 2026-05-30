@@ -46,6 +46,10 @@ class SettingsActivity : AppCompatActivity() {
         val btnSettingsBack = findViewById<MaterialButton>(R.id.btnSettingsBack)
         val ivAboutStudioLogo = findViewById<ImageView>(R.id.ivAboutStudioLogo)
 
+        try {
+            findViewById<TextView>(R.id.tvTvOptimizationLabel)?.text = getString(R.string.settings_optimized_tv)
+        } catch (_: Exception) {}
+
         ivAboutStudioLogo.isClickable = true
         ivAboutStudioLogo.isFocusable = true
 
@@ -56,9 +60,9 @@ class SettingsActivity : AppCompatActivity() {
 
         val savedTheme = try { prefs.getInt("theme_state", 0) } catch (e: Exception) { 0 }
         btnThemeSelect.text = when (savedTheme) {
-            1 -> "Design: Hell"
-            2 -> "Design: Dunkel"
-            else -> "Design: Automatisch"
+            1 -> getString(R.string.theme_light)
+            2 -> getString(R.string.theme_dark)
+            else -> getString(R.string.theme_system)
         }
 
         val tvFocusListener = View.OnFocusChangeListener { view, hasFocus ->
@@ -85,23 +89,29 @@ class SettingsActivity : AppCompatActivity() {
         ivAboutStudioLogo.setOnClickListener {
             logoClicks++
             if (logoClicks == 5) {
-                showCenteredPillToast("Noch 2 Klicks...")
+                showCenteredPillToast(getString(R.string.easter_egg_clicks))
             } else if (logoClicks == 7) {
-                showCenteredPillToast("Möge dein First Layer immer perfekt sein!")
+                showCenteredPillToast(getString(R.string.easter_egg_success))
                 it.animate().rotationBy(360f).setDuration(600).start()
                 logoClicks = 0
             }
         }
 
         btnThemeSelect.setOnClickListener {
-            val options = arrayOf("Automatisch (System)", "Hell", "Dunkel")
-            showPillDialog("Design wählen", options) { index ->
+            val options = arrayOf(
+                getString(R.string.theme_system),
+                getString(R.string.theme_light),
+                getString(R.string.theme_dark)
+            )
+            showPillDialog(getString(R.string.theme_title), options) { index ->
                 prefs.edit().putInt("theme_state", index).apply()
+
                 btnThemeSelect.text = when (index) {
-                    1 -> "Design: Hell"
-                    2 -> "Design: Dunkel"
-                    else -> "Design: Automatisch"
+                    1 -> getString(R.string.theme_light)
+                    2 -> getString(R.string.theme_dark)
+                    else -> getString(R.string.theme_system)
                 }
+
                 when (index) {
                     1 -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                     2 -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -121,7 +131,6 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        // REDESIGN: Der Reset-Button nutzt nun exakt dieselbe rote Kachel-Logik wie der NOT-AUS
         btnResetApp.setOnClickListener {
             val options = arrayOf(getString(R.string.reset_app_yes), getString(R.string.reset_app_cancel))
             showPillDialog(getString(R.string.reset_app_title), options) { index ->
@@ -194,7 +203,6 @@ class SettingsActivity : AppCompatActivity() {
         val textColor = if (isNightMode) Color.WHITE else Color.BLACK
         val buttonBgColor = if (isNightMode) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888")
 
-        // Diese Liste definiert, welche Buttons in Rot eingefärbt werden sollen
         val dangerWords = listOf(
             getString(R.string.reset_app_yes),
             getString(R.string.yes_delete),

@@ -45,14 +45,30 @@ class WebViewActivity : AppCompatActivity() {
     private var isCameraMode: Boolean = false
     private var isOsdEnabled: Boolean = false
 
-    private var knownChamberSensor: String? = "temperature_sensor chamber"
-    private var cachedChamberSensorString: String = "&temperature_sensor%20chamber"
+    // Start-Konfiguration (optimiert auf dein K2 Plus Setup aus der printer.cfg)
+    private var knownChamberSensor: String? = "temperature_sensor chamber_temp"
+    private var knownChamberHeater: String? = "heater_generic chamber_heater"
+    private var cachedChamberQueryString: String = "&temperature_sensor%20chamber_temp&heater_generic%20chamber_heater"
 
     private var chamberSearchIndex = 0
-    private val chamberNamesToTry = listOf(
-        "temperature_sensor chamber",
-        "temperature_sensor chamber_temp",
-        "heater_generic chamber"
+
+    // Universelle Community-Namen-Weiche
+    private val chamberSensorsToTry = listOf(
+        "temperature_sensor chamber_temp",   // K2 Plus Standard
+        "temperature_sensor chamber",        // K1 / K1 Max / Qidi Standard
+        "temperature_sensor enclosure_temp", // Voron / RatRig Community Standard
+        "temperature_sensor enclosure",      // Custom Einbauten
+        "temperature_sensor ambient",        // Verglaste Bettschubser
+        "temperature_sensor frame_temp"      // Thermische Kompensation
+    )
+
+    private val chamberHeatersToTry = listOf(
+        "heater_generic chamber_heater",     // K2 Plus Standard
+        "heater_generic chamber",            // Qidi / Custom CoreXY
+        "heater_generic enclosure_heater",   // Industrielle Nachrüstsätze
+        "enclosure_heater",                  // Kurzform Makro-Pakete
+        "heater_generic chamber_ptc",        // Voron PTC-Mod
+        "heater_generic ambient_heater"      // Exotischer Fallback
     )
 
     private var lastPrintState: String = ""
@@ -123,7 +139,6 @@ class WebViewActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
 
-                // GEFIXT: CSS-Anpassung, die den dicken Balken in der linken Navigation unsichtbar macht!
                 val jsInjection = """
                     var style = document.createElement('style');
                     style.innerHTML = '*:focus { outline: 4px solid #FFFFFF !important; outline-offset: -2px !important; background-color: rgba(255, 255, 255, 0.15) !important; border-radius: 4px !important; } ' +
@@ -170,9 +185,12 @@ class WebViewActivity : AppCompatActivity() {
 
         currentActiveUrl = intent.getStringExtra("TARGET_URL") ?: "http://google.com"
 
-        val initialIp = Uri.parse(currentActiveUrl).host ?: ""
+        val hostIp = Uri.parse(currentActiveUrl).host ?: ""
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        val savedRatio = try { prefs.getFloat("camera_ratio_$initialIp", 56.25f) } catch(e: Exception) { 56.25f }
+        val savedRatio = try { prefs.getFloat("camera_ratio_$hostIp", 56.25f) } catch(e: Exception) { 56.25f }
+
+        // NEU: OSD-Zustand für diesen spezifischen Drucker aus den SharedPreferences laden
+        isOsdEnabled = prefs.getBoolean("osd_enabled_$hostIp", false)
 
         loadStreamOrUrl(currentActiveUrl, savedRatio)
         showButtons()
@@ -181,7 +199,6 @@ class WebViewActivity : AppCompatActivity() {
 
         btnMenu.setOnClickListener {
             showButtons()
-            val hostIp = Uri.parse(currentActiveUrl).host ?: ""
             val optionsList = mutableListOf<String>()
 
             val strOsdShow = getString(R.string.menu_osd_show)
@@ -204,10 +221,17 @@ class WebViewActivity : AppCompatActivity() {
                 when (chosenOption) {
                     strOsdShow, strOsdHide -> {
                         isOsdEnabled = !isOsdEnabled
+
+                        // NEU: Zustand sofort persistent für diesen Drucker abspeichern
+                        getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit()
+                            .putBoolean("osd_enabled_$hostIp", isOsdEnabled).apply()
+
                         layoutOsd.visibility = if (isOsdEnabled && isCameraMode) View.VISIBLE else View.GONE
                         if (isOsdEnabled) {
                             osdHandler.removeCallbacks(osdRunnable)
                             osdHandler.post(osdRunnable)
+                        } else {
+                            osdHandler.removeCallbacks(osdRunnable)
                         }
                     }
                     strRatio -> {
@@ -252,7 +276,6 @@ class WebViewActivity : AppCompatActivity() {
 
         btnToggle.setOnClickListener {
             showButtons()
-            val hostIp = Uri.parse(currentActiveUrl).host ?: ""
             val currentPrefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
 
             if (!isCameraMode) {
@@ -346,12 +369,13 @@ class WebViewActivity : AppCompatActivity() {
         val hostAuthority = uri.authority ?: hostIp
         val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status"
 
-        val currentChamberQuery = if (knownChamberSensor != null) cachedChamberSensorString else ""
-        val urlsToTry = listOf("http://$hostIp:7125/$baseQuery$currentChamberQuery", "http://$hostAuthority/$baseQuery$currentChamberQuery")
+        val urlsToTry = listOf(
+            "http://$hostIp:7125/$baseQuery$cachedChamberQueryString",
+            "http://$hostAuthority/$baseQuery$cachedChamberQueryString"
+        )
 
         Thread {
             var responseText = ""
-            var lastErrorMsg = ""
             var gotBadRequest = false
 
             for (urlStr in urlsToTry) {
@@ -363,21 +387,23 @@ class WebViewActivity : AppCompatActivity() {
                     if (code == 200) {
                         responseText = conn.inputStream.bufferedReader().use { it.readText() }
                         break
-                    } else if (code == 400 && knownChamberSensor != null) {
+                    } else if (code == 400) {
                         gotBadRequest = true
                         break
-                    } else { lastErrorMsg = "HTTP Error: $code" }
-                } catch (e: Exception) { lastErrorMsg = e.message ?: "Connection failed" }
+                    }
+                } catch (_: Exception) {}
             }
 
             if (gotBadRequest) {
                 chamberSearchIndex++
-                if (chamberSearchIndex < chamberNamesToTry.size) {
-                    knownChamberSensor = chamberNamesToTry[chamberSearchIndex]
-                    cachedChamberSensorString = "&${knownChamberSensor!!.replace(" ", "%20")}"
+                if (chamberSearchIndex < chamberSensorsToTry.size) {
+                    knownChamberSensor = chamberSensorsToTry[chamberSearchIndex]
+                    knownChamberHeater = chamberHeatersToTry[chamberSearchIndex]
+                    cachedChamberQueryString = "&${knownChamberSensor!!.replace(" ", "%20")}&${knownChamberHeater!!.replace(" ", "%20")}"
                 } else {
                     knownChamberSensor = null
-                    cachedChamberSensorString = ""
+                    knownChamberHeater = null
+                    cachedChamberQueryString = ""
                 }
                 fetchMoonrakerData()
                 return@Thread
@@ -392,11 +418,14 @@ class WebViewActivity : AppCompatActivity() {
                         val extruder = status.optJSONObject("extruder")
                         val tempExtruder = extruder?.optDouble("temperature", 0.0) ?: 0.0
                         val targetExtruder = extruder?.optDouble("target", 0.0) ?: 0.0
+
                         val bed = status.optJSONObject("heater_bed")
                         val tempBed = bed?.optDouble("temperature", 0.0) ?: 0.0
                         val targetBed = bed?.optDouble("target", 0.0) ?: 0.0
+
                         val displayStatus = status.optJSONObject("display_status")
                         val progress = displayStatus?.optDouble("progress", 0.0) ?: 0.0
+
                         val printStats = status.optJSONObject("print_stats")
                         val duration = printStats?.optInt("print_duration", 0) ?: 0
                         val currentState = printStats?.optString("state", "") ?: ""
@@ -413,8 +442,8 @@ class WebViewActivity : AppCompatActivity() {
                             }
                             lastPrintState = currentState
 
-                            findViewById<TextView>(R.id.tvOsdExtruder).text = String.format(Locale.getDefault(), "Düse: %.1f°C / %.0f°C", tempExtruder, targetExtruder)
-                            findViewById<TextView>(R.id.tvOsdBed).text = String.format(Locale.getDefault(), "Bett: %.1f°C / %.0f°C", tempBed, targetBed)
+                            findViewById<TextView>(R.id.tvOsdExtruder).text = getString(R.string.osd_extruder, tempExtruder, targetExtruder)
+                            findViewById<TextView>(R.id.tvOsdBed).text = getString(R.string.osd_bed, tempBed, targetBed)
                             findViewById<TextView>(R.id.tvOsdProgress).text = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
 
                             val passedMin = duration / 60
@@ -423,33 +452,32 @@ class WebViewActivity : AppCompatActivity() {
                                 val totalTimeEstimated = (duration / progress).toInt()
                                 String.format(Locale.getDefault(), "%02d:%02d", totalTimeEstimated / 60, totalTimeEstimated % 60)
                             } else { "--:--" }
-                            findViewById<TextView>(R.id.tvOsdTime).text = "Zeit: ${String.format(Locale.getDefault(), "%02d:%02d", passedMin, passedSec)} / $totalStr"
 
-                            val tvChamber = findViewById<TextView?>(R.id.tvOsdChamber)
-                            if (tvChamber != null) {
-                                if (knownChamberSensor != null) {
-                                    val chamberData = status.optJSONObject(knownChamberSensor)
-                                    val tempChamber = chamberData?.optDouble("temperature", 0.0) ?: 0.0
-                                    val targetChamber = chamberData?.optDouble("target", 0.0) ?: 0.0
-                                    if (tempChamber > 0.0) {
-                                        tvChamber.text = if (targetChamber > 0.0) String.format(Locale.getDefault(), "Kammer: %.1f°C / %.0f°C", tempChamber, targetChamber) else String.format(Locale.getDefault(), "Kammer: %.1f°C", tempChamber)
-                                        tvChamber.visibility = View.VISIBLE
-                                    } else { tvChamber.visibility = View.GONE }
+                            findViewById<TextView>(R.id.tvOsdTime).text = getString(R.string.osd_time, String.format(Locale.getDefault(), "%02d:%02d", passedMin, passedSec), totalStr)
+
+                            val tvChamber = findViewById<TextView>(R.id.tvOsdChamber)
+                            if (knownChamberSensor != null) {
+                                val chamberData = status.optJSONObject(knownChamberSensor!!)
+                                val tempChamber = chamberData?.optDouble("temperature", 0.0) ?: 0.0
+                                if (tempChamber > 0.0) {
+                                    tvChamber.text = getString(R.string.osd_chamber_sensor, tempChamber)
+                                    tvChamber.visibility = View.VISIBLE
                                 } else { tvChamber.visibility = View.GONE }
-                            }
+                            } else { tvChamber.visibility = View.GONE }
+
+                            val tvChamberHeater = findViewById<TextView>(R.id.tvOsdChamberHeater)
+                            if (knownChamberHeater != null) {
+                                val heaterData = status.optJSONObject(knownChamberHeater!!)
+                                val tempHeater = heaterData?.optDouble("temperature", 0.0) ?: 0.0
+                                val targetHeater = heaterData?.optDouble("target", 0.0) ?: 0.0
+                                if (tempHeater > 0.0) {
+                                    tvChamberHeater.text = getString(R.string.osd_chamber_heater, tempHeater, targetHeater)
+                                    tvChamberHeater.visibility = View.VISIBLE
+                                } else { tvChamberHeater.visibility = View.GONE }
+                            } else { tvChamberHeater.visibility = View.GONE }
                         }
                     }
-                } catch (e: Exception) {
-                    runOnUiThread {
-                        findViewById<TextView>(R.id.tvOsdExtruder).text = "JSON Fehler"
-                        findViewById<TextView>(R.id.tvOsdBed).text = e.message ?: "Parser Error"
-                    }
-                }
-            } else {
-                runOnUiThread {
-                    findViewById<TextView>(R.id.tvOsdExtruder).text = getString(R.string.osd_no_connection)
-                    findViewById<TextView>(R.id.tvOsdBed).text = lastErrorMsg
-                }
+                } catch (_: Exception) {}
             }
         }.start()
     }

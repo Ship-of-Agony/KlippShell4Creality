@@ -14,7 +14,7 @@ android {
         // Interner Code für Updates (auf 10 erhöht für den Hotfix)
         versionCode = 10
         // Deine neue Hotfix RC-Versionsnummer
-        versionName = "0.8.3.300526-rc"
+        versionName = "0.8.4.300526-rc"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

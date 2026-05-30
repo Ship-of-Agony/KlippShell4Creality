@@ -6,29 +6,29 @@
     <string name="add_printer_up">Ajouter une imprimante ▲</string>
     <string name="printer_name_hint">Nom de l\'imprimante</string>
     <string name="printer_ip_hint">Adresse IP</string>
-    <string name="printer_port_hint">Port (Par défaut : 4408)</string>
-    <string name="printer_model_hint">Sélectionner le modèle</string>
+    <string name="printer_port_hint">Port (Par défaut: 4408)</string>
+    <string name="printer_model_hint">Choisir le modèle</string>
     <string name="btn_add">Ajouter</string>
-    <string name="btn_search_network">Rechercher le réseau</string>
+    <string name="btn_search_network">Scanner le réseau</string>
     <string name="saved_printers">Imprimantes enregistrées</string>
     <string name="no_printers">Aucune imprimante ajoutée</string>
     <string name="btn_exit">Quitter</string>
 
     <string name="system_creality">Creality OS (Port 4408)</string>
-    <string name="system_standard">Klipper Standard (Port 80)</string>
+    <string name="system_standard">Klipper standard (Port 80)</string>
     <string name="system_manual">Manuel (Port personnalisé)</string>
     <string name="choose_port">Port</string>
 
     <string name="settings_title">Paramètres</string>
-    <string name="dark_mode">Thème sombre (Dark Mode)</string>
+    <string name="dark_mode">Mode sombre (Dark Mode)</string>
     <string name="change_language">Changer de langue / Language</string>
     <string name="reset_app">Réinitialiser l\'application</string>
     <string name="btn_back">Retour</string>
-    <string name="search_network">Recherche sur le réseau...</string>
+    <string name="search_network">Scan du réseau en cours...</string>
     <string name="found_printers">Imprimantes trouvées</string>
 
     <string name="reset_app_title">Réinitialiser l\'application ?</string>
-    <string name="reset_app_msg">Êtes-vous sûr ? Toutes les imprimantes enregistrées et les paramètres seront définitivement supprimés.</string>
+    <string name="reset_app_msg">Êtes-vous sûr ? Toutes les imprimantes et paramètres enregistrés seront définitivement supprimés.</string>
     <string name="reset_app_yes">Oui, tout supprimer</string>
     <string name="reset_app_cancel">Annuler</string>
 
@@ -41,20 +41,38 @@
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Afficher l\'OSD</string>
     <string name="menu_osd_hide">Masquer l\'OSD</string>
-    <string name="menu_ratio">Ajuster le format</string>
-    <string name="menu_change_camera_type">Changer de caméra</string>
+    <string name="menu_ratio">Ajuster le format d\'image</string>
+    <string name="menu_change_camera_type">Changer la source de la caméra</string>
     <string name="camera_type_html">via HTML (camera.html)</string>
     <string name="camera_type_port">via Port (:8080)</string>
     <string name="camera_type_webcam">via Webcam (/webcam/)</string>
-    <string name="menu_emergency_stop">ARRÊT D\'URGENCE</string>
+    <string name="menu_emergency_stop">ARRÊT D\'URGENCE (M112)</string>
 
     <string name="dialog_stop_title">DÉCLENCHER L\'ARRÊT D\'URGENCE</string>
-    <string name="dialog_stop_msg">Voulez-vous vraiment arrêter l\'imprimante immédiatement ?\n(Cela envoie une commande M112)</string>
+    <string name="dialog_stop_msg">Voulez-vous vraiment arrêter immédiatement l\'imprimante ?\n(Cela envoie une commande M112)</string>
     <string name="dialog_stop_confirm">OUI, ARRÊTER</string>
     <string name="dialog_cancel">Annuler</string>
 
     <string name="toast_stop_success">Arrêt d\'urgence exécuté !</string>
     <string name="toast_stop_error">Erreur d\'envoi : </string>
-    <string name="toast_no_connection">Pas de connexion à l\'imprimante !</string>
+    <string name="toast_no_connection">Aucune connexion à l\'imprimante !</string>
     <string name="osd_no_connection">HUD : Pas de connexion</string>
+
+    <string name="osd_extruder">Buse : %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_bed">Lit : %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_chamber_sensor">Chambre : %1$.1f°C</string>
+    <string name="osd_chamber_heater">Chauffage : %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_time">Temps : %1$s / %2$s</string>
+
+    <string name="theme_title">Sélectionner le thème</string>
+    <string name="theme_system">Par défaut du système (Automatique)</string>
+    <string name="theme_light">Thème clair</string>
+    <string name="theme_dark">Thème sombre</string>
+
+    <string name="settings_optimized_tv">Optimisé pour Android TV</string>
+    <string name="easter_egg_clicks">Encore 2 clics...</string>
+    <string name="easter_egg_success">Que votre première couche soit toujours parfaite !</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="made_in_germany">Made with ❤️ in Germany</string>
+    <string name="dng_thanks">Special thanks to DnG Crafts for the wonderful inspiration for this app!</string>
 </resources>

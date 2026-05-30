@@ -9,7 +9,7 @@
     <string name="printer_port_hint">Port (Default: 4408)</string>
     <string name="printer_model_hint">Select Model</string>
     <string name="btn_add">Add</string>
-    <string name="btn_search_network">Search Network</string>
+    <string name="btn_search_network">Scan Network</string>
     <string name="saved_printers">Saved Printers</string>
     <string name="no_printers">No printers added</string>
     <string name="btn_exit">Exit</string>
@@ -20,11 +20,11 @@
     <string name="choose_port">Port</string>
 
     <string name="settings_title">Settings</string>
-    <string name="dark_mode">Dark Theme (Dark Mode)</string>
+    <string name="dark_mode">Dark Mode</string>
     <string name="change_language">Change Language / Sprache ändern</string>
     <string name="reset_app">Reset App</string>
     <string name="btn_back">Back</string>
-    <string name="search_network">Searching network...</string>
+    <string name="search_network">Scanning network...</string>
     <string name="found_printers">Found Printers</string>
 
     <string name="reset_app_title">Reset App?</string>
@@ -36,7 +36,7 @@
     <string name="yes_delete">Yes, delete</string>
 
     <string name="cancel">Cancel</string>
-    <string name="choose_default_view">Choose default view</string>
+    <string name="choose_default_view">Select Default View</string>
 
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Show OSD</string>
@@ -46,7 +46,7 @@
     <string name="camera_type_html">via HTML (camera.html)</string>
     <string name="camera_type_port">via Port (:8080)</string>
     <string name="camera_type_webcam">via Webcam (/webcam/)</string>
-    <string name="menu_emergency_stop">EMERGENCY STOP (Panic)</string>
+    <string name="menu_emergency_stop">EMERGENCY STOP (Panic Stop)</string>
 
     <string name="dialog_stop_title">TRIGGER EMERGENCY STOP</string>
     <string name="dialog_stop_msg">Do you really want to stop the printer immediately?\n(This sends an M112 command)</string>
@@ -55,6 +55,24 @@
 
     <string name="toast_stop_success">Emergency stop executed!</string>
     <string name="toast_stop_error">Error sending: </string>
-    <string name="toast_no_connection">No connection to the printer!</string>
-    <string name="osd_no_connection">HUD: No connection</string>
+    <string name="toast_no_connection">No connection to printer!</string>
+    <string name="osd_no_connection">HUD: No Connection</string>
+
+    <string name="osd_extruder">Nozzle: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_bed">Bed: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_chamber_sensor">Chamber: %1$.1f°C</string>
+    <string name="osd_chamber_heater">Heater: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_time">Time: %1$s / %2$s</string>
+
+    <string name="theme_title">Select Theme</string>
+    <string name="theme_system">System Default (Automatic)</string>
+    <string name="theme_light">Light Theme</string>
+    <string name="theme_dark">Dark Theme</string>
+
+    <string name="settings_optimized_tv">Optimized for Android TV</string>
+    <string name="easter_egg_clicks">2 more clicks...</string>
+    <string name="easter_egg_success">May your first layer always be perfect!</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="made_in_germany">Made with ❤️ in Germany</string>
+    <string name="dng_thanks">Special thanks to DnG Crafts for the wonderful inspiration for this app!</string>
 </resources>
