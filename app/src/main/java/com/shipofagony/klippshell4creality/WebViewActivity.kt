@@ -1,5 +1,6 @@
 package com.shipofagony.klippshell4creality
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -16,6 +17,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -23,14 +25,16 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 
+@Suppress("DEPRECATION", "Lint", "ClickableViewAccessibility", "SetJavaScriptEnabled", "SetTextI18n", "LocalSuppress")
+@SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi", "MissingSuperCall")
 class WebViewActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
@@ -64,7 +68,7 @@ class WebViewActivity : AppCompatActivity() {
 
     private val uiHandler = Handler(Looper.getMainLooper())
     private val hideUiRunnable = Runnable { hideButtons() }
-    private val IMMERSIVE_TIMEOUT = 5000L
+    private val immersiveTimeout = 5000L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,6 +123,7 @@ class WebViewActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
 
+                // GEFIXT: CSS-Anpassung, die den dicken Balken in der linken Navigation unsichtbar macht!
                 val jsInjection = """
                     var style = document.createElement('style');
                     style.innerHTML = '*:focus { outline: 4px solid #FFFFFF !important; outline-offset: -2px !important; background-color: rgba(255, 255, 255, 0.15) !important; border-radius: 4px !important; } ' +
@@ -127,33 +132,20 @@ class WebViewActivity : AppCompatActivity() {
                                       '::-webkit-scrollbar-thumb { background-color: #2196F3 !important; border-radius: 9px !important; } ' +
                                       '*::-webkit-scrollbar { width: 18px !important; display: block !important; } ' +
                                       '*::-webkit-scrollbar-track { background: transparent !important; } ' +
-                                      '*::-webkit-scrollbar-thumb { background-color: #2196F3 !important; border-radius: 9px !important; }';
+                                      '*::-webkit-scrollbar-thumb { background-color: #2196F3 !important; border-radius: 9px !important; } ' +
+                                      '.v-navigation-drawer::-webkit-scrollbar { display: none !important; width: 0px !important; } ' +
+                                      '.v-navigation-drawer *::-webkit-scrollbar { display: none !important; width: 0px !important; }';
                     document.head.appendChild(style);
-                    
-                    function makeDpadFriendly() {
-                        var items = document.querySelectorAll('.v-list-item, .v-btn, a, button, input');
-                        items.forEach(function(item) {
-                            if (!item.hasAttribute('tabindex')) item.setAttribute('tabindex', '0');
-                        });
-                    }
-                    
-                    makeDpadFriendly(); 
-                    
-                    var observer = new MutationObserver(function(mutations) {
-                        mutations.forEach(function(mutation) {
-                            if (mutation.addedNodes.length > 0) {
-                                makeDpadFriendly();
-                            }
-                        });
-                    });
-                    
-                    observer.observe(document.body, { childList: true, subtree: true });
                 """.trimIndent()
                 view?.evaluateJavascript(jsInjection, null)
             }
         }
 
-        webView.webChromeClient = WebChromeClient()
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onPermissionRequest(request: PermissionRequest) {
+                request.grant(request.resources)
+            }
+        }
 
         webView.isVerticalScrollBarEnabled = true
         webView.isScrollbarFadingEnabled = false
@@ -162,6 +154,7 @@ class WebViewActivity : AppCompatActivity() {
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
+            databaseEnabled = true
             cacheMode = WebSettings.LOAD_NO_CACHE
             loadWithOverviewMode = true
             useWideViewPort = true
@@ -169,6 +162,10 @@ class WebViewActivity : AppCompatActivity() {
             displayZoomControls = false
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             mediaPlaybackRequiresUserGesture = false
+            allowContentAccess = true
+            allowFileAccess = true
+            loadsImagesAutomatically = true
+            blockNetworkImage = false
         }
 
         currentActiveUrl = intent.getStringExtra("TARGET_URL") ?: "http://google.com"
@@ -267,7 +264,6 @@ class WebViewActivity : AppCompatActivity() {
                 }
                 loadStreamOrUrl(cameraUrl, currentPrefs.getFloat("camera_ratio_$hostIp", 56.25f))
             } else {
-                // HIER WURDE INTERFACE ZU DASHBOARD GEÄNDERT
                 showModernMenu("Dashboard", arrayOf("Standard", "Port 4408")) { subWhich ->
                     loadStreamOrUrl(if (subWhich == 0) "http://$hostIp" else "http://$hostIp:4408", 0f)
                 }
@@ -287,7 +283,7 @@ class WebViewActivity : AppCompatActivity() {
             for (i in 0 until layoutWebButtons.childCount) layoutWebButtons.getChildAt(i).isClickable = true
         }
         uiHandler.removeCallbacks(hideUiRunnable)
-        uiHandler.postDelayed(hideUiRunnable, IMMERSIVE_TIMEOUT)
+        uiHandler.postDelayed(hideUiRunnable, immersiveTimeout)
     }
 
     private fun hideButtons() {
@@ -336,7 +332,7 @@ class WebViewActivity : AppCompatActivity() {
             """.trimIndent()
             webView.loadDataWithBaseURL(url, html, "text/html", "UTF-8", null)
         } else {
-            webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
             layoutOsd.visibility = View.GONE
             osdHandler.removeCallbacks(osdRunnable)
             showButtons()
@@ -351,7 +347,6 @@ class WebViewActivity : AppCompatActivity() {
         val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status"
 
         val currentChamberQuery = if (knownChamberSensor != null) cachedChamberSensorString else ""
-
         val urlsToTry = listOf("http://$hostIp:7125/$baseQuery$currentChamberQuery", "http://$hostAuthority/$baseQuery$currentChamberQuery")
 
         Thread {
@@ -418,17 +413,17 @@ class WebViewActivity : AppCompatActivity() {
                             }
                             lastPrintState = currentState
 
-                            findViewById<TextView>(R.id.tvOsdExtruder).text = String.format("Düse: %.1f°C / %.0f°C", tempExtruder, targetExtruder)
-                            findViewById<TextView>(R.id.tvOsdBed).text = String.format("Bett: %.1f°C / %.0f°C", tempBed, targetBed)
-                            findViewById<TextView>(R.id.tvOsdProgress).text = String.format("%.1f%%", progress * 100)
+                            findViewById<TextView>(R.id.tvOsdExtruder).text = String.format(Locale.getDefault(), "Düse: %.1f°C / %.0f°C", tempExtruder, targetExtruder)
+                            findViewById<TextView>(R.id.tvOsdBed).text = String.format(Locale.getDefault(), "Bett: %.1f°C / %.0f°C", tempBed, targetBed)
+                            findViewById<TextView>(R.id.tvOsdProgress).text = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
 
                             val passedMin = duration / 60
                             val passedSec = duration % 60
                             val totalStr = if (progress > 0.001) {
                                 val totalTimeEstimated = (duration / progress).toInt()
-                                String.format("%02d:%02d", totalTimeEstimated / 60, totalTimeEstimated % 60)
+                                String.format(Locale.getDefault(), "%02d:%02d", totalTimeEstimated / 60, totalTimeEstimated % 60)
                             } else { "--:--" }
-                            findViewById<TextView>(R.id.tvOsdTime).text = "Zeit: ${String.format("%02d:%02d", passedMin, passedSec)} / $totalStr"
+                            findViewById<TextView>(R.id.tvOsdTime).text = "Zeit: ${String.format(Locale.getDefault(), "%02d:%02d", passedMin, passedSec)} / $totalStr"
 
                             val tvChamber = findViewById<TextView?>(R.id.tvOsdChamber)
                             if (tvChamber != null) {
@@ -437,7 +432,7 @@ class WebViewActivity : AppCompatActivity() {
                                     val tempChamber = chamberData?.optDouble("temperature", 0.0) ?: 0.0
                                     val targetChamber = chamberData?.optDouble("target", 0.0) ?: 0.0
                                     if (tempChamber > 0.0) {
-                                        tvChamber.text = if (targetChamber > 0.0) String.format("Kammer: %.1f°C / %.0f°C", tempChamber, targetChamber) else String.format("Kammer: %.1f°C", tempChamber)
+                                        tvChamber.text = if (targetChamber > 0.0) String.format(Locale.getDefault(), "Kammer: %.1f°C / %.0f°C", tempChamber, targetChamber) else String.format(Locale.getDefault(), "Kammer: %.1f°C", tempChamber)
                                         tvChamber.visibility = View.VISIBLE
                                     } else { tvChamber.visibility = View.GONE }
                                 } else { tvChamber.visibility = View.GONE }
@@ -589,13 +584,35 @@ class WebViewActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (layoutWebButtons.alpha < 1f) {
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            if (event.keyCode == KeyEvent.KEYCODE_BACK && webView.hasFocus()) {
                 showButtons()
                 findViewById<MaterialButton>(R.id.btnWebClose).requestFocus()
                 return true
             }
+
+            if (isCameraMode && layoutWebButtons.alpha < 1f) {
+                val keyCode = event.keyCode
+                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                    keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+                    keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                    keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                    keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                    keyCode == KeyEvent.KEYCODE_ENTER) {
+
+                    showButtons()
+                    findViewById<MaterialButton>(R.id.btnWebClose).requestFocus()
+                    return true
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    @SuppressLint("MissingSuperCall")
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (!isCameraMode && webView.canGoBack()) {
                 webView.goBack()
                 return true

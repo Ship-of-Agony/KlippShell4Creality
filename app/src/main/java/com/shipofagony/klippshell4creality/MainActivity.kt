@@ -1,5 +1,6 @@
 package com.shipofagony.klippshell4creality
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -27,6 +28,8 @@ import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+@Suppress("DEPRECATION", "Lint", "SetTextI18n", "LocalSuppress")
+@SuppressLint("SetTextI18n", "DefaultLocale")
 class MainActivity : AppCompatActivity() {
 
     private lateinit var containerPrinters: LinearLayout
@@ -123,20 +126,19 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.system_manual)
             )
 
-            // GEÄNDERT: "Port" statt "System wählen"
             showPillDialog(getString(R.string.choose_port), systemOptions) { which ->
                 selectedSystemIndex = which
                 when (which) {
                     0 -> {
-                        btnSystemSelect.text = "Port: 4408"
+                        btnSystemSelect.text = "Creality\n(4408)"
                         etMainPrinterPort.visibility = View.GONE
                     }
                     1 -> {
-                        btnSystemSelect.text = "Port: 80"
+                        btnSystemSelect.text = "Klipper\n(80)"
                         etMainPrinterPort.visibility = View.GONE
                     }
                     2 -> {
-                        btnSystemSelect.text = "Port"
+                        btnSystemSelect.text = "Manuell\n(Port)"
                         etMainPrinterPort.visibility = View.VISIBLE
                         etMainPrinterPort.requestFocus()
                     }
@@ -211,7 +213,7 @@ class MainActivity : AppCompatActivity() {
                     actvMainPrinterModel.text.clear()
 
                     selectedSystemIndex = 0
-                    btnSystemSelect.text = "Port: 4408"
+                    btnSystemSelect.text = "Creality\n(4408)"
                     etMainPrinterPort.visibility = View.GONE
                     containerAddPrinterForm.visibility = View.GONE
                     tvAddPrinterTitle.text = getString(R.string.add_printer_down)
@@ -331,7 +333,7 @@ class MainActivity : AppCompatActivity() {
                     showPillDialog(getString(R.string.found_printers), uniquePrinters) { which ->
                         etMainPrinterIP.setText(uniquePrinters[which])
                         selectedSystemIndex = 0
-                        btnSystemSelect.text = "Port: 4408"
+                        btnSystemSelect.text = "Creality\n(4408)"
                         etMainPrinterPort.visibility = View.GONE
                     }
                 } else {

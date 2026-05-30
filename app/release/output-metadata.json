@@ -11,8 +11,8 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 9,
-      "versionName": "0.8.2.290526-rc",
+      "versionCode": 10,
+      "versionName": "0.8.3.300526-rc",
       "outputFile": "app-release.apk"
     }
   ],
