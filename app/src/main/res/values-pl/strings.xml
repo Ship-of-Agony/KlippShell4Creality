@@ -1,120 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Nazwa aplikacji -->
     <string name="app_name">KlippShell 4 Creality</string>
 
-    <!-- Menu główne i zarządzanie drukarkami -->
-    <string name="saved_printers">Zapisane drukarki</string>
-    <string name="no_printers">Brak drukarek. Dodaj jedną!</string>
+    <string name="saved_printers">Zapisane Drukarki</string>
+    <string name="no_printers">Brak zapisanych drukarek. Dodaj nową!</string>
     <string name="add_printer_down">Dodaj drukarkę ▼</string>
     <string name="add_printer_up">Dodaj drukarkę ▲</string>
-    <string name="printer_name_hint">Nazwa (np. K1 Max)</string>
-    <string name="printer_ip_hint">Adres IP</string>
-    <string name="printer_port_hint">Port (Domyślnie: 7125)</string>
-    <string name="printer_model_hint">Wybierz model</string>
+    <string name="printer_name_hint">Nazwa drukarki (np. K1 Max)</string>
+    <string name="printer_ip_hint">Adres IP drukarki</string>
+    <string name="printer_port_hint">Port (Domyślny: 7125)</string>
+    <string name="printer_model_hint">Wybierz model drukarki</string>
     <string name="btn_search_network">Skanuj sieć</string>
-    <string name="search_network">Skanowanie…</string>
-    <string name="found_printers">Znalezione drukarki</string>
+    <string name="search_network">Wyszukiwanie w sieci…</string>
+    <string name="found_printers">Znalezione Drukarki</string>
     <string name="btn_add">Dodaj</string>
-    <string name="btn_exit">Wyjdź</string>
+    <string name="btn_exit">Zakończ</string>
 
-    <!-- Porty systemowe -->
-    <string name="choose_port">Wybierz port</string>
+    <string name="choose_port">Wybierz port systemowy</string>
     <string name="system_creality">Creality (4408)</string>
-    <string name="system_standard">Klipper standard (7125)</string>
+    <string name="system_standard">Klipper Standard (7125)</string>
     <string name="system_manual">Port ręczny</string>
 
-    <!-- Opcje menu (Kamera) -->
     <string name="menu_options_title">Opcje</string>
     <string name="menu_osd_show">Pokaż OSD</string>
     <string name="menu_osd_hide">Ukryj OSD</string>
-    <string name="menu_ratio">Zmień format</string>
-    <string name="menu_change_camera_type">Źródło strumienia</string>
+    <string name="menu_ratio">Dostosuj format obrazu</string>
+    <string name="menu_change_camera_type">Strumień na Żywo</string>
     <string name="menu_emergency_stop">ZATRZYMANIE AWARYJNE</string>
 
-    <!-- Format obrazu -->
     <string name="ratio_16_9">16:9 (Pełny ekran)</string>
-    <string name="ratio_4_3">4:3 (Dopasuj szerokość)</string>
+    <string name="ratio_4_3">4:3 (Dostosuj szerokość)</string>
     <string name="ratio_1_1">1:1 (Kwadrat)</string>
 
-    <!-- Typy kamery -->
-    <string name="camera_type_html">Web (camera.html)</string>
+    <string name="camera_type_html">Strona www (camera.html)</string>
     <string name="camera_type_port">Strumień (Port 8080)</string>
     <string name="camera_type_webcam">Strumień (/webcam/)</string>
 
-    <!-- Wybór widoku i usuwanie -->
-    <string name="choose_default_view">Widok (Kamera lub Dashboard)</string>
-    <string name="choose_default_view_title">Zmienić dashboard?</string>
-    <string name="reset_confirm_msg">Usunąć drukarkę?</string>
+    <string name="choose_default_view">Pulpit (Fluidd / Mainsail)</string>
+    <string name="choose_default_view_title">Zmienić pulpit?</string>
+    <string name="reset_confirm_msg">Czy na pewno usunąć drukarkę?</string>
     <string name="yes_delete">Usuń</string>
     <string name="cancel">Anuluj</string>
 
-    <!-- Ustawienia -->
     <string name="settings_title">Ustawienia</string>
     <string name="change_language">Zmień język</string>
-    <string name="reset_app">Resetuj</string>
+    <string name="reset_app">Resetuj aplikację</string>
     <string name="reset_app_title">Resetuj aplikację</string>
     <string name="reset_app_cancel">Anuluj</string>
     <string name="reset_app_yes">Tak, zresetuj</string>
-    <string name="settings_optimized_tv">Zoptymalizowane dla Android TV.</string>
-    <string name="theme_title">Motyw</string>
+    <string name="settings_optimized_tv">KlippShell jest zoptymalizowany dla urządzeń Android TV.</string>
+    <string name="theme_title">Wybierz motyw</string>
     <string name="theme_light">Jasny</string>
     <string name="theme_dark">Ciemny</string>
-    <string name="theme_system">Systemowy</string>
+    <string name="theme_system">Domyślny systemu</string>
     <string name="btn_back">Wstecz</string>
 
-    <!-- Powiadomienia -->
     <string name="event_first_layer">Pierwsza warstwa</string>
-    <string name="event_50">Kamień milowy: 50%</string>
-    <string name="event_75">Kamień milowy: 75%</string>
-    <string name="event_90">Kamień milowy: 90%</string>
-    <string name="event_100">Druk zakończony (100%)</string>
-    <string name="event_offline">Drukarka offline</string>
-    <string name="event_error">Krytyczny błąd Klipper</string>
-    <string name="osd_printer_offline">Drukarka offline ⚠</string>
+    <string name="event_50">Milowy krok: 50%</string>
+    <string name="event_75">Milowy krok: 75%</string>
+    <string name="event_90">Milowy krok: 90%</string>
+    <string name="event_100">Druk ukończony (100%)</string>
+    <string name="event_offline">Drukarka przechodzi w tryb offline</string>
+    <string name="event_error">Krytyczny błąd Klippera</string>
+    <string name="osd_printer_offline">Drukarka Offline ⚠</string>
     <string name="notify_title_offline">Połączenie przerwane</string>
-    <string name="notify_msg_offline">Drukarka niedostępna.</string>
+    <string name="notify_msg_offline">Drukarka nie jest już dostępna.</string>
     <string name="notify_title_first_layer">Pierwsza warstwa</string>
-    <string name="notify_msg_first_layer">Druk pierwszej warstwy.</string>
+    <string name="notify_msg_first_layer">Trwa drukowanie pierwszej warstwy. Proszę sprawdzić!</string>
     <string name="notify_title_50">Połowa za nami</string>
-    <string name="notify_msg_50">Osiągnięto 50%.</string>
+    <string name="notify_msg_50">Postęp druku osiągnął 50%.</string>
     <string name="notify_title_75">Ostatnia prosta</string>
-    <string name="notify_msg_75">Osiągnięto 75%.</string>
-    <string name="notify_title_90">Prawie gotowe</string>
-    <string name="notify_msg_90">Osiągnięto 90%.</string>
-    <string name="notify_title_100">Druk zakończony</string>
-    <string name="notify_msg_100">Wydruk udany!</string>
-    <string name="notify_title_error">Błąd druku</string>
+    <string name="notify_msg_75">Druk ukończony w 75%.</string>
+    <string name="notify_title_90">Już prawie koniec</string>
+    <string name="notify_msg_90">Druk ukończony w 90%.</string>
+    <string name="notify_title_100">Druk ukończony</string>
+    <string name="notify_msg_100">Twój wydruk został pomyślnie ukończony!</string>
+    <string name="notify_title_error">Błąd drukowania</string>
     <string name="notify_msg_error">Wystąpił błąd.</string>
     <string name="notify_btn_offline">Zamknij</string>
 
-    <!-- OSD Dane na żywo -->
     <string name="osd_extruder">Dysza: %1$.1f°C / %2$.0f°C</string>
     <string name="osd_bed">Stół: %1$.1f°C / %2$.0f°C</string>
     <string name="osd_chamber_sensor">Komora: %1$.1f°C</string>
-    <string name="osd_chamber_heater">Grzałka: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_chamber_heater">Grzałka komory: %1$.1f°C / %2$.0f°C</string>
     <string name="osd_time">Czas: %1$s / %2$s</string>
-    <string name="osd_fan_model">Went. wydruku: %1$.0f%%</string>
-    <string name="osd_fan_aux">Went. aux: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Went. komory: %1$.0f%%</string>
-    <string name="toast_no_connection">Brak połączenia.</string>
+    <string name="osd_fan_model">Wentylator wydruku: %1$.0f%%</string>
+    <string name="osd_fan_aux">Wentylator pomocniczy: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Wentylator wyciągowy: %1$.0f%%</string>
+    <string name="toast_no_connection">Brak połączenia z drukarką.</string>
 
-    <!-- Zatrzymanie awaryjne -->
-    <string name="dialog_stop_title">Zatrzymać drukarkę?</string>
-    <string name="dialog_stop_confirm">TAK, ZATRZYMAJ!</string>
+    <string name="toast_loading_dashboard">Ładowanie pulpitu… ✓</string>
+
+    <string name="dialog_stop_title">Czy na pewno chcesz natychmiast zatrzymać drukarkę?</string>
+    <string name="dialog_stop_confirm">TAK, ZATRZYMANIE AWARYJNE!</string>
     <string name="dialog_cancel">Anuluj</string>
-    <string name="toast_stop_success">Zatrzymano!</string>
-    <string name="toast_stop_error">Błąd wysyłania: </string>
+    <string name="toast_stop_success">ZATRZYMANIE AWARYJNE wysłane pomyślnie!</string>
+    <string name="toast_stop_error">Błąd podczas wysyłania. Kod statusu: </string>
 
-    <!-- Pozostałe -->
-    <string name="made_in_germany">Made with ♥ in Germany</string>
+    <string name="made_in_germany">Wyprodukowano z ♥ w Niemczech</string>
     <string name="studio_name">Ship of Agony LABs</string>
-    <string name="dng_thanks">Zainspirowane projektem KlippHub. 🛠️</string>
-    <string name="easter_egg_success">Tylko profesjonaliści widzą takie detale!</string>
-    <string name="notify_btn_error">Potwierdź</string>
-    <string name="notify_btn_success">Super!</string>
+    <string name="dng_thanks">Zainspirowane projektem KlippHub autorstwa DnG Crafts. 🛠️</string>
+    <string name="easter_egg_success">Tylko geeki i nerdy zwracają uwagę na tak małe szczegóły jak Ty!</string>
+
+    <string name="notify_btn_error">Zamknij</string>
+    <string name="notify_btn_success">Genialne!</string>
     <string name="notify_btn_default">Dalej</string>
     <string name="settings_notify_title">Powiadomienia</string>
     <string name="submenu_sounds_title">Dźwięki</string>
-    <string name="submenu_popups_title">Popups</string>
+    <string name="submenu_popups_title">Popupy</string>
 </resources>

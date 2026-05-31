@@ -46,19 +46,16 @@
         <ImageView
             android:id="@+id/ivAppHeaderLogo"
             android:layout_width="0dp"
-            android:layout_height="42dp"
+            android:layout_height="0dp"
             android:adjustViewBounds="true"
             android:src="@drawable/ic_app_header"
             android:contentDescription="@string/app_name"
-            app:layout_constraintWidth_default="wrap"
+            app:layout_constraintDimensionRatio="H,512:261"
+            app:layout_constraintWidth_percent="0.45"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constrainedWidth="true"
-            android:layout_marginStart="64dp"
-            android:layout_marginEnd="64dp" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -289,7 +286,6 @@
         android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Start-Animation / Schleier beim App-Kaltstart & Sprachwechsel -->
     <LinearLayout
         android:id="@+id/viewStartupVeil"
         android:layout_width="match_parent"
@@ -301,15 +297,25 @@
         android:clickable="false"
         android:focusable="false">
 
-        <!-- Das runde Mipmap-Icon wurde hier restlos entfernt! -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-        <!-- Nur noch das perfekt skalierte KlippShell-Schriftlogo bleibt stehen -->
-        <ImageView
-            android:layout_width="220dp"
-            android:layout_height="112dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_app_header"
-            android:contentDescription="@string/app_name" />
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ic_app_header"
+                android:contentDescription="@string/app_name"
+                app:layout_constraintDimensionRatio="H,512:261"
+                app:layout_constraintWidth_percent="0.50"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

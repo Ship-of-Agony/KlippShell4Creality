@@ -177,8 +177,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (name.isNotEmpty() && ip.isNotEmpty()) {
-                val viewOptions = arrayOf(getString(R.string.choose_default_view_title), getString(R.string.menu_change_camera_type).replace(" wechseln", "").replace(" Wechseln", ""))
-                showPillDialog(getString(R.string.choose_default_view), viewOptions) { which ->
+                // GEFIXT: Optionsmenü verwendet nun die exakten Begriffe deiner neuen XML
+                val viewOptions = arrayOf(getString(R.string.choose_default_view).substringBefore(" ("), getString(R.string.menu_change_camera_type))
+                showPillDialog(getString(R.string.choose_default_view_title), viewOptions) { which ->
                     savePrinter(name, ip, port, actvMainPrinterModel.text.toString().trim(), if (which == 0) "interface" else "camera")
 
                     etMainPrinterName.text.clear()
@@ -254,7 +255,6 @@ class MainActivity : AppCompatActivity() {
         loadPrinters()
     }
 
-    // GEFIXT: Verwendet nun Color.WHITE anstelle von nicht deklarierten View-Referenzen
     private fun showCenteredPillToast(message: String) {
         val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -361,12 +361,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             itemView.setOnLongClickListener {
-                val actionOptions = arrayOf(getString(R.string.choose_default_view), getString(R.string.yes_delete))
+                val actionOptions = arrayOf(getString(R.string.choose_default_view).substringBefore(" ("), getString(R.string.yes_delete))
                 val actionColors = arrayOf<String?>(null, "#E53935")
 
                 showPillDialog(printer.getString("name"), actionOptions, actionColors) { whichAction ->
                     if (whichAction == 0) {
-                        val viewOptions = arrayOf(getString(R.string.choose_default_view_title), getString(R.string.menu_change_camera_type).replace(" wechseln", "").replace(" Wechseln", ""))
+                        // GEFIXT: String-Verbiegung entfernt, lädt saubere XML-Begriffe
+                        val viewOptions = arrayOf(getString(R.string.choose_default_view_title).replace("?", ""), getString(R.string.menu_change_camera_type))
                         showPillDialog(getString(R.string.choose_default_view), viewOptions) { whichView ->
                             val newView = if (whichView == 0) "interface" else "camera"
                             val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }

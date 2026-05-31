@@ -128,7 +128,6 @@ class WebViewActivity : AppCompatActivity() {
         tvOsdProgress = findViewById(R.id.tvOsdProgress)
         tvOsdTime = findViewById(R.id.tvOsdTime)
 
-        // JETZT DABEI: Dynamischer Milchglas-Effekt (seichter Hintergrund)
         applySeichterOsdBackground()
 
         webView.setOnTouchListener { _, event ->
@@ -188,6 +187,10 @@ class WebViewActivity : AppCompatActivity() {
                     val uri = Uri.parse(currentActiveUrl)
                     val hostIpAddress = uri.host ?: ""
 
+                    // Geburts-Port ermitteln für absolut sicheren Erststart-Fallback
+                    val initialUri = Uri.parse(intent.getStringExtra("TARGET_URL") ?: currentActiveUrl)
+                    val initialPort = initialUri.port.takeIf { it != -1 } ?: 7125
+
                     when (which) {
                         0 -> {
                             isOsdEnabled = !isOsdEnabled
@@ -227,11 +230,13 @@ class WebViewActivity : AppCompatActivity() {
                                 getString(R.string.camera_type_webcam)
                             )
                             showPillDialog(getString(R.string.menu_change_camera_type), camOptions) { camIndex ->
-                                val currentPort = uri.port.takeIf { it != -1 } ?: 7125
+                                // GEFIXT: Holt den Port aus den Einstellungen, nutzt den initialen Port als intelligenten Fallback
+                                val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIpAddress", initialPort)
+
                                 val newUrl = when(camIndex) {
-                                    0 -> "http://$hostIpAddress:$currentPort/camera.html"
+                                    0 -> "http://$hostIpAddress:$savedDashboardPort/camera.html"
                                     1 -> "http://$hostIpAddress:8080/?action=stream"
-                                    else -> "http://$hostIpAddress:$currentPort/webcam/?action=stream"
+                                    else -> "http://$hostIpAddress:$savedDashboardPort/webcam/?action=stream"
                                 }
                                 loadStreamOrUrl(newUrl, 56.25f)
                             }
@@ -257,27 +262,29 @@ class WebViewActivity : AppCompatActivity() {
 
         // 2. DER MITTLERE BUTTON (Kurzer Klick: Direkt-Wechsel)
         btnToggle.setOnClickListener {
-            if (isCameraMode) {
-                val uri = Uri.parse(currentActiveUrl)
-                val hostIpAddress = uri.host ?: ""
-                val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIpAddress", 4408)
-                loadStreamOrUrl("http://$hostIpAddress:$savedDashboardPort", 56.25f)
-                showCenteredPillToast("Lade Dashboard... ✓")
-            } else {
-                val uri = Uri.parse(currentActiveUrl)
-                val hostIpAddress = uri.host ?: ""
-                val savedRatio = try { prefs.getFloat("camera_ratio_$hostIpAddress", 56.25f) } catch(e: Exception) { 56.25f }
-                val fallbackUrl = if (lastCameraUrl.isNotEmpty()) lastCameraUrl else "http://$hostIpAddress:7125/camera.html"
+            val uri = Uri.parse(currentActiveUrl)
+            val hostIpAddress = uri.host ?: ""
 
-                // JETZT DABEI: Kamera merkt sich beim Zurückkehren die exakte Perspektive!
+            // GEFIXT: Dynamischer Session-Startport-Fallback verhindert die Sackgasse für Nicht-Creality Nutzer
+            val initialUri = Uri.parse(intent.getStringExtra("TARGET_URL") ?: currentActiveUrl)
+            val initialPort = initialUri.port.takeIf { it != -1 } ?: 7125
+            val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIpAddress", initialPort)
+
+            if (isCameraMode) {
+                loadStreamOrUrl("http://$hostIpAddress:$savedDashboardPort", 56.25f)
+                showCenteredPillToast(getString(R.string.toast_loading_dashboard))
+            } else {
+                val savedRatio = try { prefs.getFloat("camera_ratio_$hostIpAddress", 56.25f) } catch(e: Exception) { 56.25f }
+                val fallbackUrl = if (lastCameraUrl.isNotEmpty()) lastCameraUrl else "http://$hostIpAddress:$savedDashboardPort/camera.html"
+
                 loadStreamOrUrl(fallbackUrl, savedRatio)
             }
         }
 
-        // JETZT DABEI: Langer Druck (Long-Click) öffnet die Port-Wahl ("Dashboard wechseln?") erneut
+        // Langer Druck (Long-Click) öffnet die Port-Wahl ("Dashboard wechseln?") erneut
         btnToggle.setOnLongClickListener {
             if (isCameraMode) {
-                val dashboardOptions = arrayOf("Creality OS (4408)", "Standard (7125)")
+                val dashboardOptions = arrayOf(getString(R.string.system_creality), getString(R.string.system_standard))
                 showPillDialog(getString(R.string.choose_default_view_title), dashboardOptions) { whichDash ->
                     val uri = Uri.parse(currentActiveUrl)
                     val hostIpAddress = uri.host ?: ""
@@ -293,7 +300,6 @@ class WebViewActivity : AppCompatActivity() {
         btnClose.setOnClickListener { finish() }
     }
 
-    // JETZT DABEI: Komplette D-Pad-Unterstützung (Einblenden der Buttons per Fernbedienung + Auto-Fokus)
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
@@ -332,10 +338,10 @@ class WebViewActivity : AppCompatActivity() {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = 24f
             if (isNight) {
-                setColor(Color.parseColor("#B3212529")) // Seichtes Transparent-Anthrazit (70%)
+                setColor(Color.parseColor("#B3212529"))
                 setStroke(3, Color.parseColor("#40FFFFFF"))
             } else {
-                setColor(Color.parseColor("#BFFAFAFA")) // Seichtes Transparent-Weiß (75%)
+                setColor(Color.parseColor("#BFFAFAFA"))
                 setStroke(3, Color.parseColor("#33000000"))
             }
         }
@@ -388,7 +394,6 @@ class WebViewActivity : AppCompatActivity() {
             osdHandler.removeCallbacks(osdRunnable)
 
             btnMenu.text = "⚠"
-            // JETZT DABEI: Textgröße leicht verkleinert (20sp), damit das Dreieck nicht beschnitten wird
             btnMenu.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 20f)
             btnMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
             btnToggle.text = "⇄"
@@ -519,7 +524,9 @@ class WebViewActivity : AppCompatActivity() {
 
                     val passedMin = duration / 60
                     val passedSec = duration % 60
-                    val strTime = String.format(Locale.getDefault(), "Zeit: %02d:%02d", passedMin, passedSec)
+
+                    val timeDigits = String.format(Locale.getDefault(), "%02d:%02d", passedMin, passedSec)
+                    val strTime = getString(R.string.osd_time, timeDigits, "--:--")
                     if (tvOsdTime?.text != strTime) tvOsdTime?.text = strTime
 
                     if (currentState != "printing") {

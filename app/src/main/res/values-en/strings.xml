@@ -3,10 +3,10 @@
     <string name="app_name">KlippShell 4 Creality</string>
 
     <string name="saved_printers">Saved Printers</string>
-    <string name="no_printers">No printers configured. Add one!</string>
+    <string name="no_printers">No printers found. Add one!</string>
     <string name="add_printer_down">Add Printer ▼</string>
     <string name="add_printer_up">Add Printer ▲</string>
-    <string name="printer_name_hint">Printer Name (e.g., K1 Max)</string>
+    <string name="printer_name_hint">Printer Name (e.g. K1 Max)</string>
     <string name="printer_ip_hint">Printer IP Address</string>
     <string name="printer_port_hint">Port (Default: 7125)</string>
     <string name="printer_model_hint">Select Printer Model</string>
@@ -18,27 +18,27 @@
 
     <string name="choose_port">Select System Port</string>
     <string name="system_creality">Creality (4408)</string>
-    <string name="system_standard">Klipper Default (7125)</string>
+    <string name="system_standard">Klipper Standard (7125)</string>
     <string name="system_manual">Manual Port</string>
 
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Show OSD</string>
     <string name="menu_osd_hide">Hide OSD</string>
     <string name="menu_ratio">Adjust Aspect Ratio</string>
-    <string name="menu_change_camera_type">Stream Source</string>
+    <string name="menu_change_camera_type">Camera Live Stream</string>
     <string name="menu_emergency_stop">EMERGENCY STOP</string>
 
     <string name="ratio_16_9">16:9 (Fullscreen)</string>
-    <string name="ratio_4_3">4:3 (Fit Width)</string>
+    <string name="ratio_4_3">4:3 (Scale Width)</string>
     <string name="ratio_1_1">1:1 (Square)</string>
 
     <string name="camera_type_html">Webpage (camera.html)</string>
     <string name="camera_type_port">Stream (Port 8080)</string>
     <string name="camera_type_webcam">Stream (/webcam/)</string>
 
-    <string name="choose_default_view">View (Camera or Dashboard)</string>
+    <string name="choose_default_view">Dashboard (Fluidd / Mainsail)</string>
     <string name="choose_default_view_title">Switch Dashboard?</string>
-    <string name="reset_confirm_msg">Delete printer really?</string>
+    <string name="reset_confirm_msg">Really delete printer?</string>
     <string name="yes_delete">Delete</string>
     <string name="cancel">Cancel</string>
 
@@ -66,17 +66,17 @@
     <string name="notify_title_offline">Connection Lost</string>
     <string name="notify_msg_offline">The printer is no longer reachable.</string>
     <string name="notify_title_first_layer">First Layer</string>
-    <string name="notify_msg_first_layer">First layer is printing. Please verify!</string>
-    <string name="notify_title_50">Halfway There</string>
-    <string name="notify_msg_50">Print has reached 50%.</string>
+    <string name="notify_msg_first_layer">The first layer is being printed. Please check!</string>
+    <string name="notify_title_50">Halfway Done</string>
+    <string name="notify_msg_50">The print has reached the 50% mark.</string>
     <string name="notify_title_75">Final Stretch</string>
-    <string name="notify_msg_75">Print is 75% complete.</string>
-    <string name="notify_title_90">Almost Finished</string>
-    <string name="notify_msg_90">Print is 90% complete.</string>
+    <string name="notify_msg_75">The print is 75% completed.</string>
+    <string name="notify_title_90">Almost Done</string>
+    <string name="notify_msg_90">The print is 90% completed.</string>
     <string name="notify_title_100">Print Finished</string>
     <string name="notify_msg_100">Your print has been successfully completed!</string>
     <string name="notify_title_error">Print Error</string>
-    <string name="notify_msg_error">An error occurred.</string>
+    <string name="notify_msg_error">An error has occurred.</string>
     <string name="notify_btn_offline">Close</string>
 
     <string name="osd_extruder">Nozzle: %1$.1f°C / %2$.0f°C</string>
@@ -86,11 +86,13 @@
     <string name="osd_time">Time: %1$s / %2$s</string>
     <string name="osd_fan_model">Part Fan: %1$.0f%%</string>
     <string name="osd_fan_aux">Aux Fan: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Chamber Fan: %1$.0f%%</string>
-    <string name="toast_no_connection">No connection to printer.</string>
+    <string name="osd_fan_chamber">Exhaust Fan: %1$.0f%%</string>
+    <string name="toast_no_connection">Unable to connect to printer.</string>
+
+    <string name="toast_loading_dashboard">Loading Dashboard… ✓</string>
 
     <string name="dialog_stop_title">Do you really want to stop the printer immediately?</string>
-    <string name="dialog_stop_confirm">YES, STOP NOW!</string>
+    <string name="dialog_stop_confirm">YES, EMERGENCY STOP!</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="toast_stop_success">EMERGENCY STOP sent successfully!</string>
     <string name="toast_stop_error">Error sending. Status code: </string>
@@ -98,10 +100,11 @@
     <string name="made_in_germany">Made with ♥ in Germany</string>
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="dng_thanks">Inspired by the KlippHub project by DnG Crafts. 🛠️</string>
-    <string name="easter_egg_success">Only geeks and nerds pay attention to such small details!</string>
-    <string name="notify_btn_error">Dismiss Error</string>
+    <string name="easter_egg_success">Only geeks and nerds pay attention to small details like you do!</string>
+
+    <string name="notify_btn_error">Close</string>
     <string name="notify_btn_success">Awesome!</string>
-    <string name="notify_btn_default">Next</string>
+    <string name="notify_btn_default">Continue</string>
     <string name="settings_notify_title">Notifications</string>
     <string name="submenu_sounds_title">Sounds</string>
     <string name="submenu_popups_title">Popups</string>
