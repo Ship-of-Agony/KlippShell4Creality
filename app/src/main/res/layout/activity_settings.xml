@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:tools="http://tools.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SettingsActivity">
 
-    <!-- Header: Einstellungen (Blau & Mittig) -->
     <TextView
         android:id="@+id/tvSettingsTitle"
         android:layout_width="wrap_content"
@@ -20,127 +19,377 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Button-Karte (Dunkelgrau hinterlegt) -->
     <LinearLayout
         android:id="@+id/panelSettings"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
         android:layout_marginEnd="24dp"
+        app:layout_constraintWidth_max="560dp"
         android:background="@drawable/bg_card"
         android:elevation="8dp"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="20dp"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnThemeSelect"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"
+            android:layout_marginBottom="12dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
             android:text="@string/theme_title"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
-            app:backgroundTint="#333333"
-            app:cornerRadius="50dp" />
+            app:cornerRadius="100dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnChangeLanguage"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"
+            android:layout_marginBottom="12dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
             android:text="@string/change_language"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
-            app:backgroundTint="#333333"
-            app:cornerRadius="50dp" />
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNotificationsMenu"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/settings_notify_title"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:cornerRadius="100dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnResetApp"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
             android:text="@string/reset_app"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             app:backgroundTint="#E53935"
-            app:cornerRadius="50dp" />
+            app:cornerRadius="100dp" />
     </LinearLayout>
 
-    <!-- Info & Credits Sektion (Logo & Danksagung) -->
     <LinearLayout
-        android:id="@+id/layoutCredits"
-        android:layout_width="match_parent"
+        android:id="@+id/panelNotifySelect"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
         android:layout_marginEnd="24dp"
-        android:gravity="center_horizontal"
+        app:layout_constraintWidth_max="560dp"
+        android:background="@drawable/bg_card"
+        android:elevation="8dp"
         android:orientation="vertical"
+        android:padding="20dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/panelSettings">
+        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubMenuSounds"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:text="@string/submenu_sounds_title"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubMenuPopups"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:text="@string/submenu_popups_title"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:cornerRadius="100dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutMenuPopups"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintWidth_max="560dp"
+        android:background="@drawable/bg_card"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillPopupFirstLayer"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_first_layer"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillPopup50"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_50"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillPopup75"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_75"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillPopup90"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_90"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillPopup100"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_100"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillPopupOffline"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_offline"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillPopupError"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:text="@string/event_error"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutMenuSounds"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintWidth_max="560dp"
+        android:background="@drawable/bg_card"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillSoundFirstLayer"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_first_layer"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillSound50"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_50"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillSound75"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_75"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillSound90"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_90"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillSound100"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_100"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillSoundOffline"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/event_offline"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillSoundError"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:text="@string/event_error"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            app:cornerRadius="100dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutCredits"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintWidth_max="560dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@id/btnSettingsBack"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
             android:id="@+id/ivAboutStudioLogo"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:layout_marginBottom="16dp"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_marginBottom="6dp"
             android:contentDescription="@string/app_name"
-            android:src="@drawable/agony_labs_logo" />
+            android:src="@drawable/klippshell_logo_new" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="1dp"
             android:text="@string/app_name"
             android:textColor="?android:attr/textColorPrimary"
-            android:textSize="18sp" />
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="1dp"
             android:text="@string/studio_name"
             android:textColor="?android:attr/textColorSecondary"
-            android:textSize="14sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/tvAppVersion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="3dp"
             android:text="Version 0.0.0"
             android:textColor="?android:attr/textColorSecondary"
-            android:textSize="14sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/tvTvOptimizationLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="4dp"
             android:text="@string/settings_optimized_tv"
             android:textColor="#4CAF50"
-            android:textSize="14sp" />
+            android:textSize="12sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="4dp"
             android:text="@string/made_in_germany"
             android:textColor="?android:attr/textColorPrimary"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
@@ -149,26 +398,27 @@
             android:gravity="center"
             android:text="@string/dng_thanks"
             android:textColor="?android:attr/textColorSecondary"
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:textStyle="italic" />
     </LinearLayout>
 
-    <!-- Breiter Zurück-Button am unteren Rand -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSettingsBack"
-        android:layout_width="match_parent"
+        style="@style/Widget.Material3.Button"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp"
+        app:layout_constraintWidth_max="560dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
         android:text="@string/btn_back"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         app:backgroundTint="#2196F3"
-        app:cornerRadius="50dp"
+        app:cornerRadius="100dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

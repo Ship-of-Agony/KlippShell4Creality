@@ -1,85 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Общие настройки приложения -->
     <string name="app_name">KlippShell</string>
-    <string name="saved_printers">Сохраненные принтеры</string>
-    <string name="no_printers">Принтеры не найдены. Добавьте принтер ниже!</string>
+    <string name="saved_printers">Сохраненные Принтеры</string>
+    <string name="no_printers">Принтеры не найдены. Добавьте один!</string>
 
-    <!-- Главное меню и добавление принтера -->
-    <string name="add_printer_down">Добавить принтер ▼</string>
-    <string name="add_printer_up">Добавить принтер ▲</string>
-    <string name="printer_name_hint">Имя принтера (например, K1 Max)</string>
-    <string name="printer_ip_hint">IP-адрес принтера</string>
+    <string name="add_printer_down">Добавить Принтер ▼</string>
+    <string name="add_printer_up">Добавить Принтер ▲</string>
+    <string name="printer_name_hint">Имя Принтера (например, K1 Max)</string>
+    <string name="printer_ip_hint">IP Адрес Принтера</string>
     <string name="printer_port_hint">Порт (По умолчанию: 7125)</string>
-    <string name="printer_model_hint">Выберите модель принтера</string>
-    <string name="btn_search_network">Сканировать сеть</string>
-    <string name="search_network">Поиск в сети…</string>
-    <string name="found_printers">Найденные принтеры</string>
+    <string name="printer_model_hint">Выберите Модель</string>
+    <string name="btn_search_network">Сканировать Сеть</string>
+    <string name="search_network">Сканирование сети…</string>
+    <string name="found_printers">Найденные Принтеры</string>
     <string name="btn_add">Добавить</string>
-    <string name="btn_exit">Выйти из KlippShell</string>
+    <string name="btn_exit">Выход</string>
 
-    <!-- Диалоги выбора системы (MainActivity) -->
-    <string name="choose_port">Выберите системный порт</string>
+    <string name="choose_port">Выберите Системный Порт</string>
     <string name="system_creality">Creality (4408)</string>
-    <string name="system_standard">Klipper Стандарт (7125)</string>
-    <string name="system_manual">Ручной ввод порта</string>
+    <string name="system_standard">Klipper По умолчанию (7125)</string>
+    <string name="system_manual">Ручной Порт</string>
 
-    <!-- Настройки и темы (SettingsActivity) -->
     <string name="settings_title">Настройки</string>
-    <string name="change_language">Сменить язык</string>
-    <string name="reset_app">Сбросить приложение</string>
-    <string name="settings_optimized_tv">KlippShell оптимизирован для Android TV приставок.</string>
-    <string name="theme_title">Выберите тему оформления</string>
+    <string name="change_language">Изменить Язык</string>
+    <string name="reset_app">Сбросить Приложение</string>
+    <string name="settings_optimized_tv">KlippShell оптимизирован для Android TV Box.</string>
+    <string name="theme_title">Выберите Тему</string>
     <string name="theme_light">Светлая</string>
-    <string name="theme_dark">Тёмная</string>
-    <string name="theme_system">Системная тема</string>
-    <string name="choose_default_view">Установить вид по умолчанию</string>
+    <string name="theme_dark">Темная</string>
+    <string name="theme_system">По умолчанию</string>
+    <string name="choose_default_view">Установить Вид по умолчанию</string>
     <string name="choose_default_view_title">Вид по умолчанию</string>
-    <string name="reset_app_title">Сбросить приложение</string>
+    <string name="reset_app_title">Сбросить Приложение</string>
     <string name="reset_app_cancel">Отмена</string>
-    <string name="reset_app_yes">Да, сбросить</string>
-    <string name="reset_confirm_msg">Вы действительно хотите сбросить вид по умолчанию?</string>
+    <string name="reset_app_yes">Да, Сбросить</string>
+    <string name="reset_confirm_msg">Вы уверены, что хотите сбросить вид по умолчанию?</string>
     <string name="btn_back">Назад</string>
 
-    <!-- Credits & Easter Eggs -->
-    <string name="made_in_germany">Сделано с ♥ в Германии</string>
-    <string name="studio_name">Ship of Agony</string>
-    <string name="dng_thanks">Огромное спасибо DnG Crafts за вдохновение при создании этого приложения. Я искренне ценю твой вклад в 3D-сообщество!</string>
-    <string name="easter_egg_clicks">Осталось всего %d кликов до режима разработчика!</string>
-    <string name="easter_egg_success">Режим разработчика разблокирован!</string>
+    <string name="settings_notify_title">Уведомления</string>
+    <string name="submenu_sounds_title">Звуки</string>
+    <string name="submenu_popups_title">Попапы</string>
 
-    <!-- Опции меню OSD -->
+    <string name="event_first_layer">Первый Слой</string>
+    <string name="event_50">Прогресс: 50%</string>
+    <string name="event_75">Прогресс: 75%</string>
+    <string name="event_90">Прогресс: 90%</string>
+    <string name="event_100">Печать Завершена (100%)</string>
+    <string name="event_offline">Принтер Отключился</string>
+    <string name="event_error">Критическая Ошибка Klipper</string>
+    <string name="osd_printer_offline">Принтер Отключен ⚠</string>
+
+    <string name="notify_title_first_layer">[INFO] Первый Слой</string>
+    <string name="notify_msg_first_layer">Первый слой успешно напечатан.</string>
+    <string name="notify_title_50">[INFO] Прогресс: 50%</string>
+    <string name="notify_msg_50">Процесс печати достиг 50%.</string>
+    <string name="notify_title_75">[INFO] Прогресс: 75%</string>
+    <string name="notify_msg_75">Процесс печати достиг 75%.</string>
+    <string name="notify_title_90">[INFO] Прогресс: 90%</string>
+    <string name="notify_msg_90">Процесс печати достиг 90%.</string>
+    <string name="notify_title_100">[SUCCESS] Печать Завершена</string>
+    <string name="notify_msg_100">Печать завершена на 100%.</string>
+    <string name="notify_title_error">[ERROR] Ошибка Klipper</string>
+    <string name="notify_msg_error">Печать прервана. Проверьте консоль.</string>
+    <string name="notify_title_offline">[WARN] Принтер Отключен</string>
+    <string name="notify_msg_offline">Соединение с Moonraker потеряно.</string>
+
+    <string name="made_in_germany">Сделано с ♥ в Германии</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="dng_thanks">Вдохновлено проектом KlippHub от DnG Crafts. Спасибо за творческий вклад и ценный опыт в нашем сообществе 3D-печати! 🛠️</string>
+
+    <!-- GEÄNDERT: Russisches Oster-Ei -->
+    <string name="easter_egg_success">Только гики и нерды обращают внимание на такие мелкие детали, как ты! Твой первый слой показывает, насколько идеально ты работаешь.</string>
+
     <string name="menu_options_title">Опции</string>
     <string name="menu_osd_show">Показать OSD</string>
-    <string name="menu_osd_hide">Скрыть OSD</string>
-    <string name="menu_ratio">Изменить формат экрана</string>
-    <string name="menu_change_camera_type">Изменить тип камеры</string>
+    <string name="menu_osd_hide">Скрыть</string>
+    <string name="menu_ratio">Изменить Соотношение Сторон</string>
+    <string name="menu_change_camera_type">Сменить Тип Камеры</string>
     <string name="menu_emergency_stop">АВАРИЙНАЯ ОСТАНОВКА</string>
 
-    <!-- Типы камер -->
     <string name="camera_type_html">Веб-страница (camera.html)</string>
     <string name="camera_type_port">Поток (Порт 8080)</string>
     <string name="camera_type_webcam">Поток (/webcam/)</string>
 
-    <!-- Диалоги и всплывающие уведомления -->
-    <string name="dialog_stop_title">Вы действительно хотите немедленно остановить принтер?</string>
-    <string name="dialog_stop_confirm">ДА, АВАРИЙНЫЙ СТОП!</string>
+    <string name="dialog_stop_title">Вы уверены, что хотите немедленно остановить принтер?</string>
+    <string name="dialog_stop_confirm">ДА, ОСТАНОВИТЬ !</string>
     <string name="dialog_cancel">Отмена</string>
     <string name="yes_delete">Удалить</string>
     <string name="cancel">Отмена</string>
-    <string name="toast_stop_success">Команда аварийной остановки успешно отправлена!</string>
+    <string name="toast_stop_success">Аварийная остановка успешно отправлена!</string>
     <string name="toast_stop_error">Ошибка отправки. Код статуса: </string>
-    <string name="toast_no_connection">Нет подключения к принтеру.</string>
+    <string name="toast_no_connection">Не удалось подключиться к принтеру.</string>
 
-    <!-- Значения OSD -->
-    <string name="osd_extruder">Сопло: %.1f°C / %.0f°C</string>
-    <string name="osd_bed">Стол: %.1f°C / %.0f°C</string>
-    <string name="osd_chamber_sensor">Камера: %.1f°C</string>
-    <string name="osd_chamber_heater">Нагрев: %.1f°C / %.0f°C</string>
+    <string name="osd_extruder">Сопло: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_bed">Стол: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_chamber_sensor">Камера: %1$.1f°C</string>
+    <string name="osd_chamber_heater">Нагреватель: %1$.1f°C / %2$.0f°C</string>
     <string name="osd_time">Время: %1$s / %2$s</string>
 
-    <!-- Точные названия вентиляторов -->
-    <string name="osd_fan_model">Обдув модели: %.0f%%</string>
-    <string name="osd_fan_aux">Доп. обдув: %.0f%%</string>
-    <string name="osd_fan_chamber">Вытяжка камеры: %.0f%%</string>
+    <string name="osd_fan_model">Обдув Модели: %1$.0f%%</string>
+    <string name="osd_fan_aux">Доп. Обдув: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Обдув Камеры: %1$.0f%%</string>
+
+    <string name="notify_btn_error">Сбросить Ошибку</string>
+    <string name="notify_btn_offline">Закрыть</string>
+    <string name="notify_btn_success">Отлично!</string>
+    <string name="notify_btn_default">Продолжить</string>
 </resources>

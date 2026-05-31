@@ -1,85 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App Général -->
     <string name="app_name">KlippShell</string>
     <string name="saved_printers">Imprimantes Enregistrées</string>
-    <string name="no_printers">Aucune imprimante trouvée. Ajoutez-en une ci-dessous !</string>
+    <string name="no_printers">Aucune imprimante trouvée. Ajoutez-en une !</string>
 
-    <!-- Menu Principal -->
     <string name="add_printer_down">Ajouter une Imprimante ▼</string>
     <string name="add_printer_up">Ajouter une Imprimante ▲</string>
     <string name="printer_name_hint">Nom de l\'imprimante (ex. K1 Max)</string>
     <string name="printer_ip_hint">Adresse IP de l\'imprimante</string>
     <string name="printer_port_hint">Port (Par défaut : 7125)</string>
-    <string name="printer_model_hint">Sélectionner le modèle d\'imprimante</string>
+    <string name="printer_model_hint">Sélectionner le Modèle</string>
     <string name="btn_search_network">Scanner le Réseau</string>
-    <string name="search_network">Recherche sur le réseau…</string>
+    <string name="search_network">Scan du réseau en cours…</string>
     <string name="found_printers">Imprimantes Trouvées</string>
     <string name="btn_add">Ajouter</string>
-    <string name="btn_exit">Quitter KlippShell</string>
+    <string name="btn_exit">Quitter</string>
 
-    <!-- Dialogues de Sélection du Système (MainActivity) -->
     <string name="choose_port">Sélectionner le Port Système</string>
     <string name="system_creality">Creality (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
     <string name="system_manual">Port Manuel</string>
 
-    <!-- Paramètres & Thèmes (SettingsActivity) -->
     <string name="settings_title">Paramètres</string>
-    <string name="change_language">Changer de langue</string>
+    <string name="change_language">Changer de Langue</string>
     <string name="reset_app">Réinitialiser l\'application</string>
-    <string name="settings_optimized_tv">KlippShell est optimisé pour les boîtiers Android TV.</string>
+    <string name="settings_optimized_tv">KlippShell est optimisé pour les Android TV Boxes.</string>
     <string name="theme_title">Sélectionner le Thème</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
-    <string name="theme_system">Thème du Système</string>
+    <string name="theme_system">Par Défaut</string>
     <string name="choose_default_view">Définir la Vue par Défaut</string>
     <string name="choose_default_view_title">Vue par Défaut</string>
-    <string name="reset_app_title">Réinitialiser l\'App</string>
+    <string name="reset_app_title">Réinitialiser l\'application</string>
     <string name="reset_app_cancel">Annuler</string>
     <string name="reset_app_yes">Oui, Réinitialiser</string>
-    <string name="reset_confirm_msg">Êtes-vous sûr de vouloir réinitialiser la vue par défaut ?</string>
+    <string name="reset_confirm_msg">Voulez-vous vraiment réinitialiser la vue par défaut ?</string>
     <string name="btn_back">Retour</string>
 
-    <!-- Credits & Easter Eggs -->
-    <string name="made_in_germany">Fait avec ♥ en Allemagne</string>
-    <string name="studio_name">Ship of Agony</string>
-    <string name="dng_thanks">Un grand merci à DnG Crafts pour l\'inspiration de cette application. J\'apprécie énormément ton travail dans le milieu de la 3D !</string>
-    <string name="easter_egg_clicks">Plus que %d clics avant le mode développeur !</string>
-    <string name="easter_egg_success">Mode développeur déverrouillé !</string>
+    <string name="settings_notify_title">Notifications</string>
+    <string name="submenu_sounds_title">Sons</string>
+    <string name="submenu_popups_title">Popups</string>
 
-    <!-- Options du Menu OSD -->
+    <string name="event_first_layer">Première Couche</string>
+    <string name="event_50">Étape : 50%</string>
+    <string name="event_75">Étape : 75%</string>
+    <string name="event_90">Étape : 90%</string>
+    <string name="event_100">Impression Terminée (100%)</string>
+    <string name="event_offline">Imprimante Hors Ligne</string>
+    <string name="event_error">Erreur Critique Klipper</string>
+    <string name="osd_printer_offline">Imprimante Hors Ligne ⚠</string>
+
+    <string name="notify_title_first_layer">[INFO] Première Couche</string>
+    <string name="notify_msg_first_layer">Première couche imprimée avec succès.</string>
+    <string name="notify_title_50">[INFO] Progression : 50%</string>
+    <string name="notify_msg_50">L\'impression a atteint 50%.</string>
+    <string name="notify_title_75">[INFO] Progression : 75%</string>
+    <string name="notify_msg_75">L\'impression a atteint 75%.</string>
+    <string name="notify_title_90">[INFO] Progression : 90%</string>
+    <string name="notify_msg_90">L\'impression a atteint 90%.</string>
+    <string name="notify_title_100">[SUCCESS] Impression Terminée</string>
+    <string name="notify_msg_100">Impression complétée à 100%.</string>
+    <string name="notify_title_error">[ERROR] Erreur Klipper</string>
+    <string name="notify_msg_error">Impression interrompue. Vérifiez la console.</string>
+    <string name="notify_title_offline">[WARN] Imprimante Hors Ligne</string>
+    <string name="notify_msg_offline">Connexion à Moonraker perdue.</string>
+
+    <string name="made_in_germany">Fait avec ♥ en Allemagne</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="dng_thanks">Inspiré par le projet KlippHub de DnG Crafts. Merci pour votre contribution créative et les précieux échanges au sein de notre communauté d\'impression 3D ! 🛠️</string>
+
+    <!-- GEÄNDERT: Französisches Oster-Ei -->
+    <string name="easter_egg_success">Seuls les geeks et les nerds font attention à de si petits détails comme toi ! Votre première couche montre à quel point vous travaillez parfaitement.</string>
+
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Afficher l\'OSD</string>
-    <string name="menu_osd_hide">Masquer l\'OSD</string>
-    <string name="menu_ratio">Changer le Format d\'Image</string>
+    <string name="menu_osd_hide">Masquer</string>
+    <string name="menu_ratio">Changer le Ratio d\'Aspect</string>
     <string name="menu_change_camera_type">Changer le Type de Caméra</string>
     <string name="menu_emergency_stop">ARRÊT D\'URGENCE</string>
 
-    <!-- Types de Caméra -->
-    <string name="camera_type_html">Page Web (camera.html)</string>
-    <string name="camera_type_port">Flux (Port 8080)</string>
-    <string name="camera_type_webcam">Flux (/webcam/)</string>
+    <string name="camera_type_html">Site Web (camera.html)</string>
+    <string name="camera_type_port">Stream (Port 8080)</string>
+    <string name="camera_type_webcam">Stream (/webcam/)</string>
 
-    <!-- Dialogues et Toasts -->
-    <string name="dialog_stop_title">Êtes-vous sûr de vouloir arrêter l\'imprimante immédiatement ?</string>
-    <string name="dialog_stop_confirm">OUI, ARRÊT D\'URGENCE !</string>
+    <string name="dialog_stop_title">Voulez-vous vraiment arrêter l\'imprimante immédiatement ?</string>
+    <string name="dialog_stop_confirm">DANS, ARRÊTER !</string>
     <string name="dialog_cancel">Annuler</string>
     <string name="yes_delete">Supprimer</string>
     <string name="cancel">Annuler</string>
     <string name="toast_stop_success">Arrêt d\'urgence envoyé avec succès !</string>
-    <string name="toast_stop_error">Échec de l\'envoi. Code d\'état : </string>
-    <string name="toast_no_connection">Aucune connexion à l\'imprimante.</string>
+    <string name="toast_stop_error">Erreur d\'envoi. Code d\'état : </string>
+    <string name="toast_no_connection">Aucune connexion à l\'imprimante possible.</string>
 
-    <!-- OSD Valeurs -->
-    <string name="osd_extruder">Buse : %.1f°C / %.0f°C</string>
-    <string name="osd_bed">Lit : %.1f°C / %.0f°C</string>
-    <string name="osd_chamber_sensor">Chambre : %.1f°C</string>
-    <string name="osd_chamber_heater">Chauffage : %.1f°C / %.0f°C</string>
+    <string name="osd_extruder">Buse : %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_bed">Lit : %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_chamber_sensor">Chambre : %1$.1f°C</string>
+    <string name="osd_chamber_heater">Chauffage : %1$.1f°C / %2$.0f°C</string>
     <string name="osd_time">Temps : %1$s / %2$s</string>
 
-    <!-- Precision Fan Labels -->
-    <string name="osd_fan_model">Ventilateur de Pièce : %.0f%%</string>
-    <string name="osd_fan_aux">Ventilateur Auxiliaire : %.0f%%</string>
-    <string name="osd_fan_chamber">Ventilateur de Chambre : %.0f%%</string>
+    <string name="osd_fan_model">Ventilateur Modèle : %1$.0f%%</string>
+    <string name="osd_fan_aux">Ventilateur Aux : %1$.0f%%</string>
+    <string name="osd_fan_chamber">Ventilateur Chambre : %1$.0f%%</string>
+
+    <string name="notify_btn_error">Ignorer l\'erreur</string>
+    <string name="notify_btn_offline">Fermer</string>
+    <string name="notify_btn_success">Génial !</string>
+    <string name="notify_btn_default">Continuer</string>
 </resources>

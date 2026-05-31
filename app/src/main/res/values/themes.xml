@@ -1,8 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.KlippShell4Creality" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Dein ursprüngliches Blaugrau -->
         <item name="colorPrimary">#263238</item>
         <item name="colorSecondary">#37474F</item>
-
         <item name="android:statusBarColor">#263238</item>
+        <item name="android:windowBackground">#FFFFFF</item>
+
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/transparent_icon</item>
+    </style>
+
+    <style name="NotificationDialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_up</item>
+        <item name="android:windowExitAnimation">@anim/slide_down</item>
     </style>
 </resources>

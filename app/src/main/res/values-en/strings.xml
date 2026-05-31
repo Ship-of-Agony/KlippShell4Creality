@@ -1,35 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App General -->
     <string name="app_name">KlippShell</string>
     <string name="saved_printers">Saved Printers</string>
-    <string name="no_printers">No printers found. Add one below!</string>
+    <string name="no_printers">No printers found. Add one!</string>
 
-    <!-- Main Menu & Add Printer -->
     <string name="add_printer_down">Add Printer ▼</string>
     <string name="add_printer_up">Add Printer ▲</string>
-    <string name="printer_name_hint">Printer Name (e.g. K1 Max)</string>
+    <string name="printer_name_hint">Printer Name (e.g., K1 Max)</string>
     <string name="printer_ip_hint">Printer IP Address</string>
     <string name="printer_port_hint">Port (Default: 7125)</string>
     <string name="printer_model_hint">Select Printer Model</string>
     <string name="btn_search_network">Scan Network</string>
-    <string name="search_network">Searching network…</string>
+    <string name="search_network">Scanning network…</string>
     <string name="found_printers">Found Printers</string>
-    <string name="btn_add">Add Printer</string>
-    <string name="btn_exit">Exit KlippShell</string>
+    <string name="btn_add">Add</string>
+    <string name="btn_exit">Exit</string>
 
-    <!-- System Selection Dialogs (MainActivity) -->
     <string name="choose_port">Select System Port</string>
     <string name="system_creality">Creality (4408)</string>
-    <string name="system_standard">Klipper Standard (7125)</string>
+    <string name="system_standard">Klipper Default (7125)</string>
     <string name="system_manual">Manual Port</string>
 
-    <!-- Settings & Layout (SettingsActivity) -->
     <string name="settings_title">Settings</string>
     <string name="change_language">Change Language</string>
     <string name="reset_app">Reset App</string>
-    <string name="settings_optimized_tv">KlippShell is optimized for Android TV boxes.</string>
-    <string name="theme_title">Select Design</string>
+    <string name="settings_optimized_tv">KlippShell is optimized for Android TV Boxes.</string>
+    <string name="theme_title">Select Theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_system">System Default</string>
@@ -41,45 +37,73 @@
     <string name="reset_confirm_msg">Are you sure you want to reset the default view?</string>
     <string name="btn_back">Back</string>
 
-    <!-- Credits & Easter Eggs -->
-    <string name="made_in_germany">Made with ♥ in Germany</string>
-    <string name="studio_name">Ship of Agony</string>
-    <string name="dng_thanks">Many thanks to DnG Crafts for the inspiration for this app. I really appreciate your work in the 3D scene.</string>
-    <string name="easter_egg_clicks">Only %d clicks left until developer mode!</string>
-    <string name="easter_egg_success">Developer mode unlocked!</string>
+    <string name="settings_notify_title">Notifications</string>
+    <string name="submenu_sounds_title">Sounds</string>
+    <string name="submenu_popups_title">Popups</string>
 
-    <!-- Web Control & OSD Menu Options -->
+    <string name="event_first_layer">First Layer</string>
+    <string name="event_50">Milestone: 50%</string>
+    <string name="event_75">Milestone: 75%</string>
+    <string name="event_90">Milestone: 90%</string>
+    <string name="event_100">Print Finished (100%)</string>
+    <string name="event_offline">Printer Goes Offline</string>
+    <string name="event_error">Critical Klipper Error</string>
+    <string name="osd_printer_offline">Printer Offline ⚠</string>
+
+    <string name="notify_title_first_layer">[INFO] First Layer</string>
+    <string name="notify_msg_first_layer">First layer printed successfully.</string>
+    <string name="notify_title_50">[INFO] Progress: 50%</string>
+    <string name="notify_msg_50">Printing process reached 50%.</string>
+    <string name="notify_title_75">[INFO] Progress: 75%</string>
+    <string name="notify_msg_75">Printing process reached 75%.</string>
+    <string name="notify_title_90">[INFO] Progress: 90%</string>
+    <string name="notify_msg_90">Printing process reached 90%.</string>
+    <string name="notify_title_100">[SUCCESS] Print Finished</string>
+    <string name="notify_msg_100">Print job 100% completed.</string>
+    <string name="notify_title_error">[ERROR] Klipper Error</string>
+    <string name="notify_msg_error">Printing aborted. Check console.</string>
+    <string name="notify_title_offline">[WARN] Printer Offline</string>
+    <string name="notify_msg_offline">Connection to Moonraker lost.</string>
+
+    <string name="made_in_germany">Made with ♥ in Germany</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="dng_thanks">Inspired by the KlippHub project by DnG Crafts. Thank you for your creative input and the valuable exchange within our 3D printing community! 🛠️</string>
+
+    <!-- GEÄNDERT: Englisches Oster-Ei -->
+    <string name="easter_egg_success">Only geeks and nerds pay attention to such small details like you! Your first layer shows how perfectly you work.</string>
+
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Show OSD</string>
-    <string name="menu_osd_hide">Hide OSD</string>
+    <string name="menu_osd_hide">Hide</string>
     <string name="menu_ratio">Change Aspect Ratio</string>
-    <string name="menu_change_camera_type">Change Camera Type</string>
+    <string name="menu_change_camera_type">Switch Camera Type</string>
     <string name="menu_emergency_stop">EMERGENCY STOP</string>
 
-    <!-- Camera Types -->
-    <string name="camera_type_html">Webpage (camera.html)</string>
+    <string name="camera_type_html">Website (camera.html)</string>
     <string name="camera_type_port">Stream (Port 8080)</string>
     <string name="camera_type_webcam">Stream (/webcam/)</string>
 
-    <!-- Dialogs & Toasts -->
     <string name="dialog_stop_title">Are you sure you want to stop the printer immediately?</string>
-    <string name="dialog_stop_confirm">YES, EMERGENCY STOP!</string>
+    <string name="dialog_stop_confirm">YES, STOP IT!</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="yes_delete">Delete</string>
     <string name="cancel">Cancel</string>
-    <string name="toast_stop_success">Emergency stop sent successfully!</string>
-    <string name="toast_stop_error">Failed to send. Status code: </string>
-    <string name="toast_no_connection">No connection to the printer.</string>
+    <string name="toast_stop_success">EMERGENCY STOP sent successfully!</string>
+    <string name="toast_stop_error">Error sending. Status code: </string>
+    <string name="toast_no_connection">No connection to the printer possible.</string>
 
-    <!-- On-Screen-Display (OSD) Core Values -->
-    <string name="osd_extruder">Nozzle: %.1f°C / %.0f°C</string>
-    <string name="osd_bed">Bed: %.1f°C / %.0f°C</string>
-    <string name="osd_chamber_sensor">Chamber: %.1f°C</string>
-    <string name="osd_chamber_heater">Heater: %.1f°C / %.0f°C</string>
+    <string name="osd_extruder">Nozzle: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_bed">Bed: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_chamber_sensor">Chamber: %1$.1f°C</string>
+    <string name="osd_chamber_heater">Heater: %1$.1f°C / %2$.0f°C</string>
     <string name="osd_time">Time: %1$s / %2$s</string>
 
-    <!-- Precision Fan Labels -->
-    <string name="osd_fan_model">Part Cooling Fan: %.0f%%</string>
-    <string name="osd_fan_aux">Auxiliary Fan: %.0f%%</string>
-    <string name="osd_fan_chamber">Chamber Fan: %.0f%%</string>
+    <string name="osd_fan_model">Part Fan: %1$.0f%%</string>
+    <string name="osd_fan_aux">Aux Fan: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Chamber Fan: %1$.0f%%</string>
+
+    <string name="notify_btn_error">Dismiss Error</string>
+    <string name="notify_btn_offline">Close</string>
+    <string name="notify_btn_success">Awesome!</string>
+    <string name="notify_btn_default">Continue</string>
 </resources>

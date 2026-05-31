@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Deine App-Basis-Farben -->
     <color name="primary_material">#37474F</color>
     <color name="secondary_material">#546E7A</color>
+
+    <!-- Inaktive normale Pillen am Tag: Klares Hellgrau -->
+    <color name="pill_normal_inactive">#E0E0E0</color>
+    <color name="pill_normal_inactive_text">#424242</color>
+
+    <!-- Inaktive Fehler-Pillen am Tag: Soft-Rot (bleibt rot!) -->
+    <color name="pill_error_inactive">#FFCDD2</color>
+    <color name="pill_error_inactive_text">#B71C1C</color>
 </resources>

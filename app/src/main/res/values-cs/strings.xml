@@ -1,85 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Hlavní nastavení aplikace -->
     <string name="app_name">KlippShell</string>
-    <string name="saved_printers">Uložené tiskárny</string>
-    <string name="no_printers">Nebyly nalezeny žádné tiskárny. Přidejte jednu níže!</string>
+    <string name="saved_printers">Uložené Tiskárny</string>
+    <string name="no_printers">Nebyly nalezeny žádné tiskárny. Přidejte jednu!</string>
 
-    <!-- Hlavní menu -->
-    <string name="add_printer_down">Přidat tiskárnu ▼</string>
-    <string name="add_printer_up">Přidat tiskárnu ▲</string>
-    <string name="printer_name_hint">Název tiskárny (např. K1 Max)</string>
-    <string name="printer_ip_hint">IP adresa tiskárny</string>
+    <string name="add_printer_down">Přidat Tiskárnu ▼</string>
+    <string name="add_printer_up">Přidat Tiskárnu ▲</string>
+    <string name="printer_name_hint">Název Tiskárny (např. K1 Max)</string>
+    <string name="printer_ip_hint">IP Adresa Tiskárny</string>
     <string name="printer_port_hint">Port (Výchozí: 7125)</string>
-    <string name="printer_model_hint">Vyberte model tiskárny</string>
-    <string name="btn_search_network">Skenovat síť</string>
-    <string name="search_network">Hledání v síti…</string>
-    <string name="found_printers">Nalezené tiskárny</string>
+    <string name="printer_model_hint">Vybrat Model</string>
+    <string name="btn_search_network">Skenovat Síť</string>
+    <string name="search_network">Skenování sítě…</string>
+    <string name="found_printers">Nalezené Tiskárny</string>
     <string name="btn_add">Přidat</string>
-    <string name="btn_exit">Ukončit KlippShell</string>
+    <string name="btn_exit">Ukončit</string>
 
-    <!-- Dialogy výběru systému (MainActivity) -->
-    <string name="choose_port">Vyberte systémový port</string>
+    <string name="choose_port">Vybrat Systémový Port</string>
     <string name="system_creality">Creality (4408)</string>
-    <string name="system_standard">Klipper Standard (7125)</string>
-    <string name="system_manual">Manuální port</string>
+    <string name="system_standard">Klipper Výchozí (7125)</string>
+    <string name="system_manual">Manuální Port</string>
 
-    <!-- Nastavení a motivy (SettingsActivity) -->
     <string name="settings_title">Nastavení</string>
-    <string name="change_language">Změnit jazyk</string>
-    <string name="reset_app">Resetovat aplikaci</string>
-    <string name="settings_optimized_tv">KlippShell je optimalizován pro Android TV boxy.</string>
-    <string name="theme_title">Vybrat motiv</string>
+    <string name="change_language">Změnit Jazyk</string>
+    <string name="reset_app">Obnovit Aplikaci</string>
+    <string name="settings_optimized_tv">KlippShell je optimalizován pro Android TV Boxy.</string>
+    <string name="theme_title">Vybrat Motiv</string>
     <string name="theme_light">Světlý</string>
     <string name="theme_dark">Tmavý</string>
-    <string name="theme_system">Výchozí systémový</string>
-    <string name="choose_default_view">Nastavit výchozí zobrazení</string>
-    <string name="choose_default_view_title">Výchozí zobrazení</string>
-    <string name="reset_app_title">Resetovat aplikaci</string>
+    <string name="theme_system">Výchozí</string>
+    <string name="choose_default_view">Nastavit Výchozí Zobrazení</string>
+    <string name="choose_default_view_title">Výchozí Zobrazení</string>
+    <string name="reset_app_title">Obnovit Aplikaci</string>
     <string name="reset_app_cancel">Zrušit</string>
-    <string name="reset_app_yes">Ano, resetovat</string>
-    <string name="reset_confirm_msg">Opravdu chcete resetovat výchozí zobrazení?</string>
+    <string name="reset_app_yes">Ano, Obnovit</string>
+    <string name="reset_confirm_msg">Opravdu chcete obnovit výchozí zobrazení?</string>
     <string name="btn_back">Zpět</string>
 
-    <!-- Credits & Easter Eggs -->
-    <string name="made_in_germany">Vyrobeno s ♥ v Německu</string>
-    <string name="studio_name">Ship of Agony</string>
-    <string name="dng_thanks">Velké díky DnG Crafts za inspiraci pro tuto aplikaci. Opravdu si vážím tvé práce ve 3D scéně!</string>
-    <string name="easter_egg_clicks">Zbývá už jen %d kliknutí do vývojářského režimu!</string>
-    <string name="easter_egg_success">Vývojářský režim odemčen!</string>
+    <string name="settings_notify_title">Oznámení</string>
+    <string name="submenu_sounds_title">Zvuky</string>
+    <string name="submenu_popups_title">Popupy</string>
 
-    <!-- Volby OSD menu -->
+    <string name="event_first_layer">První Vrstva</string>
+    <string name="event_50">Milník: 50%</string>
+    <string name="event_75">Milník: 75%</string>
+    <string name="event_90">Milník: 90%</string>
+    <string name="event_100">Tisk Dokončen (100%)</string>
+    <string name="event_offline">Tiskárna se Odpojila</string>
+    <string name="event_error">Kritická Chyba Klipperu</string>
+    <string name="osd_printer_offline">Tiskárna Offline ⚠</string>
+
+    <string name="notify_title_first_layer">[INFO] První Vrstva</string>
+    <string name="notify_msg_first_layer">První vrstva byla úspěšně vytištěna.</string>
+    <string name="notify_title_50">[INFO] Průběh: 50%</string>
+    <string name="notify_msg_50">Proces tisku dosáhl 50%.</string>
+    <string name="notify_title_75">[INFO] Průběh: 75%</string>
+    <string name="notify_msg_75">Proces tisku dosáhl 75%.</string>
+    <string name="notify_title_90">[INFO] Průběh: 90%</string>
+    <string name="notify_msg_90">Proces tisku dosáhl 90%.</string>
+    <string name="notify_title_100">[SUCCESS] Tisk Dokončen</string>
+    <string name="notify_msg_100">Tisková úloha dokončena na 100%.</string>
+    <string name="notify_title_error">[ERROR] Chyba Klipperu</string>
+    <string name="notify_msg_error">Tisk byl přerušen. Zkontrolujte konzoli.</string>
+    <string name="notify_title_offline">[WARN] Tiskárna Offline</string>
+    <string name="notify_msg_offline">Spojení s Moonrakerem bylo ztraceno.</string>
+
+    <string name="made_in_germany">Vyrobeno s ♥ v Německu</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="dng_thanks">Inspirováno projektem KlippHub od DnG Crafts. Děkujeme za váš kreativní přínos a hodnotnou výměnu informací v naší komunitě 3D tisku! 🛠️</string>
+
+    <!-- GEÄNDERT: Tschechisches Oster-Ei -->
+    <string name="easter_egg_success">Pouze geekové a nerdi věnují pozornost tak malým detailům jako ty! Tvoje první vrstva ukazuje, jak dokonale pracuješ.</string>
+
     <string name="menu_options_title">Možnosti</string>
     <string name="menu_osd_show">Zobrazit OSD</string>
-    <string name="menu_osd_hide">Skrýt OSD</string>
-    <string name="menu_ratio">Změnit poměr stran</string>
-    <string name="menu_change_camera_type">Změnit typ kamery</string>
+    <string name="menu_osd_hide">Skrýt</string>
+    <string name="menu_ratio">Změnit Poměr Stran</string>
+    <string name="menu_change_camera_type">Změnit Typ Kamery</string>
     <string name="menu_emergency_stop">NOUZOVÉ ZASTAVENÍ</string>
 
-    <!-- Typy kamer -->
-    <string name="camera_type_html">Webová stránka (camera.html)</string>
+    <string name="camera_type_html">Webová Stránka (camera.html)</string>
     <string name="camera_type_port">Stream (Port 8080)</string>
     <string name="camera_type_webcam">Stream (/webcam/)</string>
 
-    <!-- Dialogy a oznámení -->
     <string name="dialog_stop_title">Opravdu chcete tiskárnu okamžitě zastavit?</string>
-    <string name="dialog_stop_confirm">ANO, NOUZOVÉ ZASTAVENÍ!</string>
+    <string name="dialog_stop_confirm">ANO, ZASTAVIT!</string>
     <string name="dialog_cancel">Zrušit</string>
     <string name="yes_delete">Smazat</string>
     <string name="cancel">Zrušit</string>
-    <string name="toast_stop_success">Nouzové zastavení bylo úspěšně odesláno!</string>
-    <string name="toast_stop_error">Odeslání selhalo. Stavový kód: </string>
-    <string name="toast_no_connection">Nelze se připojit k tiskárně.</string>
+    <string name="toast_stop_success">Nouzové zastavení úspěšně odesláno!</string>
+    <string name="toast_stop_error">Chyba při odesílání. Stavový kód: </string>
+    <string name="toast_no_connection">Není možné se připojit k tiskárně.</string>
 
-    <!-- OSD hodnoty -->
-    <string name="osd_extruder">Tryska: %.1f°C / %.0f°C</string>
-    <string name="osd_bed">Bed: %.1f°C / %.0f°C</string>
-    <string name="osd_chamber_sensor">Komora: %.1f°C</string>
-    <string name="osd_chamber_heater">Ohřívač: %.1f°C / %.0f°C</string>
+    <string name="osd_extruder">Tryska: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_bed">Podložka: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_chamber_sensor">Komora: %1$.1f°C</string>
+    <string name="osd_chamber_heater">Ohřívač: %1$.1f°C / %2$.0f°C</string>
     <string name="osd_time">Čas: %1$s / %2$s</string>
 
-    <!-- Přesné názvy ventilátorů -->
-    <string name="osd_fan_model">Ventilátor tisku: %.0f%%</string>
-    <string name="osd_fan_aux">Pomocný ventilátor: %.0f%%</string>
-    <string name="osd_fan_chamber">Ventilátor komory: %.0f%%</string>
+    <string name="osd_fan_model">Ventilátor Modelu: %1$.0f%%</string>
+    <string name="osd_fan_aux">Pomocný Ventilátor: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Ventilátor Komory: %1$.0f%%</string>
+
+    <string name="notify_btn_error">Potvrdit Chybu</string>
+    <string name="notify_btn_offline">Zavřít</string>
+    <string name="notify_btn_success">Skvělé!</string>
+    <string name="notify_btn_default">Pokračovat</string>
 </resources>
