@@ -1,109 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KlippShell</string>
-    <string name="saved_printers">Impresoras Guardadas</string>
-    <string name="no_printers">No se encontraron impresoras. ¡Añade una!</string>
+    <!-- Nombre de la App -->
+    <string name="app_name">KlippShell 4 Creality</string>
 
-    <string name="add_printer_down">Añadir Impresora ▼</string>
-    <string name="add_printer_up">Añadir Impresora ▲</string>
-    <string name="printer_name_hint">Nombre de Impresora (ej. K1 Max)</string>
-    <string name="printer_ip_hint">Dirección IP de Impresora</string>
-    <string name="printer_port_hint">Puerto (Por defecto: 7125)</string>
-    <string name="printer_model_hint">Seleccionar Modelo</string>
-    <string name="btn_search_network">Escanear Red</string>
-    <string name="search_network">Escaneando la red…</string>
-    <string name="found_printers">Impresoras Encontradas</string>
+    <!-- Menú Principal & Gestión de impresoras -->
+    <string name="saved_printers">Impresoras guardadas</string>
+    <string name="no_printers">No hay impresoras configuradas. ¡Añade una!</string>
+    <string name="add_printer_down">Añadir impresora ▼</string>
+    <string name="add_printer_up">Añadir impresora ▲</string>
+    <string name="printer_name_hint">Nombre de la impresora (ej. K1 Max)</string>
+    <string name="printer_ip_hint">Dirección IP de la impresora</string>
+    <string name="printer_port_hint">Puerto (Predeterminado: 7125)</string>
+    <string name="printer_model_hint">Seleccionar modelo</string>
+    <string name="btn_search_network">Escanear red</string>
+    <string name="search_network">Escaneando red…</string>
+    <string name="found_printers">Impresoras encontradas</string>
     <string name="btn_add">Añadir</string>
     <string name="btn_exit">Salir</string>
 
-    <string name="choose_port">Seleccionar Puerto del Sistema</string>
+    <!-- Puertos del sistema -->
+    <string name="choose_port">Seleccionar puerto</string>
     <string name="system_creality">Creality (4408)</string>
-    <string name="system_standard">Klipper Estándar (7125)</string>
-    <string name="system_manual">Puerto Manual</string>
+    <string name="system_standard">Klipper estándar (7125)</string>
+    <string name="system_manual">Puerto manual</string>
 
-    <string name="settings_title">Ajustes</string>
-    <string name="change_language">Cambiar Idioma</string>
-    <string name="reset_app">Restablecer Aplicación</string>
-    <string name="settings_optimized_tv">KlippShell está optimizado para Android TV Boxes.</string>
-    <string name="theme_title">Seleccionar Tema</string>
-    <string name="theme_light">Claro</string>
-    <string name="theme_dark">Oscuro</string>
-    <string name="theme_system">Predeterminado</string>
-    <string name="choose_default_view">Vista Predeterminada</string>
-    <string name="choose_default_view_title">Vista Predeterminada</string>
-    <string name="reset_app_title">Restablecer Aplicación</string>
-    <string name="reset_app_cancel">Cancelar</string>
-    <string name="reset_app_yes">Sí, Restablecer</string>
-    <string name="reset_confirm_msg">¿Seguro que quieres restablecer la vista predeterminada?</string>
-    <string name="btn_back">Volver</string>
-
-    <string name="settings_notify_title">Notificaciones</string>
-    <string name="submenu_sounds_title">Sonidos</string>
-    <string name="submenu_popups_title">Popups</string>
-
-    <string name="event_first_layer">Primera Capa</string>
-    <string name="event_50">Hito: 50%</string>
-    <string name="event_75">Hito: 75%</string>
-    <string name="event_90">Hito: 90%</string>
-    <string name="event_100">Impresión Terminada (100%)</string>
-    <string name="event_offline">Impresora Desconectada</string>
-    <string name="event_error">Error Crítico de Klipper</string>
-    <string name="osd_printer_offline">Impresora Desconectada ⚠</string>
-
-    <string name="notify_title_first_layer">[INFO] Primera Capa</string>
-    <string name="notify_msg_first_layer">Primera capa impresa con éxito.</string>
-    <string name="notify_title_50">[INFO] Progreso: 50%</string>
-    <string name="notify_msg_50">Proceso de impresión alcanzó el 50%.</string>
-    <string name="notify_title_75">[INFO] Progreso: 75%</string>
-    <string name="notify_msg_75">Proceso de impresión alcanzó el 75%.</string>
-    <string name="notify_title_90">[INFO] Progreso: 90%</string>
-    <string name="notify_msg_90">Proceso de impresión alcanzó el 90%.</string>
-    <string name="notify_title_100">[SUCCESS] Impresión Finalizada</string>
-    <string name="notify_msg_100">Trabajo de impresión completado al 100%.</string>
-    <string name="notify_title_error">[ERROR] Error de Klipper</string>
-    <string name="notify_msg_error">Impresión abortada. Compruebe la consola.</string>
-    <string name="notify_title_offline">[WARN] Impresora Desconectada</string>
-    <string name="notify_msg_offline">Conexión con Moonraker perdida.</string>
-
-    <string name="made_in_germany">Hecho con ♥ en Alemania</string>
-    <string name="studio_name">Ship of Agony LABs</string>
-    <string name="dng_thanks">Inspirado en el proyecto KlippHub de DnG Crafts. ¡Gracias por tu aporte creativo y el valioso intercambio en nuestra comunidad de impresión 3D! 🛠️</string>
-
-    <!-- GEÄNDERT: Spanisches Oster-Ei -->
-    <string name="easter_egg_success">¡Solo los geeks y nerds prestan atención a detalles tan pequeños como tú! Tu primera capa muestra lo perfectamente que trabajas.</string>
-
+    <!-- Opciones de menú (Cámara) -->
     <string name="menu_options_title">Opciones</string>
     <string name="menu_osd_show">Mostrar OSD</string>
-    <string name="menu_osd_hide">Ocultar</string>
-    <string name="menu_ratio">Cambiar Relación de Aspecto</string>
-    <string name="menu_change_camera_type">Cambiar Tipo de Cámara</string>
+    <string name="menu_osd_hide">Ocultar OSD</string>
+    <string name="menu_ratio">Ajustar formato de imagen</string>
+    <string name="menu_change_camera_type">Fuente de stream</string>
     <string name="menu_emergency_stop">PARADA DE EMERGENCIA</string>
 
-    <string name="camera_type_html">Sitio Web (camera.html)</string>
+    <!-- Formatos de imagen -->
+    <string name="ratio_16_9">16:9 (Pantalla completa)</string>
+    <string name="ratio_4_3">4:3 (Ajustar ancho)</string>
+    <string name="ratio_1_1">1:1 (Cuadrado)</string>
+
+    <!-- Tipos de cámara -->
+    <string name="camera_type_html">Página web (camera.html)</string>
     <string name="camera_type_port">Stream (Puerto 8080)</string>
     <string name="camera_type_webcam">Stream (/webcam/)</string>
 
-    <string name="dialog_stop_title">¿Seguro que quieres detener la impresora inmediatamente?</string>
-    <string name="dialog_stop_confirm">¡SÍ, DETENER!</string>
-    <string name="dialog_cancel">Cancelar</string>
+    <!-- Selección de vista y borrado -->
+    <string name="choose_default_view">Vista (Cámara o Panel)</string>
+    <string name="choose_default_view_title">¿Cambiar panel?</string>
+    <string name="reset_confirm_msg">¿Realmente desea eliminar la impresora?</string>
     <string name="yes_delete">Eliminar</string>
     <string name="cancel">Cancelar</string>
-    <string name="toast_stop_success">¡Parada de emergencia enviada con éxito!</string>
-    <string name="toast_stop_error">Error al enviar. Código de estado: </string>
-    <string name="toast_no_connection">No es posible conectar con la impresora.</string>
 
+    <!-- Ajustes -->
+    <string name="settings_title">Ajustes</string>
+    <string name="change_language">Cambiar idioma</string>
+    <string name="reset_app">Restablecer aplicación</string>
+    <string name="reset_app_title">Restablecer aplicación</string>
+    <string name="reset_app_cancel">Cancelar</string>
+    <string name="reset_app_yes">Sí, restablecer</string>
+    <string name="settings_optimized_tv">KlippShell optimizado para Android TV.</string>
+    <string name="theme_title">Seleccionar tema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="theme_system">Predeterminado del sistema</string>
+    <string name="btn_back">Atrás</string>
+
+    <!-- Notificaciones -->
+    <string name="event_first_layer">Primera capa</string>
+    <string name="event_50">Hito: 50%</string>
+    <string name="event_75">Hito: 75%</string>
+    <string name="event_90">Hito: 90%</string>
+    <string name="event_100">Impresión finalizada (100%)</string>
+    <string name="event_offline">Impresora fuera de línea</string>
+    <string name="event_error">Error crítico de Klipper</string>
+    <string name="osd_printer_offline">Impresora fuera de línea ⚠</string>
+    <string name="notify_title_offline">Conexión perdida</string>
+    <string name="notify_msg_offline">La impresora no responde.</string>
+    <string name="notify_title_first_layer">Primera capa</string>
+    <string name="notify_msg_first_layer">Imprimiendo primera capa. ¡Verificar!</string>
+    <string name="notify_title_50">Mitad del progreso</string>
+    <string name="notify_msg_50">La impresión llegó al 50%.</string>
+    <string name="notify_title_75">Último tramo</string>
+    <string name="notify_msg_75">Impresión al 75%.</string>
+    <string name="notify_title_90">Casi terminada</string>
+    <string name="notify_msg_90">Impresión al 90%.</string>
+    <string name="notify_title_100">Impresión finalizada</string>
+    <string name="notify_msg_100">¡Impresión completada con éxito!</string>
+    <string name="notify_title_error">Error de impresión</string>
+    <string name="notify_msg_error">Ha ocurrido un error.</string>
+    <string name="notify_btn_offline">Cerrar</string>
+
+    <!-- Datos OSD en vivo -->
     <string name="osd_extruder">Boquilla: %1$.1f°C / %2$.0f°C</string>
     <string name="osd_bed">Cama: %1$.1f°C / %2$.0f°C</string>
     <string name="osd_chamber_sensor">Cámara: %1$.1f°C</string>
     <string name="osd_chamber_heater">Calentador: %1$.1f°C / %2$.0f°C</string>
     <string name="osd_time">Tiempo: %1$s / %2$s</string>
+    <string name="osd_fan_model">Vent. capa: %1$.0f%%</string>
+    <string name="osd_fan_aux">Vent. auxiliar: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Vent. cámara: %1$.0f%%</string>
+    <string name="toast_no_connection">No es posible conectar.</string>
 
-    <string name="osd_fan_model">Ventilador de Capa: %1$.0f%%</string>
-    <string name="osd_fan_aux">Ventilador Aux: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Ventilador de Cámara: %1$.0f%%</string>
+    <!-- Parada de emergencia -->
+    <string name="dialog_stop_title">¿Realmente desea detener la impresora de inmediato?</string>
+    <string name="dialog_stop_confirm">¡SÍ, PARADA DE EMERGENCIA!</string>
+    <string name="dialog_cancel">Cancelar</string>
+    <string name="toast_stop_success">¡Parada enviada con éxito!</string>
+    <string name="toast_stop_error">Error al enviar. Código: </string>
 
-    <string name="notify_btn_error">Descartar Error</string>
-    <string name="notify_btn_offline">Cerrar</string>
+    <!-- Otros -->
+    <string name="made_in_germany">Hecho con ♥ en Alemania</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="dng_thanks">Inspirado en el proyecto KlippHub de DnG Crafts. 🛠️</string>
+    <string name="easter_egg_success">¡Solo los expertos notan estos detalles!</string>
+    <string name="notify_btn_error">Descartar</string>
     <string name="notify_btn_success">¡Genial!</string>
     <string name="notify_btn_default">Continuar</string>
+    <string name="settings_notify_title">Notificaciones</string>
+    <string name="submenu_sounds_title">Sonidos</string>
+    <string name="submenu_popups_title">Popups</string>
 </resources>

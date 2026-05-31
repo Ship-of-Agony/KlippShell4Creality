@@ -3,6 +3,7 @@ package com.shipofagony.klippshell4creality
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
@@ -239,7 +240,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnAddMainPrinter)?.text = getString(R.string.btn_add)
         findViewById<Button>(R.id.btnExitApp)?.text = getString(R.string.btn_exit)
 
-        // GEFIXT: Erzwingt das Überschreiben der XML-Hints zur Laufzeit
         etMainPrinterName.hint = getString(R.string.printer_name_hint)
         etMainPrinterIP.hint = getString(R.string.printer_ip_hint)
         etMainPrinterPort.hint = getString(R.string.printer_port_hint)
@@ -254,6 +254,7 @@ class MainActivity : AppCompatActivity() {
         loadPrinters()
     }
 
+    // GEFIXT: Verwendet nun Color.WHITE anstelle von nicht deklarierten View-Referenzen
     private fun showCenteredPillToast(message: String) {
         val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -262,9 +263,17 @@ class MainActivity : AppCompatActivity() {
             textSize = 16f
             gravity = Gravity.CENTER
             setTextColor(if (isNight) Color.WHITE else Color.BLACK)
-            background = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 100f; setColor(if (isNight) Color.parseColor("#252B2E") else Color.WHITE); setStroke(4, if (isNight) Color.WHITE else Color.parseColor("#BDBDBD")) }
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 100f
+                setColor(if (isNight) Color.parseColor("#252B2E") else Color.WHITE)
+                setStroke(4, if (isNight) Color.WHITE else Color.parseColor("#BDBDBD"))
+            }
             setPadding(50, 35, 50, 35)
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; setMargins(50, 0, 50, 240) }
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                setMargins(50, 0, 50, 240)
+            }
         }
         val container = FrameLayout(this).apply { addView(pillView) }
         rootLayout.addView(container)
@@ -351,11 +360,11 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, WebViewActivity::class.java).putExtra("TARGET_URL", "http://${printer.getString("ip")}:${printer.getString("port")}${if (printer.getString("defaultView") == "camera") "/camera.html" else ""}"))
             }
 
-            itemView.setOnTouchListener { _, _ -> false }
-
             itemView.setOnLongClickListener {
                 val actionOptions = arrayOf(getString(R.string.choose_default_view), getString(R.string.yes_delete))
-                showPillDialog(printer.getString("name"), actionOptions) { whichAction ->
+                val actionColors = arrayOf<String?>(null, "#E53935")
+
+                showPillDialog(printer.getString("name"), actionOptions, actionColors) { whichAction ->
                     if (whichAction == 0) {
                         val viewOptions = arrayOf(getString(R.string.choose_default_view_title), getString(R.string.menu_change_camera_type).replace(" wechseln", "").replace(" Wechseln", ""))
                         showPillDialog(getString(R.string.choose_default_view), viewOptions) { whichView ->
@@ -370,7 +379,9 @@ class MainActivity : AppCompatActivity() {
                         }
                     } else {
                         val deleteOptions = arrayOf(getString(R.string.yes_delete), getString(R.string.cancel))
-                        showPillDialog(getString(R.string.reset_confirm_msg), deleteOptions) { confirmDelete ->
+                        val deleteColors = arrayOf<String?>("#E53935", null)
+
+                        showPillDialog(getString(R.string.reset_confirm_msg), deleteOptions, deleteColors) { confirmDelete ->
                             if (confirmDelete == 0) {
                                 val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
                                 val newList = JSONArray()
@@ -387,7 +398,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showPillDialog(title: String, items: Array<String>, onSelected: (Int) -> Unit) {
+    private fun showPillDialog(
+        title: String,
+        items: Array<String>,
+        hexColors: Array<String?>? = null,
+        onSelected: (Int) -> Unit
+    ) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -400,14 +416,23 @@ class MainActivity : AppCompatActivity() {
         val btnBgColor = if (isNight) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888")
 
         items.forEachIndexed { index, itemText ->
+            val customHex = hexColors?.getOrNull(index)
+
             val btn = MaterialButton(this).apply {
                 text = itemText
                 isAllCaps = false
                 textSize = 16f
                 cornerRadius = 100
                 setPadding(0, 35, 0, 35)
-                backgroundTintList = ColorStateList.valueOf(btnBgColor)
-                setTextColor(textColor)
+
+                if (customHex != null) {
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex))
+                    setTextColor(Color.WHITE)
+                } else {
+                    backgroundTintList = ColorStateList.valueOf(btnBgColor)
+                    setTextColor(textColor)
+                }
+
                 isFocusable = true
 
                 layoutParams = LinearLayout.LayoutParams(

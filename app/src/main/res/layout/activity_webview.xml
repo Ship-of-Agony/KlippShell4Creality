@@ -42,7 +42,7 @@
             app:flow_horizontalStyle="packed"
             app:flow_horizontalGap="20dp"
             app:flow_verticalGap="10dp"
-            app:constraint_referenced_ids="tvOsdExtruder,tvOsdBed,tvOsdChamber,tvOsdChamberHeater,tvOsdFanModel,tvOsdFanAux,tvOsdFanChamber,tvOsdProgress,tvOsdTime" />
+            app:constraint_referenced_ids="tvOsdExtruder,tvOsdBed,tvOsdChamberSensor,tvOsdChamberHeater,tvOsdFanModel,tvOsdFanAux,tvOsdFanChamber,tvOsdProgress,tvOsdTime" />
 
         <TextView
             android:id="@+id/tvOsdExtruder"
@@ -62,8 +62,9 @@
             android:textSize="15sp"
             android:textStyle="bold" />
 
+        <!-- GEFIXT: ID in tvOsdChamberSensor geändert -->
         <TextView
-            android:id="@+id/tvOsdChamber"
+            android:id="@+id/tvOsdChamberSensor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Kammer: --.-°C"
