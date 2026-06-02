@@ -4,21 +4,44 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 
 object SoundManager {
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var toneGenerator: ToneGenerator? = null
-    private var playCount = 0
-    private var loopRunnable: Runnable? = null
     private val melodyHandler = Handler(Looper.getMainLooper())
+    private var toneGenerator: ToneGenerator? = null
+
+    private var playCount = 0
+    private var currentPrefKey: String = ""
+
+    // Dedizierte Runnables statt anonymer Blöcke für garantierte Löschbarkeit
+    private val loopRunnable = object : Runnable {
+        override fun run() {
+            triggerThreeTimesLoop()
+        }
+    }
+
+    private val toneStep1Runnable = Runnable {
+        try {
+            toneGenerator?.stopTone()
+            toneGenerator?.startTone(ToneGenerator.TONE_DTMF_3, 120)
+        } catch (_: Exception) {}
+    }
+
+    private val toneStep2Runnable = Runnable {
+        try {
+            toneGenerator?.stopTone()
+            toneGenerator?.startTone(ToneGenerator.TONE_DTMF_9, 250)
+        } catch (_: Exception) {}
+    }
 
     init {
         try {
-            // Initialisiert den Generator auf maximaler System-Lautstärke für Alarme
             toneGenerator = ToneGenerator(AudioManager.STREAM_ALARM, 100)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("KlippShell", "ToneGenerator konnte nicht initialisiert werden", e)
+            toneGenerator = null
         }
     }
 
@@ -35,109 +58,73 @@ object SoundManager {
      */
     fun playLiveNotification(prefKey: String) {
         stopAllSounds()
-
         val isCriticalEvent = prefKey.contains("error") || prefKey.contains("offline") || prefKey.contains("100")
 
         if (isCriticalEvent) {
             playCount = 0
-            triggerThreeTimesLoop(prefKey)
+            currentPrefKey = prefKey
+            triggerThreeTimesLoop()
         } else {
-            // Normale Meilensteine (First Layer, 50%...) im echten Betrieb auch nur 1x
             executeSingleTone(prefKey)
         }
     }
 
-    /**
-     * Erzeugt die spezifischen Töne oder komplexe Melodien.
-     */
     private fun executeSingleTone(prefKey: String) {
+        val generator = toneGenerator ?: return
         try {
             when {
-                // Kritische Fehler: Ein schriller, unüberhörbarer Doppel-Frequenz-Alarm (500ms lang)
                 prefKey.contains("error") -> {
-                    toneGenerator?.startTone(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK, 500)
+                    generator.startTone(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK, 500)
                 }
-
-                // Drucker geht offline: Ein tieferer, warnender Dreifach-Impuls (400ms lang)
                 prefKey.contains("offline") -> {
-                    toneGenerator?.startTone(ToneGenerator.TONE_SUP_DIAL, 400)
+                    generator.startTone(ToneGenerator.TONE_SUP_DIAL, 400)
                 }
-
-                // Druck fertig (100%): Eine fröhliche, ansteigende 3-Ton-Erfolgsmelodie (C-Dur-Akkord)
                 prefKey.contains("100") -> {
                     playHappySuccessMelody()
                 }
-
-                // Normale Meilensteine (50%, 75%, First Layer): Ein ganz kurzer, dezenter "Pling" (100ms)
                 else -> {
-                    toneGenerator?.startTone(ToneGenerator.TONE_PROP_ACK, 100)
+                    generator.startTone(ToneGenerator.TONE_PROP_ACK, 100)
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("KlippShell", "Fehler bei der Tonausgabe", e)
         }
     }
 
-    /**
-     * Komponiert eine fröhliche, ansteigende Tonfolge direkt auf dem Audio-Chip.
-     */
     private fun playHappySuccessMelody() {
+        val generator = toneGenerator ?: return
         try {
-            // Ton 1: Grundton C (heller DTMF-Ton) für 120ms
-            toneGenerator?.startTone(ToneGenerator.TONE_DTMF_C, 120)
-
-            // Ton 2: Terz E nach 130ms für 120ms
-            melodyHandler.postDelayed({
-                toneGenerator?.stopTone()
-                toneGenerator?.startTone(ToneGenerator.TONE_DTMF_3, 120)
-            }, 130)
-
-            // Ton 3: Quinte G nach 260ms für 250ms (länger ausklingend)
-            melodyHandler.postDelayed({
-                toneGenerator?.stopTone()
-                toneGenerator?.startTone(ToneGenerator.TONE_DTMF_9, 250)
-            }, 260)
+            generator.startTone(ToneGenerator.TONE_DTMF_C, 120)
+            melodyHandler.postDelayed(toneStep1Runnable, 130)
+            melodyHandler.postDelayed(toneStep2Runnable, 260)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("KlippShell", "Fehler in der Erfolgsmelodie", e)
         }
     }
 
-    /**
-     * Schleife, die den spezifischen Alarmton im echten Betrieb exakt 3x abfeuert.
-     */
-    private fun triggerThreeTimesLoop(prefKey: String) {
+    private fun triggerThreeTimesLoop() {
         if (playCount < 3) {
-            executeSingleTone(prefKey)
+            executeSingleTone(currentPrefKey)
             playCount++
 
-            // Da die 100%-Melodie insgesamt ca. 500ms dauert, lassen wir 1.2 Sekunden Luft bis zur Wiederholung
-            val delay = when {
-                prefKey.contains("100") -> 1200L
-                else -> 800L
-            }
-
-            val runnable = Runnable {
-                triggerThreeTimesLoop(prefKey)
-            }
-            loopRunnable = runnable
-            mainHandler.postDelayed(runnable, delay)
+            val delay = if (currentPrefKey.contains("100")) 1200L else 800L
+            mainHandler.postDelayed(loopRunnable, delay)
         }
     }
 
     /**
-     * Stoppt sofort die Schleife, bricht die Melodie ab und schneidet den Ton ab.
+     * Stoppt sofort alle Schleifen, bricht Melodien ab und schneidet den Ton hart ab.
      */
     fun stopAllSounds() {
-        loopRunnable?.let { mainHandler.removeCallbacks(it) }
-        loopRunnable = null
-
-        // Alle anstehenden Töne der fröhlichen Melodie ebenfalls löschen
+        mainHandler.removeCallbacks(loopRunnable)
+        melodyHandler.removeCallbacks(toneStep1Runnable)
+        melodyHandler.removeCallbacks(toneStep2Runnable)
         melodyHandler.removeCallbacksAndMessages(null)
 
         try {
             toneGenerator?.stopTone()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("KlippShell", "Fehler beim Stoppen des Tones", e)
         }
     }
 }

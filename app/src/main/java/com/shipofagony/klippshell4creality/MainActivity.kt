@@ -3,7 +3,6 @@ package com.shipofagony.klippshell4creality
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
@@ -12,6 +11,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.button.MaterialButton
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -45,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnSystemSelect: MaterialButton
 
     private var selectedSystemIndex = 0
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private val printerMap = mapOf(
         "CR-10" to "cr_10", "CR-10 SE" to "cr_10se", "CR-10 Smart" to "cr_10smart",
@@ -87,7 +89,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-
         val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedTheme)
 
@@ -107,7 +108,15 @@ class MainActivity : AppCompatActivity() {
 
         btnSystemSelect.text = "4408"
 
-        val printerArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
+        // IP-FELD-FIX für TV-Boxen (Erzwingt Nummernblock)
+        etMainPrinterIP.inputType = InputType.TYPE_CLASS_PHONE or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+
+        val printerArray = try {
+            JSONArray(prefs.getString("printers_list", "[]"))
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Initiale Druckerliste korrupt", e)
+            JSONArray()
+        }
 
         val startupVeil = findViewById<LinearLayout?>(R.id.viewStartupVeil)
         startupVeil?.post {
@@ -177,7 +186,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (name.isNotEmpty() && ip.isNotEmpty()) {
-                // GEFIXT: Optionsmenü verwendet nun die exakten Begriffe deiner neuen XML
                 val viewOptions = arrayOf(getString(R.string.choose_default_view).substringBefore(" ("), getString(R.string.menu_change_camera_type))
                 showPillDialog(getString(R.string.choose_default_view_title), viewOptions) { which ->
                     savePrinter(name, ip, port, actvMainPrinterModel.text.toString().trim(), if (which == 0) "interface" else "camera")
@@ -277,7 +285,11 @@ class MainActivity : AppCompatActivity() {
         }
         val container = FrameLayout(this).apply { addView(pillView) }
         rootLayout.addView(container)
-        Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
+        mainHandler.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                rootLayout.removeView(container)
+            }
+        }, 2200)
     }
 
     private fun getLocalIpAddress(): String? {
@@ -294,37 +306,78 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun searchNetworkForPrinters() {
-        val progressDialog = AlertDialog.Builder(this).setView(ProgressBar(this).apply { setPadding(0, 50, 0, 50); indeterminateTintList = ColorStateList.valueOf(Color.parseColor("#2196F3")) }).setTitle(getString(R.string.search_network)).setCancelable(false).show()
+        val progressDialog = AlertDialog.Builder(this)
+            .setView(ProgressBar(this).apply { setPadding(0, 50, 0, 50); indeterminateTintList = ColorStateList.valueOf(Color.parseColor("#2196F3")) })
+            .setTitle(getString(R.string.search_network))
+            .setCancelable(false)
+            .show()
+
         Thread {
             val ipPrefix = getLocalIpAddress()?.substringBeforeLast(".") ?: return@Thread
             val foundPrinters = mutableListOf<String>()
-            val executor = Executors.newFixedThreadPool(15)
+            // Optimierter Thread-Pool für ältere TV-Boxen (Verhindert Stack-Überlastung)
+            val executor = Executors.newFixedThreadPool(10)
             for (i in 1..254) {
                 executor.execute {
-                    try { Socket().apply { connect(InetSocketAddress("$ipPrefix.$i", 4408), 300); close() }; foundPrinters.add("$ipPrefix.$i") } catch (_: Exception) { }
+                    var socket: Socket? = null
+                    try {
+                        socket = Socket()
+                        socket.connect(InetSocketAddress("$ipPrefix.$i", 4408), 400)
+                        foundPrinters.add("$ipPrefix.$i")
+                    } catch (_: Exception) {
+                    } finally {
+                        try { socket?.close() } catch (_: Exception) {}
+                    }
                 }
             }
-            executor.shutdown(); executor.awaitTermination(6, TimeUnit.SECONDS)
-            runOnUiThread {
-                progressDialog.dismiss()
-                if (foundPrinters.isNotEmpty()) showPillDialog(getString(R.string.found_printers), foundPrinters.distinct().toTypedArray()) { which -> etMainPrinterIP.setText(foundPrinters.distinct()[which]); btnSystemSelect.text = "4408" }
-                else showCenteredPillToast(getString(R.string.toast_no_connection))
+            executor.shutdown()
+            try { executor.awaitTermination(7, TimeUnit.SECONDS) } catch (_: Exception) {}
+
+            mainHandler.post {
+                if (!isFinishing && !isDestroyed) {
+                    try { progressDialog.dismiss() } catch (_: Exception) {}
+                    if (foundPrinters.isNotEmpty()) {
+                        showPillDialog(getString(R.string.found_printers), foundPrinters.distinct().toTypedArray()) { which ->
+                            etMainPrinterIP.setText(foundPrinters.distinct()[which])
+                            btnSystemSelect.text = "4408"
+                        }
+                    } else {
+                        showCenteredPillToast(getString(R.string.toast_no_connection))
+                    }
+                }
             }
         }.start()
     }
 
     private fun savePrinter(name: String, ip: String, port: String, model: String, defaultView: String) {
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        val list = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
-        list.put(JSONObject().put("name", name).put("ip", ip).put("port", port).put("model", model).put("defaultView", defaultView))
-        prefs.edit().putString("printers_list", list.toString()).apply()
-        applyLanguageAndRefreshUI()
+        val list = try {
+            JSONArray(prefs.getString("printers_list", "[]"))
+        } catch (e: Exception) {
+            JSONArray()
+        }
+
+        try {
+            list.put(JSONObject().put("name", name).put("ip", ip).put("port", port).put("model", model).put("defaultView", defaultView))
+            prefs.edit().putString("printers_list", list.toString()).apply()
+            applyLanguageAndRefreshUI()
+        } catch (e: JSONException) {
+            Log.e("KlippShell", "Fehler beim Speichern des Druckers", e)
+        }
     }
 
     private fun loadPrinters() {
         containerPrinters.removeAllViews()
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        val list = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
+
+        val list = try {
+            JSONArray(prefs.getString("printers_list", "[]"))
+        } catch (e: Exception) {
+            Log.e("KlippShell", "JSON in SharedPreferences korrupt. Resette Liste.", e)
+            prefs.edit().putString("printers_list", "[]").apply()
+            JSONArray()
+        }
+
         tvNoPrinter.visibility = if (list.length() == 0) View.VISIBLE else View.GONE
 
         if (list.length() == 0) {
@@ -333,7 +386,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         for (i in 0 until list.length()) {
-            val printer = list.getJSONObject(i)
+            val printer = try { list.getJSONObject(i) } catch (_: Exception) { null } ?: continue
             val itemView = LayoutInflater.from(this).inflate(R.layout.printer_item, containerPrinters, false)
 
             itemView.isFocusable = true
@@ -348,34 +401,44 @@ class MainActivity : AppCompatActivity() {
             }
 
             val iconView = itemView.findViewById<ImageView>(R.id.ivPrinterIcon)
-            if (iconView != null) iconView.setImageResource(getPrinterImageResource(printer.getString("model")))
+            if (iconView != null) iconView.setImageResource(getPrinterImageResource(printer.optString("model", "")))
 
             itemView.findViewById<TextView>(R.id.tvPrinterNameAndAddress).apply {
-                text = printer.getString("name")
+                text = printer.optString("name", "Unbekannt")
                 textSize = 18f
                 setTypeface(null, android.graphics.Typeface.BOLD)
             }
 
             itemView.setOnClickListener {
-                startActivity(Intent(this, WebViewActivity::class.java).putExtra("TARGET_URL", "http://${printer.getString("ip")}:${printer.getString("port")}${if (printer.getString("defaultView") == "camera") "/camera.html" else ""}"))
+                val intent = Intent(this, WebViewActivity::class.java).apply {
+                    putExtra("PRINTER_IP", printer.optString("ip", ""))
+                    putExtra("PRINTER_PORT", printer.optString("port", "7125"))
+                    if (printer.optString("defaultView", "") == "camera") {
+                        putExtra("IS_CAMERA_VIEW", true)
+                    }
+                }
+                startActivity(intent)
             }
 
             itemView.setOnLongClickListener {
                 val actionOptions = arrayOf(getString(R.string.choose_default_view).substringBefore(" ("), getString(R.string.yes_delete))
                 val actionColors = arrayOf<String?>(null, "#E53935")
 
-                showPillDialog(printer.getString("name"), actionOptions, actionColors) { whichAction ->
+                showPillDialog(printer.optString("name", "Drucker"), actionOptions, actionColors) { whichAction ->
                     if (whichAction == 0) {
-                        // GEFIXT: String-Verbiegung entfernt, lädt saubere XML-Begriffe
                         val viewOptions = arrayOf(getString(R.string.choose_default_view_title).replace("?", ""), getString(R.string.menu_change_camera_type))
                         showPillDialog(getString(R.string.choose_default_view), viewOptions) { whichView ->
                             val newView = if (whichView == 0) "interface" else "camera"
                             val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
                             if (currentArray.length() > i) {
-                                currentArray.getJSONObject(i).put("defaultView", newView)
-                                prefs.edit().putString("printers_list", currentArray.toString()).apply()
-                                applyLanguageAndRefreshUI()
-                                showCenteredPillToast(getString(R.string.choose_default_view_title) + " ✓")
+                                try {
+                                    currentArray.getJSONObject(i).put("defaultView", newView)
+                                    prefs.edit().putString("printers_list", currentArray.toString()).apply()
+                                    applyLanguageAndRefreshUI()
+                                    showCenteredPillToast(getString(R.string.choose_default_view_title) + " ✓")
+                                } catch (e: Exception) {
+                                    Log.e("KlippShell", "Fehler beim Ändern der Standardansicht", e)
+                                }
                             }
                         }
                     } else {
@@ -462,5 +525,11 @@ class MainActivity : AppCompatActivity() {
             container?.addView(btn)
         }
         dialog.show()
+    }
+
+    override fun onDestroy() {
+        mainHandler.removeCallbacksAndMessages(null)
+        currentFocus?.clearFocus()
+        super.onDestroy()
     }
 }

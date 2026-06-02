@@ -38,13 +38,11 @@ class SettingsActivity : AppCompatActivity() {
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
 
         val savedLang = prefs.getString("app_lang", "de") ?: "de"
-
         val locale = Locale.forLanguageTag(savedLang)
         Locale.setDefault(locale)
 
         val config = resources.configuration
         config.setLocale(locale)
-
         baseContext.resources.configuration.updateFrom(config)
 
         super.onCreate(savedInstanceState)
@@ -96,7 +94,6 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 prefs.edit().putInt("app_theme", targetMode).apply()
                 AppCompatDelegate.setDefaultNightMode(targetMode)
-
                 recreate()
             }
         }
@@ -135,23 +132,16 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        // GEÄNDERT: Zählt im Geheimen und nutzt showTvDialog gegen abgeschnittenen Text
         ivAboutStudioLogo?.setOnClickListener {
             easterEggClickCount++
             if (easterEggClickCount >= 7) {
                 easterEggClickCount = 0
+                ivAboutStudioLogo.animate().rotationBy(360f).setDuration(800).start()
 
-                // Rotation triggern
-                ivAboutStudioLogo.animate()
-                    .rotationBy(360f)
-                    .setDuration(800)
-                    .start()
-
-                // Öffnet die Erfolgsmeldung formstark und lesbar im TV-Dialog
                 showTvDialog(
                     title = getString(R.string.studio_name),
                     items = arrayOf(getString(R.string.easter_egg_success)),
-                    hexColors = arrayOf("#4CAF50") // Klipper-Grün für die Bestätigungspille
+                    hexColors = arrayOf("#4CAF50")
                 ) {
                     btnThemeSelect.requestFocus()
                 }
@@ -196,12 +186,13 @@ class SettingsActivity : AppCompatActivity() {
     private fun handleBackNavigation() {
         when (currentMenuLayer) {
             2 -> {
+                val focusTargetId = if (layoutMenuSounds.visibility == View.VISIBLE) R.id.btnSubMenuSounds else R.id.btnSubMenuPopups
                 layoutMenuPopups.visibility = View.GONE
                 layoutMenuSounds.visibility = View.GONE
                 panelNotifySelect.visibility = View.VISIBLE
                 currentMenuLayer = 1
                 tvSettingsTitle.text = getString(R.string.settings_notify_title)
-                findViewById<MaterialButton>(R.id.btnSubMenuSounds).requestFocus()
+                findViewById<MaterialButton>(focusTargetId)?.requestFocus()
             }
             1 -> {
                 panelNotifySelect.visibility = View.GONE
@@ -229,7 +220,6 @@ class SettingsActivity : AppCompatActivity() {
         val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         var firstBtn: MaterialButton? = null
-
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
 
