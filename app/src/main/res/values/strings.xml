@@ -1,111 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">KlippShell 4 Creality</string>
-
+    <string name="app_name">KlippShell</string>
+    <string name="no_printers">Keine Drucker hinterlegt</string>
     <string name="saved_printers">Gespeicherte Drucker</string>
-    <string name="no_printers">Keine Drucker hinterlegt. Füge einen hinzu!</string>
-    <string name="add_printer_down">Drucker hinzufügen ▼</string>
-    <string name="add_printer_up">Drucker hinzufügen ▲</string>
-    <string name="printer_name_hint">Drucker Name (z.B. K1 Max)</string>
-    <string name="printer_ip_hint">Drucker IP-Adresse</string>
-    <string name="printer_port_hint">Port (Standard: 7125)</string>
-    <string name="printer_model_hint">Drucker Modell auswählen</string>
-    <string name="btn_search_network">Netzwerk scannen</string>
-    <string name="search_network">Suche im Netzwerk…</string>
-    <string name="found_printers">Gefundene Drucker</string>
+    <string name="btn_search_network">Netzwerk durchsuchen</string>
+    <string name="search_network">Netzwerk scannen</string>
     <string name="btn_add">Hinzufügen</string>
     <string name="btn_exit">Beenden</string>
-
-    <string name="choose_port">System-Port auswählen</string>
-    <string name="system_creality">Creality (4408)</string>
+    <string name="btn_back">Zurück</string>
+    <string name="printer_name_hint">Drucker Name</string>
+    <string name="printer_ip_hint">IP-Adresse</string>
+    <string name="printer_port_hint">Port (Optional)</string>
+    <string name="printer_model_hint">Druckermodell auswählen</string>
+    <string name="choose_port">Port auswählen</string>
+    <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
-    <string name="system_manual">Manueller Port</string>
+    <string name="system_manual">Manuelle Eingabe</string>
+    <string name="add_printer_up">Drucker hinzufügen ▲</string>
+    <string name="add_printer_down">Drucker hinzufügen ▼</string>
+
+    <string name="choose_default_view_title">Standard Oberfläche</string>
+    <string name="choose_default_view">Klipper OS</string>
+    <string name="menu_change_camera_type">Live-Stream</string>
+
+    <string name="found_printers">Gefundene Drucker</string>
+    <string name="toast_no_connection">Keine Verbindung zum Drucker</string>
+    <string name="yes_delete">Löschen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="reset_confirm_msg">Möchtest du diesen Drucker wirklich entfernen?</string>
+
+    <string name="settings_title">Einstellungen</string>
+    <string name="theme_title">App-Design</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="theme_system">Systemstandard</string>
+    <string name="change_language">Sprache ändern</string>
+    <string name="settings_notify_title">Benachrichtigungen</string>
+    <string name="submenu_sounds_title">Töne verwalten</string>
+    <string name="submenu_popups_title">Popups verwalten</string>
+    <string name="settings_optimized_tv">Optimiert für Android TV</string>
+    <string name="studio_name">Ship of Agony LABs</string>
+    <string name="made_in_germany">Made with ❤️ in Germany</string>
+    <string name="dng_thanks">Inspiriert vom KlippHub-Projekt bei DnG Crafts  </string>
+    <string name="easter_egg_success">Level dein Bett, bevor du mich fragst!</string>
+
+    <string name="reset_app">App zurücksetzen</string>
+    <string name="reset_app_title">Alle Daten löschen?</string>
+    <string name="reset_app_yes">Ja, alles löschen</string>
+    <string name="reset_app_cancel">Abbrechen</string>
 
     <string name="menu_options_title">Optionen</string>
     <string name="menu_osd_show">OSD einblenden</string>
     <string name="menu_osd_hide">OSD ausblenden</string>
-    <string name="menu_ratio">Bildformat anpassen</string>
-    <string name="menu_change_camera_type">Kamera Live-Stream</string>
+    <string name="menu_ratio">Bildformat ändern</string>
+    <string name="ratio_16_9">16:9 Breitbild</string>
+    <string name="ratio_4_3">4:3 Standard</string>
+    <string name="ratio_1_1">1:1 Quadrat</string>
+    <string name="camera_type_html">Klipper HTML Stream</string>
+    <string name="camera_type_port">Port 8080 Stream</string>
+    <string name="camera_type_webcam">Webcam-Pfad Stream</string>
     <string name="menu_emergency_stop">NOT-AUS</string>
+    <string name="dialog_stop_title">Drucker stoppen?</string>
+    <string name="dialog_stop_confirm">JA - SOFORT STOPPEN</string>
+    <string name="dialog_cancel">Abbrechen</string>
+    <string name="toast_stop_success">NOT-AUS gesendet!</string>
+    <string name="toast_stop_error">Fehler beim Senden: </string>
+    <string name="toast_loading_dashboard">Lade Klipper OS...</string>
+    <string name="osd_printer_offline">Drucker Offline</string>
 
-    <string name="ratio_16_9">16:9 (Vollbild)</string>
-    <string name="ratio_4_3">4:3 (Breite anpassen)</string>
-    <string name="ratio_1_1">1:1 (Quadratisch)</string>
-
-    <string name="camera_type_html">Webseite (camera.html)</string>
-    <string name="camera_type_port">Stream (Port 8080)</string>
-    <string name="camera_type_webcam">Stream (/webcam/)</string>
-
-    <string name="choose_default_view">Dashboard (Fluidd / Mainsail)</string>
-    <string name="choose_default_view_title">Dashboard</string>
-    <string name="reset_confirm_msg">Drucker wirklich löschen?</string>
-    <string name="yes_delete">Löschen</string>
-    <string name="cancel">Abbrechen</string>
-
-    <string name="settings_title">Einstellungen</string>
-    <string name="change_language">Sprache ändern</string>
-    <string name="reset_app">App zurücksetzen</string>
-    <string name="reset_app_title">App zurücksetzen</string>
-    <string name="reset_app_cancel">Abbrechen</string>
-    <string name="reset_app_yes">Ja, zurücksetzen</string>
-    <string name="settings_optimized_tv">KlippShell ist für Android TV Boxen optimiert.</string>
-    <string name="theme_title">Design auswählen</string>
-    <string name="theme_light">Hell</string>
-    <string name="theme_dark">Dunkel</string>
-    <string name="theme_system">Systemstandard</string>
-    <string name="btn_back">Zurück</string>
-
-    <string name="event_first_layer">Erste Schicht (First Layer)</string>
-    <string name="event_50">Meilenstein: 50%</string>
-    <string name="event_75">Meilenstein: 75%</string>
-    <string name="event_90">Meilenstein: 90%</string>
-    <string name="event_100">Druck fertig (100%)</string>
-    <string name="event_offline">Drucker geht Offline</string>
-    <string name="event_error">Kritischer Klipper-Fehler</string>
-    <string name="osd_printer_offline">Drucker Offline ⚠</string>
-    <string name="notify_title_offline">Verbindung verloren</string>
-    <string name="notify_msg_offline">Der Drucker ist nicht mehr erreichbar.</string>
-    <string name="notify_title_first_layer">Erste Schicht</string>
-    <string name="notify_msg_first_layer">Die erste Schicht wird gedruckt. Bitte kontrollieren!</string>
-    <string name="notify_title_50">Hälfte geschafft</string>
-    <string name="notify_msg_50">Der Druck hat die 50% Marke erreicht.</string>
-    <string name="notify_title_75">Endspurt</string>
-    <string name="notify_msg_75">Der Druck ist zu 75% fertiggestellt.</string>
-    <string name="notify_title_90">Fast fertig</string>
-    <string name="notify_msg_90">Der Druck ist zu 90% abgeschlossen.</string>
-    <string name="notify_title_100">Druck beendet</string>
-    <string name="notify_msg_100">Dein Druck ist erfolgreich fertiggestellt!</string>
-    <string name="notify_title_error">Druckfehler</string>
-    <string name="notify_msg_error">Es ist ein Fehler aufgetreten.</string>
-    <string name="notify_btn_offline">Schließen</string>
-
-    <string name="osd_extruder">Düse: %1$.1f°C / %2$.0f°C</string>
-    <string name="osd_bed">Bett: %1$.1f°C / %2$.0f°C</string>
+    <string name="osd_extruder">Düse: %1$.1f°C / %2$.1f°C</string>
+    <string name="osd_bed">Bett: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Kammer: %1$.1f°C</string>
-    <string name="osd_chamber_heater">Heizung: %1$.1f°C / %2$.0f°C</string>
-    <string name="osd_time">Zeit: %1$s / %2$s</string>
+    <string name="osd_chamber_heater">Heizung: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_fan_model">Bauteillüfter: %1$.0f%%</string>
     <string name="osd_fan_aux">Zusatzlüfter: %1$.0f%%</string>
     <string name="osd_fan_chamber">Abluftlüfter: %1$.0f%%</string>
-    <string name="toast_no_connection">Keine Verbindung zum Drucker möglich.</string>
+    <string name="osd_time">Zeit: %1$s / %2$s</string>
 
-    <string name="toast_loading_dashboard">Lade Dashboard… ✓</string>
+    <string name="event_offline">Offline</string>
+    <string name="event_first_layer">Erste Schicht</string>
+    <string name="event_50">50% erreicht</string>
+    <string name="event_75">75% erreicht</string>
+    <string name="event_90">90% erreicht</string>
+    <string name="event_100">Fertiggestellt</string>
+    <string name="event_error">Fehler</string>
 
-    <string name="dialog_stop_title">Möchtest du den Drucker wirklich sofort stoppen?</string>
-    <string name="dialog_stop_confirm">JA, REISSLEINE!</string>
-    <string name="dialog_cancel">Abbrechen</string>
-    <string name="toast_stop_success">NOT-AUS erfolgreich gesendet!</string>
-    <string name="toast_stop_error">Fehler beim Senden. Status-Code: </string>
+    <string name="notify_title_offline">Verbindung verloren</string>
+    <string name="notify_msg_offline">Der Drucker antwortet nicht mehr.</string>
+    <string name="notify_btn_offline">Verstanden</string>
 
-    <string name="made_in_germany">Made with ♥ in Germany</string>
-    <string name="studio_name">Ship of Agony LABs</string>
-    <string name="dng_thanks">Inspiriert durch das KlippHub-Projekt von DnG Crafts. 🛠️</string>
-    <string name="easter_egg_success">Nur Geeks und Nerds achten auf so kleine Details wie du!</string>
+    <string name="notify_title_first_layer">Erste Schicht</string>
+    <string name="notify_msg_first_layer">Die erste Schicht wird gedruckt.</string>
+    <string name="notify_title_50">Bergfest!</string>
+    <string name="notify_msg_50">50% des Drucks sind geschafft.</string>
+    <string name="notify_title_75">Fast fertig</string>
+    <string name="notify_msg_75">75% des Drucks sind abgeschlossen.</string>
+    <string name="notify_title_90">Endspurt</string>
+    <string name="notify_msg_90">90% des Drucks sind erreicht.</string>
+    <string name="notify_title_100">Druck fertig!</string>
+    <string name="notify_msg_100">Der 3D-Druck wurde erfolgreich beendet.</string>
+    <string name="notify_title_error">Klipper Fehler</string>
+    <string name="notify_msg_error">Der Drucker hat den Druck mit einem Fehler abgebrochen.</string>
 
     <string name="notify_btn_error">Schließen</string>
-    <string name="notify_btn_success">Genial!</string>
-    <string name="notify_btn_default">Weiter</string>
-    <string name="settings_notify_title">Benachrichtigungen</string>
-    <string name="submenu_sounds_title">Töne</string>
-    <string name="submenu_popups_title">Popups</string>
+    <string name="notify_btn_success">Super</string>
+    <string name="notify_btn_default">OK</string>
+
+    <string name="menu_light_on">Bauraum Beleuchtung Ein</string>
+    <string name="menu_light_off">Bauraum Beleuchtung Aus</string>
+    <string name="toast_light_error">Senden fehlgeschlagen</string>
+    <string name="menu_screensaver">Bildschirmschoner</string>
+    <string name="screensaver_title">Automatische Abdunklung nach...</string>
+    <string name="screensaver_now">Sofort aktivieren</string>
+    <string name="screensaver_30">30 Minuten</string>
+    <string name="screensaver_60">60 Minuten</string>
+    <string name="screensaver_90">90 Minuten</string>
+    <string name="screensaver_120">120 Minuten</string>
+    <string name="screensaver_off">Deaktiviert</string>
 </resources>

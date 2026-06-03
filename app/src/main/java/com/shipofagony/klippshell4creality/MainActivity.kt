@@ -31,7 +31,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 @Suppress("DEPRECATION", "Lint", "SetTextI18n", "LocalSuppress")
-@SuppressLint("SetTextI18n", "ClickableViewAccessibility", "DefaultLocale")
+@SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
 class MainActivity : AppCompatActivity() {
 
     private lateinit var containerPrinters: LinearLayout
@@ -48,7 +48,6 @@ class MainActivity : AppCompatActivity() {
     private var selectedSystemIndex = 0
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    // GEFIXT: "custem" (ohne printer_ Präfix), damit die automatische Bildsuche "printer_custem" ergibt
     private val printerMap = mapOf(
         "Custom Printer" to "custem",
         "CR-10" to "cr_10", "CR-10 SE" to "cr_10se", "CR-10 Smart" to "cr_10smart",
@@ -164,7 +163,6 @@ class MainActivity : AppCompatActivity() {
         actvMainPrinterModel.inputType = InputType.TYPE_NULL
         actvMainPrinterModel.setOnClickListener { actvMainPrinterModel.showDropDown() }
 
-        // Setzt das Modell standardmäßig auf "Custom Printer" als Vorauswahl
         actvMainPrinterModel.setText("Custom Printer", false)
 
         findViewById<View>(R.id.btnSettings).setOnClickListener {
@@ -191,15 +189,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (name.isNotEmpty() && ip.isNotEmpty()) {
-                val viewOptions = arrayOf(getString(R.string.choose_default_view).substringBefore(" ("), getString(R.string.menu_change_camera_type))
+                val viewOptions = arrayOf(getString(R.string.menu_change_camera_type), getString(R.string.choose_default_view))
                 showPillDialog(getString(R.string.choose_default_view_title), viewOptions) { which ->
-                    savePrinter(name, ip, port, actvMainPrinterModel.text.toString().trim(), if (which == 0) "interface" else "camera")
+                    savePrinter(name, ip, port, actvMainPrinterModel.text.toString().trim(), if (which == 0) "camera" else "interface")
 
                     etMainPrinterName.text.clear()
                     etMainPrinterIP.text.clear()
                     etMainPrinterPort.text.clear()
-
-                    // Setzt die Textauswahl nach dem Hinzufügen direkt wieder auf das Standardprofil zurück
                     actvMainPrinterModel.setText("Custom Printer", false)
 
                     selectedSystemIndex = 0
@@ -208,10 +204,10 @@ class MainActivity : AppCompatActivity() {
                     containerAddPrinterForm.visibility = View.GONE
                     tvAddPrinterTitle.text = getString(R.string.add_printer_down)
 
-                    showCenteredPillToast(getString(R.string.btn_add) + " ✓")
+                    showCenteredPillToast(getString(R.string.choose_default_view_title) + " ✓")
                 }
             } else {
-                showPillDialog(getString(R.string.notify_title_error), arrayOf(getString(R.string.notify_btn_offline))) { }
+                showPillDialog(getString(R.string.notify_title_error), arrayOf(getString(R.string.notify_btn_offline)), null) { }
             }
         }
 
@@ -354,7 +350,7 @@ class MainActivity : AppCompatActivity() {
                 if (!isFinishing && !isDestroyed) {
                     try { progressDialog.dismiss() } catch (_: Exception) {}
                     if (foundPrinters.isNotEmpty()) {
-                        showPillDialog(getString(R.string.found_printers), foundPrinters.distinct().toTypedArray()) { which ->
+                        showPillDialog(getString(R.string.found_printers), foundPrinters.distinct().toTypedArray(), null) { which ->
                             etMainPrinterIP.setText(foundPrinters.distinct()[which])
                             btnSystemSelect.text = "4408"
                         }
@@ -438,14 +434,20 @@ class MainActivity : AppCompatActivity() {
             }
 
             itemView.setOnLongClickListener {
-                val actionOptions = arrayOf(getString(R.string.choose_default_view).substringBefore(" ("), getString(R.string.yes_delete))
+                val actionOptions = arrayOf(
+                    getString(R.string.choose_default_view_title),
+                    getString(R.string.yes_delete)
+                )
                 val actionColors = arrayOf<String?>(null, "#E53935")
 
                 showPillDialog(printer.optString("name", "Drucker"), actionOptions, actionColors) { whichAction ->
                     if (whichAction == 0) {
-                        val viewOptions = arrayOf(getString(R.string.choose_default_view_title).replace("?", ""), getString(R.string.menu_change_camera_type))
-                        showPillDialog(getString(R.string.choose_default_view), viewOptions) { whichView ->
-                            val newView = if (whichView == 0) "interface" else "camera"
+                        val viewOptions = arrayOf(
+                            getString(R.string.menu_change_camera_type),
+                            getString(R.string.choose_default_view) // GEFIXT: Von choose_default_view_title auf choose_default_view geändert ("Klipper OS")
+                        )
+                        showPillDialog(getString(R.string.choose_default_view_title), viewOptions) { whichView ->
+                            val newView = if (whichView == 0) "camera" else "interface"
                             val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
                             if (currentArray.length() > i) {
                                 try {

@@ -21,6 +21,7 @@ import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -60,6 +61,15 @@ class WebViewActivity : AppCompatActivity() {
     private var lastCameraUrl: String = ""
     private var isCameraMode: Boolean = false
     private var isOsdEnabled: Boolean = false
+
+    private var isLightOn: Boolean = false
+
+    private lateinit var layoutScreensaver: FrameLayout
+    private lateinit var ivScreensaverLogo: ImageView
+    private var screensaverJob: Job? = null
+    private var screensaverTimeoutMs: Long = 0L
+    private val screensaverHandler = Handler(Looper.getMainLooper())
+    private val startScreensaverRunnable = Runnable { activateScreensaver() }
 
     private var knownChamberSensor: String? = "temperature_sensor chamber_temp"
     private var knownChamberHeater: String? = "heater_generic chamber_heater"
@@ -114,6 +124,15 @@ class WebViewActivity : AppCompatActivity() {
         btnToggle = findViewById(R.id.btnWebToggle)
         btnClose = findViewById(R.id.btnWebClose)
 
+        layoutScreensaver = findViewById(R.id.layoutScreensaver)
+        ivScreensaverLogo = findViewById(R.id.ivScreensaverLogo)
+
+        layoutScreensaver.setOnClickListener {
+            if (layoutScreensaver.visibility == View.VISIBLE) {
+                deactivateScreensaver()
+            }
+        }
+
         tvOsdExtruder = findViewById(R.id.tvOsdExtruder)
         tvOsdBed = findViewById(R.id.tvOsdBed)
         tvOsdChamberSensor = findViewById(R.id.tvOsdChamberSensor)
@@ -127,7 +146,10 @@ class WebViewActivity : AppCompatActivity() {
         applySeichterOsdBackground()
 
         webView?.setOnTouchListener { _, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) showButtons()
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                resetInactivityTimer()
+                showButtons()
+            }
             false
         }
 
@@ -175,17 +197,25 @@ class WebViewActivity : AppCompatActivity() {
         loadStreamOrUrl(currentActiveUrl, savedRatio)
         showButtons()
 
+        val savedSaverTime = prefs.getLong("screensaver_timeout_$hostIp", 0L)
+        if (savedSaverTime > 0L) {
+            screensaverTimeoutMs = savedSaverTime
+            resetInactivityTimer()
+        }
+
         btnMenu.setOnClickListener {
             if (isCameraMode) {
                 val osdOptionText = getString(if (isOsdEnabled) R.string.menu_osd_hide else R.string.menu_osd_show)
 
                 val menuOptions = arrayOf(
                     osdOptionText,
+                    getString(R.string.menu_light_on).substringBefore(" "),
+                    getString(R.string.menu_screensaver),
                     getString(R.string.menu_ratio),
                     getString(R.string.menu_change_camera_type),
                     getString(R.string.menu_emergency_stop)
                 )
-                val menuColors = arrayOf<String?>(null, null, null, "#E53935")
+                val menuColors = arrayOf<String?>(null, null, null, null, null, "#E53935")
 
                 showPillDialog(getString(R.string.menu_options_title), menuOptions, menuColors) { which ->
                     val uri = Uri.parse(currentActiveUrl)
@@ -207,6 +237,32 @@ class WebViewActivity : AppCompatActivity() {
                             }
                         }
                         1 -> {
+                            isLightOn = !isLightOn
+                            sendLightCommand(isLightOn)
+                        }
+                        2 -> {
+                            val timeOptions = arrayOf(
+                                getString(R.string.screensaver_now),
+                                getString(R.string.screensaver_30),
+                                getString(R.string.screensaver_60),
+                                getString(R.string.screensaver_90),
+                                getString(R.string.screensaver_120),
+                                getString(R.string.screensaver_off)
+                            )
+                            showPillDialog(getString(R.string.screensaver_title), timeOptions) { timeIndex ->
+                                when (timeIndex) {
+                                    0 -> { activateScreensaver() }
+                                    1 -> { screensaverTimeoutMs = 30 * 60 * 1000L }
+                                    2 -> { screensaverTimeoutMs = 60 * 60 * 1000L }
+                                    3 -> { screensaverTimeoutMs = 90 * 60 * 1000L }
+                                    4 -> { screensaverTimeoutMs = 120 * 60 * 1000L }
+                                    5 -> { screensaverTimeoutMs = 0L }
+                                }
+                                prefs.edit().putLong("screensaver_timeout_$hostIpAddress", screensaverTimeoutMs).apply()
+                                resetInactivityTimer()
+                            }
+                        }
+                        3 -> {
                             val ratioOptions = arrayOf(
                                 getString(R.string.ratio_16_9),
                                 getString(R.string.ratio_4_3),
@@ -223,7 +279,7 @@ class WebViewActivity : AppCompatActivity() {
                                 loadStreamOrUrl(currentActiveUrl, targetRatio)
                             }
                         }
-                        2 -> {
+                        4 -> {
                             val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIpAddress", initialPort)
                             val camOptions = arrayOf(
                                 getString(R.string.camera_type_html),
@@ -239,7 +295,7 @@ class WebViewActivity : AppCompatActivity() {
                                 loadStreamOrUrl(newUrl, 56.25f)
                             }
                         }
-                        3 -> {
+                        5 -> {
                             val stopOptions = arrayOf(getString(R.string.dialog_stop_confirm), getString(R.string.dialog_cancel))
                             val stopColors = arrayOf<String?>("#E53935", null)
 
@@ -292,18 +348,24 @@ class WebViewActivity : AppCompatActivity() {
         btnClose.setOnClickListener { finish() }
     }
 
-    // TV-FOKUS-GARANTIE: Holt die Buttons nach dem Schließen eines Dialogs zurück ins Spiel
     override fun onResume() {
         super.onResume()
-        // Blendet die Navigationsleiste sofort wieder ein, falls sie auf Alpha 0f war
         showButtons()
-        // Erzwingt den Fokus zurück auf den mittleren Button, um die D-Pad-Bedienung zu reaktivieren
+        resetInactivityTimer()
         btnToggle.post {
             btnToggle.requestFocus()
         }
     }
 
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        if (layoutScreensaver.visibility == View.VISIBLE) {
+            deactivateScreensaver()
+        }
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        resetInactivityTimer()
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
@@ -312,6 +374,71 @@ class WebViewActivity : AppCompatActivity() {
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    private fun resetInactivityTimer() {
+        screensaverHandler.removeCallbacks(startScreensaverRunnable)
+        if (isCameraMode && screensaverTimeoutMs > 0L && layoutScreensaver.visibility != View.VISIBLE) {
+            screensaverHandler.postDelayed(startScreensaverRunnable, screensaverTimeoutMs)
+        }
+    }
+
+    private fun activateScreensaver() {
+        screensaverHandler.removeCallbacks(startScreensaverRunnable)
+
+        uiHandler.removeCallbacks(hideUiRunnable)
+        layoutWebButtons.visibility = View.GONE
+        layoutOsd.visibility = View.GONE
+
+        layoutScreensaver.visibility = View.VISIBLE
+        layoutScreensaver.bringToFront()
+        layoutScreensaver.requestFocus()
+
+        screensaverJob?.cancel()
+        screensaverJob = lifecycleScope.launch(Dispatchers.Main) {
+            var posX = 150f
+            var posY = 150f
+
+            // TIMING OPTIMIERT: Extrem reduzierte Pixelschritte für ruhiges Wandern
+            var speedX = 0.4f
+            var speedY = 0.3f
+
+            while (isActive) {
+                val screenWidth = layoutScreensaver.width
+                val screenHeight = layoutScreensaver.height
+                val logoWidth = ivScreensaverLogo.width
+                val logoHeight = ivScreensaverLogo.height
+
+                if (screenWidth > 0 && screenHeight > 0 && logoWidth > 0 && logoHeight > 0) {
+                    posX += speedX
+                    posY += speedY
+
+                    if (posX <= 0 || posX + logoWidth >= screenWidth) {
+                        speedX *= -1
+                        posX = posX.coerceIn(0f, (screenWidth - logoWidth).toFloat())
+                    }
+                    if (posY <= 0 || posY + logoHeight >= screenHeight) {
+                        speedY *= -1
+                        posY = posY.coerceIn(0f, (screenHeight - logoHeight).toFloat())
+                    }
+
+                    ivScreensaverLogo.x = posX
+                    ivScreensaverLogo.y = posY
+                }
+                delay(32) // TIMING OPTIMIERT: Von 16 ms auf 32 ms erhöht, um nervöses Rasen zu bändigen
+            }
+        }
+    }
+
+    private fun deactivateScreensaver() {
+        screensaverJob?.cancel()
+        screensaverJob = null
+        layoutScreensaver.visibility = View.GONE
+        resetInactivityTimer()
+
+        if (isOsdEnabled) layoutOsd.visibility = View.VISIBLE
+        showButtons()
+        btnToggle.requestFocus()
     }
 
     private fun startOsdPolling() {
@@ -331,6 +458,8 @@ class WebViewActivity : AppCompatActivity() {
 
     override fun onStop() {
         stopOsdPolling()
+        screensaverHandler.removeCallbacks(startScreensaverRunnable)
+        screensaverJob?.cancel()
         uiHandler.removeCallbacks(hideUiRunnable)
         SoundManager.stopAllSounds()
         super.onStop()
@@ -338,6 +467,8 @@ class WebViewActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         stopOsdPolling()
+        screensaverHandler.removeCallbacks(startScreensaverRunnable)
+        screensaverJob?.cancel()
         uiHandler.removeCallbacks(hideUiRunnable)
         currentFocus?.clearFocus()
 
@@ -362,6 +493,8 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun showButtons() {
+        if (layoutScreensaver.visibility == View.VISIBLE) return
+
         uiHandler.removeCallbacks(hideUiRunnable)
         if (layoutWebButtons.visibility != View.VISIBLE) {
             layoutWebButtons.visibility = View.VISIBLE
@@ -459,7 +592,7 @@ class WebViewActivity : AppCompatActivity() {
         val hostIp = uri.host ?: return
 
         val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status" +
-                "&output_pin%20fan0&output_pin%20fan2&temperature_fan%20chamber_fan"
+                "&output_pin%20fan0&output_pin%20fan2&temperature_fan%20chamber_fan&output_pin%20LED"
 
         val urlStr = "http://$hostIp:7125/$baseQuery$cachedChamberQueryString"
 
@@ -503,6 +636,12 @@ class WebViewActivity : AppCompatActivity() {
         try {
             val json = JSONObject(responseText)
             val status = json.optJSONObject("result")?.optJSONObject("status") ?: return
+
+            val ledPinObj = status.optJSONObject("output_pin LED")
+            if (ledPinObj != null) {
+                val ledValue = ledPinObj.optDouble("value", 0.0)
+                isLightOn = ledValue > 0.0
+            }
 
             val extruder = status.optJSONObject("extruder")
             val tempExtruder = extruder?.optDouble("temperature", 0.0) ?: 0.0
@@ -733,10 +872,57 @@ class WebViewActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
+    private fun sendLightCommand(turnOn: Boolean) {
+        val uri = Uri.parse(currentActiveUrl)
+        val hostIp = uri.host ?: return
+        val urlStr = "http://$hostIp:7125/printer/gcode/script"
+
+        val value = if (turnOn) "1" else "0"
+        val gcodeScript = "SET_PIN PIN=LED VALUE=$value"
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            var conn: HttpURLConnection? = null
+            var isSuccess = false
+            try {
+                val url = URL(urlStr)
+                conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.connectTimeout = 2000
+                conn.readTimeout = 2000
+                conn.doOutput = true
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+
+                val postData = "script=" + Uri.encode(gcodeScript)
+                conn.outputStream.use { os ->
+                    os.write(postData.toByteArray(Charsets.UTF_8))
+                    os.flush()
+                }
+
+                if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                    isSuccess = true
+                }
+            } catch (e: Exception) {
+                Log.e("KlippShell", "Licht-GCode konnte nicht gesendet werden", e)
+            } finally {
+                conn?.disconnect()
+            }
+
+            withContext(Dispatchers.Main) {
+                if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) {
+                    if (isSuccess) {
+                        val statusMsg = getString(if (turnOn) R.string.menu_light_on else R.string.menu_light_off) + " ✓"
+                        showCenteredPillToast(statusMsg)
+                    } else {
+                        showCenteredPillToast(getString(R.string.toast_light_error))
+                    }
+                }
+            }
+        }
+    }
+
     private fun sendEmergencyStop() {
         val uri = Uri.parse(currentActiveUrl)
         val hostIp = uri.host ?: return
-
         val urlStr = "http://$hostIp:7125/printer/emergency_stop"
 
         lifecycleScope.launch(Dispatchers.IO) {
@@ -750,7 +936,6 @@ class WebViewActivity : AppCompatActivity() {
                 conn.requestMethod = "POST"
                 conn.connectTimeout = 1500
                 conn.readTimeout = 1500
-
                 conn.setRequestProperty("Content-Length", "0")
 
                 responseCode = conn.responseCode
