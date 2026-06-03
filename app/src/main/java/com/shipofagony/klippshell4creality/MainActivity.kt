@@ -108,8 +108,9 @@ class MainActivity : AppCompatActivity() {
 
         btnSystemSelect.text = "4408"
 
-        // IP-FELD-FIX für TV-Boxen (Erzwingt Nummernblock)
-        etMainPrinterIP.inputType = InputType.TYPE_CLASS_PHONE or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        // IP-FELD-FIX: Erzwingt reinen Nummernblock mit Punkt auf allen Geräten (TV & Phone)
+        etMainPrinterIP.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+        etMainPrinterIP.keyListener = android.text.method.DigitsKeyListener.getInstance("0123456789.")
 
         val printerArray = try {
             JSONArray(prefs.getString("printers_list", "[]"))
@@ -305,17 +306,28 @@ class MainActivity : AppCompatActivity() {
         return null
     }
 
+    // VOLLSTÄNDIG IMPLEMENTIERT: Runder, konsistenter Lade-Dialog passend zu bg_card
     private fun searchNetworkForPrinters() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.search_network)
+
+        val progressBar = ProgressBar(this).apply {
+            setPadding(0, 24, 0, 24)
+            indeterminateTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
+        }
+        dialogView.findViewById<LinearLayout>(R.id.buttonContainer)?.addView(progressBar)
+
         val progressDialog = AlertDialog.Builder(this)
-            .setView(ProgressBar(this).apply { setPadding(0, 50, 0, 50); indeterminateTintList = ColorStateList.valueOf(Color.parseColor("#2196F3")) })
-            .setTitle(getString(R.string.search_network))
+            .setView(dialogView)
             .setCancelable(false)
-            .show()
+            .create()
+
+        progressDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        progressDialog.show()
 
         Thread {
             val ipPrefix = getLocalIpAddress()?.substringBeforeLast(".") ?: return@Thread
             val foundPrinters = mutableListOf<String>()
-            // Optimierter Thread-Pool für ältere TV-Boxen (Verhindert Stack-Überlastung)
             val executor = Executors.newFixedThreadPool(10)
             for (i in 1..254) {
                 executor.execute {

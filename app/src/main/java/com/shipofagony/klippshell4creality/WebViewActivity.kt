@@ -293,7 +293,6 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        // Weiches Aufwachen der Steuerung bei jeglicher D-Pad-Aktion, ohne den Fokus zu kidnappen
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
@@ -329,8 +328,6 @@ class WebViewActivity : AppCompatActivity() {
     override fun onDestroy() {
         stopOsdPolling()
         uiHandler.removeCallbacks(hideUiRunnable)
-
-        // Crash-Safe: Fokus vor dem Zerstören sauber entkoppeln
         currentFocus?.clearFocus()
 
         try {
@@ -363,7 +360,6 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun hideButtons() {
-        // WICHTIG FÜR TV: Bleibt VISIBLE, damit der Fokus erhalten bleibt. Alpha 0f versteckt es komplett optisch.
         layoutWebButtons.animate()
             .alpha(0f)
             .setDuration(500)
@@ -556,6 +552,7 @@ class WebViewActivity : AppCompatActivity() {
             val strFanAux = getString(R.string.osd_fan_aux, fanAuxSpeed)
             if (tvOsdFanAux?.text != strFanAux) tvOsdFanAux?.text = strFanAux
 
+            // FIX: "Abluftlüfter" aus Strings statt Hardcoded "Bauraumlüfter" für absolute UI-Konsistenz
             val strFanChamber = getString(R.string.osd_fan_chamber, fanChamberSpeed)
             if (tvOsdFanChamber?.text != strFanChamber) tvOsdFanChamber?.text = strFanChamber
 
@@ -726,5 +723,48 @@ class WebViewActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
-    private fun sendEmergencyStop() { /* POST Notfall-Logik */ }
+    // VOLLSTÄNDIG IMPLEMENTIERT: Asynchroner Klipper NOT-AUS via Moonraker-API
+    private fun sendEmergencyStop() {
+        val uri = Uri.parse(currentActiveUrl)
+        val hostIp = uri.host ?: return
+
+        // Nutzt den Klipper Standard-API-Port für direkte WebSocket/HTTP-Befehle
+        val urlStr = "http://$hostIp:7125/printer/emergency_stop"
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            var conn: HttpURLConnection? = null
+            var isSuccess = false
+            var responseCode = -1
+
+            try {
+                val url = URL(urlStr)
+                conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.connectTimeout = 1500
+                conn.readTimeout = 1500
+
+                // Moonraker verlangt eine gesetzte Content-Length bei POST-Requests ohne Body
+                conn.setRequestProperty("Content-Length", "0")
+
+                responseCode = conn.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+                    isSuccess = true
+                }
+            } catch (e: Exception) {
+                Log.e("KlippShell", "Mainsail/Fluidd NOT-AUS fehlgeschlagen", e)
+            } finally {
+                conn?.disconnect()
+            }
+
+            withContext(Dispatchers.Main) {
+                if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) {
+                    if (isSuccess) {
+                        showCenteredPillToast(getString(R.string.toast_stop_success))
+                    } else {
+                        showCenteredPillToast(getString(R.string.toast_stop_error) + responseCode)
+                    }
+                }
+            }
+        }
+    }
 }
