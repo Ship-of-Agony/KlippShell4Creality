@@ -292,6 +292,17 @@ class WebViewActivity : AppCompatActivity() {
         btnClose.setOnClickListener { finish() }
     }
 
+    // TV-FOKUS-GARANTIE: Holt die Buttons nach dem Schließen eines Dialogs zurück ins Spiel
+    override fun onResume() {
+        super.onResume()
+        // Blendet die Navigationsleiste sofort wieder ein, falls sie auf Alpha 0f war
+        showButtons()
+        // Erzwingt den Fokus zurück auf den mittleren Button, um die D-Pad-Bedienung zu reaktivieren
+        btnToggle.post {
+            btnToggle.requestFocus()
+        }
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
@@ -552,7 +563,6 @@ class WebViewActivity : AppCompatActivity() {
             val strFanAux = getString(R.string.osd_fan_aux, fanAuxSpeed)
             if (tvOsdFanAux?.text != strFanAux) tvOsdFanAux?.text = strFanAux
 
-            // FIX: "Abluftlüfter" aus Strings statt Hardcoded "Bauraumlüfter" für absolute UI-Konsistenz
             val strFanChamber = getString(R.string.osd_fan_chamber, fanChamberSpeed)
             if (tvOsdFanChamber?.text != strFanChamber) tvOsdFanChamber?.text = strFanChamber
 
@@ -723,12 +733,10 @@ class WebViewActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
-    // VOLLSTÄNDIG IMPLEMENTIERT: Asynchroner Klipper NOT-AUS via Moonraker-API
     private fun sendEmergencyStop() {
         val uri = Uri.parse(currentActiveUrl)
         val hostIp = uri.host ?: return
 
-        // Nutzt den Klipper Standard-API-Port für direkte WebSocket/HTTP-Befehle
         val urlStr = "http://$hostIp:7125/printer/emergency_stop"
 
         lifecycleScope.launch(Dispatchers.IO) {
@@ -743,7 +751,6 @@ class WebViewActivity : AppCompatActivity() {
                 conn.connectTimeout = 1500
                 conn.readTimeout = 1500
 
-                // Moonraker verlangt eine gesetzte Content-Length bei POST-Requests ohne Body
                 conn.setRequestProperty("Content-Length", "0")
 
                 responseCode = conn.responseCode

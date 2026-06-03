@@ -48,7 +48,9 @@ class MainActivity : AppCompatActivity() {
     private var selectedSystemIndex = 0
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    // GEFIXT: "custem" (ohne printer_ Präfix), damit die automatische Bildsuche "printer_custem" ergibt
     private val printerMap = mapOf(
+        "Custom Printer" to "custem",
         "CR-10" to "cr_10", "CR-10 SE" to "cr_10se", "CR-10 Smart" to "cr_10smart",
         "CR-10 Smart Pro" to "cr_10smartpro", "CR-10S Pro V2" to "cr_10sprov2",
         "CR-20 Pro" to "cr_20pro", "CR-30" to "cr_30", "CR-6 SE" to "cr_6se",
@@ -108,7 +110,6 @@ class MainActivity : AppCompatActivity() {
 
         btnSystemSelect.text = "4408"
 
-        // IP-FELD-FIX: Erzwingt reinen Nummernblock mit Punkt auf allen Geräten (TV & Phone)
         etMainPrinterIP.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
         etMainPrinterIP.keyListener = android.text.method.DigitsKeyListener.getInstance("0123456789.")
 
@@ -163,6 +164,9 @@ class MainActivity : AppCompatActivity() {
         actvMainPrinterModel.inputType = InputType.TYPE_NULL
         actvMainPrinterModel.setOnClickListener { actvMainPrinterModel.showDropDown() }
 
+        // Setzt das Modell standardmäßig auf "Custom Printer" als Vorauswahl
+        actvMainPrinterModel.setText("Custom Printer", false)
+
         findViewById<View>(R.id.btnSettings).setOnClickListener {
             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
         }
@@ -194,7 +198,9 @@ class MainActivity : AppCompatActivity() {
                     etMainPrinterName.text.clear()
                     etMainPrinterIP.text.clear()
                     etMainPrinterPort.text.clear()
-                    actvMainPrinterModel.text.clear()
+
+                    // Setzt die Textauswahl nach dem Hinzufügen direkt wieder auf das Standardprofil zurück
+                    actvMainPrinterModel.setText("Custom Printer", false)
 
                     selectedSystemIndex = 0
                     btnSystemSelect.text = "4408"
@@ -306,7 +312,6 @@ class MainActivity : AppCompatActivity() {
         return null
     }
 
-    // VOLLSTÄNDIG IMPLEMENTIERT: Runder, konsistenter Lade-Dialog passend zu bg_card
     private fun searchNetworkForPrinters() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
         dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.search_network)
