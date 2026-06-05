@@ -1,115 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">Aucune imprimante enregistrée</string>
+    <string name="no_printers">Aucune imprimante trouvée</string>
     <string name="saved_printers">Imprimantes Enregistrées</string>
-    <string name="btn_search_network">Rechercher sur le réseau</string>
-    <string name="search_network">Scanner le réseau</string>
+    <string name="btn_search_network">Scanner le Réseau</string>
+    <string name="search_network">Scan du Réseau en cours</string>
     <string name="btn_add">Ajouter</string>
     <string name="btn_exit">Quitter</string>
     <string name="btn_back">Retour</string>
-    <string name="printer_name_hint">Nom de l’imprimante</string>
+    <string name="printer_name_hint">Nom de l\'imprimante</string>
     <string name="printer_ip_hint">Adresse IP</string>
     <string name="printer_port_hint">Port (Optionnel)</string>
-    <string name="printer_model_hint">Sélectionner le modèle</string>
-    <string name="choose_port">Sélectionner le port</string>
+    <string name="printer_model_hint">Sélectionner le Modèle</string>
+    <string name="search_model_hint">Rechercher... (ex., CR 10)</string>
+    <string name="choose_port">Sélectionner le Port</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
-    <string name="system_manual">Saisie manuelle</string>
-    <string name="add_printer_up">Ajouter une imprimante ▲</string>
-    <string name="add_printer_down">Ajouter une imprimante ▼</string>
-    <string name="choose_default_view_title">Interface par défaut</string>
+    <string name="system_manual">Saisie Manuelle</string>
+    <string name="add_printer_up">Ajouter Imprimante ▲</string>
+    <string name="add_printer_down">Ajouter Imprimante ▼</string>
+
+    <string name="choose_default_view_title">Interface par Défaut</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Flux en direct</string>
-    <string name="found_printers">Imprimantes trouvées</string>
-    <string name="toast_no_connection">Aucune connexion à l’imprimante</string>
+    <string name="menu_change_camera_type">Flux en Direct</string>
+
+    <string name="found_printers">Imprimantes Trouvées</string>
+    <string name="toast_no_connection">Aucune connexion à l\'imprimante</string>
     <string name="yes_delete">Supprimer</string>
     <string name="cancel">Annuler</string>
-    <string name="reset_confirm_msg">Voulez-vous vraiment supprimer cette imprimante ?</string>
+    <string name="reset_confirm_msg">Êtes-vous sûr de vouloir supprimer cette imprimante ?</string>
 
     <string name="settings_title">Paramètres</string>
-    <string name="theme_title">Design de l’application</string>
+    <string name="theme_title">Thème de l\'App</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
-    <string name="theme_system">Défaut du système</string>
-    <string name="change_language">Changer de langue</string>
+    <string name="theme_system">Par Défaut du Système</string>
+    <string name="change_language">Changer de Langue</string>
     <string name="settings_notify_title">Notifications</string>
-    <string name="submenu_sounds_title">Gérer les sons</string>
-    <string name="submenu_popups_title">Gérer les popups</string>
-    <string name="settings_optimized_tv">Optimisé pour Android TV</string>
+    <string name="submenu_sounds_title">Gérer les Sons</string>
+    <string name="submenu_popups_title">Gérer les Popups</string>
+
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Fait avec ❤️ en Allemagne</string>
-    <string name="dng_thanks">Inspiré par le projet KlippHub chez DnG Crafts</string>
+    <string name="dng_thanks">Inspiré par le projet KlippHub de DnG Crafts</string>
     <string name="easter_egg_success">Nivelle ton plateau avant de me demander !</string>
 
-    <string name="reset_app">Réinitialiser l’application</string>
+    <string name="reset_app">Réinitialiser l\'App</string>
     <string name="reset_app_title">Supprimer toutes les données ?</string>
     <string name="reset_app_yes">Oui, tout supprimer</string>
     <string name="reset_app_cancel">Annuler</string>
 
+    <!-- THE ABOUT BLOCK -->
+    <string name="btn_about_menu">À Propos de KlippShell</string>
+    <string name="btn_check_updates">Rechercher les Mises à Jour</string>
+
+    <!-- GitHub Updater -->
+    <string name="toast_checking_updates">Vérification de la version…</string>
+    <string name="update_available_title">Mise à jour v%1$s disponible !</string>
+    <string name="btn_download_now">Télécharger Maintenant</string>
+    <string name="btn_later">Plus Tard</string>
+    <string name="toast_update_error_code">Erreur de récupération (Code: %1$d)</string>
+    <string name="toast_update_server_error">Serveur introuvable</string>
+    <string name="toast_update_browser_error">Impossible d\'ouvrir le navigateur</string>
+
+    <!-- License Link -->
+    <string name="license_link_text">Licences &amp; Droits d\'Auteur</string>
+
+    <string name="about_changelog_title">Journal des modifications</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• Mise à jour OTA GitHub : Vérification asynchrone des mises à jour via l\'API GitHub\n• Visionneuse de licences intégrée : Ajout d\'un nouveau dialogue déroulant pour les crédits et licences\n• Nettoyage de l\'interface : Suppression des lignes de texte redondantes dans À propos, protection du logo Easter egg\n• Stabilité améliorée : Correction des bogues null-safety Kotlin et optimisation du focus des dialogues\n\nv0.8.4.300526-rc\n• Ajout du dialogue de recherche TV pour la sélection du modèle\n• Implémentation d\'une recherche tolérante G-code/modèle\n• Optimisation du polling de la mémoire pour Moonraker\n\nv0.8.3\n• Sécurité accrue du focus D-pad pour les menus\n• Canaux audio du SoundManager stabilisés\n• Correction de la réinitialisation des SharedPreferences</string>
+    <string name="settings_optimized_tv">Optimisé pour Android TV</string>
+
     <string name="menu_options_title">Options</string>
-    <string name="menu_osd_show">Afficher l’OSD</string>
-    <string name="menu_osd_hide">Masquer l’OSD</string>
-    <string name="menu_ratio">Changer le format d’image</string>
-    <string name="ratio_16_9">16:9 Écran large</string>
+    <string name="menu_osd_show">Afficher l\'OSD</string>
+    <string name="menu_osd_hide">Masquer l\'OSD</string>
+    <string name="menu_ratio">Changer le Format d\'Image</string>
+    <string name="ratio_16_9">16:9 Écran Large</string>
     <string name="ratio_4_3">4:3 Standard</string>
     <string name="ratio_1_1">1:1 Carré</string>
     <string name="camera_type_html">Flux HTML Klipper</string>
-    <string name="camera_type_port">Flux sur le port 8080</string>
-    <string name="camera_type_webcam">Flux via le chemin webcam</string>
-    <string name="menu_emergency_stop">ARRÊT D’URGENCE</string>
-    <string name="dialog_stop_title">Arrêter l’imprimante ?</string>
+    <string name="camera_type_port">Flux Port 8080</string>
+    <string name="camera_type_webcam">Flux Chemin Webcam</string>
+    <string name="menu_emergency_stop">ARRÊT D\'URGENCE</string>
+    <string name="dialog_stop_title">Arrêter l\'Imprimante ?</string>
     <string name="dialog_stop_confirm">OUI - ARRÊTER IMMÉDIATEMENT</string>
     <string name="dialog_cancel">Annuler</string>
-    <string name="toast_stop_success">ARRÊT D’URGENCE envoyé !</string>
-    <string name="toast_stop_error">Erreur lors de l’envoi : </string>
+    <string name="toast_stop_success">ARRÊT D\'URGENCE envoyé !</string>
+    <string name="toast_stop_error">Erreur d\'envoi : </string>
     <string name="toast_loading_dashboard">Chargement de Klipper OS...</string>
-    <string name="osd_printer_offline">Imprimante hors ligne</string>
+    <string name="osd_printer_offline">Imprimante Hors Ligne</string>
 
-    <string name="osd_extruder">Buse : %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_bed">Lit : %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_chamber_sensor">Chambre : %1$.1f°C</string>
-    <string name="osd_chamber_heater">Chauffage : %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_fan_model">Ventilateur pièce : %1$.0f%%</string>
-    <string name="osd_fan_aux">Ventilateur aux : %1$.0f%%</string>
-    <string name="osd_fan_chamber">Ventilateur d’extraction : %1$.0f%%</string>
-    <string name="osd_time">Temps : %1$s / %2$s</string>
+    <string name="osd_extruder">Buse: %1$.1f°C / %2$.1f°C</string>
+    <string name="osd_bed">Lit: %1$.1f°C / %2$.1f°C</string>
+    <string name="osd_chamber_sensor">Chambre: %1$.1f°C</string>
+    <string name="osd_chamber_heater">Chauffage: %1$.1f°C / %2$.1f°C</string>
+    <string name="osd_fan_model">Vent. Pièce: %1$.0f%%</string>
+    <string name="osd_fan_aux">Vent. Aux: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Vent. Extraction: %1$.0f%%</string>
+    <string name="osd_time">Durée: %1$s / %2$s</string>
 
     <string name="event_offline">Hors ligne</string>
-    <string name="event_first_layer">Première couche</string>
-    <string name="event_50">50% atteint</string>
-    <string name="event_75">75% atteint</string>
-    <string name="event_90">90% atteint</string>
+    <string name="event_first_layer">Première Couche</string>
+    <string name="event_50">50% effectué</string>
+    <string name="event_75">75% effectué</string>
+    <string name="event_90">90% effectué</string>
     <string name="event_100">Terminé</string>
     <string name="event_error">Erreur</string>
 
-    <string name="notify_title_offline">Connexion perdue</string>
-    <string name="notify_msg_offline">L’imprimante ne répond plus.</string>
+    <string name="notify_title_offline">Connexion Perdue</string>
+    <string name="notify_msg_offline">L\'imprimante ne répond plus.</string>
     <string name="notify_btn_offline">Compris</string>
 
-    <string name="notify_title_first_layer">Première couche</string>
-    <string name="notify_msg_first_layer">La première couche est en cours d’impression.</string>
-    <string name="notify_title_50">Moitié fait !</string>
-    <string name="notify_msg_50">50% de l’impression est terminée.</string>
+    <string name="notify_title_first_layer">Première Couche</string>
+    <string name="notify_msg_first_layer">La première couche est en cours d\'impression.</string>
+    <string name="notify_title_50">À mi-chemin !</string>
+    <string name="notify_msg_50">50% de l\'impression sont effectués.</string>
     <string name="notify_title_75">Presque fini</string>
-    <string name="notify_msg_75">75% de l’impression est terminée.</string>
-    <string name="notify_title_90">Sprint final</string>
-    <string name="notify_msg_90">90% de l’impression ont été atteints.</string>
-    <string name="notify_title_100">Impression terminée !</string>
-    <string name="notify_msg_100">L’impression 3D a été finalisée avec succès.</string>
+    <string name="notify_msg_75">75% de l\'impression sont effectués.</string>
+    <string name="notify_title_90">Phase finale</string>
+    <string name="notify_msg_90">90% de l\'impression sont atteints.</string>
+    <string name="notify_title_100">Impression Terminée !</string>
+    <string name="notify_msg_100">L\'impression 3D s\'est terminée avec succès.</string>
     <string name="notify_title_error">Erreur Klipper</string>
-    <string name="notify_msg_error">L’imprimante a interrompu l’impression avec une erreur.</string>
+    <string name="notify_msg_error">L\'imprimante a abandonné l\'impression avec une erreur.</string>
 
     <string name="notify_btn_error">Fermer</string>
     <string name="notify_btn_success">Super</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Éclairage chambre activé</string>
-    <string name="menu_light_off">Éclairage chambre désactivé</string>
-    <string name="toast_light_error">Échec de l’envoi</string>
-    <string name="menu_screensaver">Économiseur d’écran</string>
+    <string name="menu_light_on">Allumer Lumière</string>
+    <string name="menu_light_off">Éteindre Lumière</string>
+    <string name="toast_light_error">Échec de l\'envoi</string>
+    <string name="menu_screensaver">Écran de veille</string>
     <string name="screensaver_title">Assombrissement automatique après...</string>
-    <string name="screensaver_now">Activer immédiatement</string>
+    <string name="screensaver_now">Activer maintenant</string>
     <string name="screensaver_30">30 minutes</string>
     <string name="screensaver_60">60 minutes</string>
     <string name="screensaver_90">90 minutes</string>

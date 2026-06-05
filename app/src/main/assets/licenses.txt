@@ -1,0 +1,16 @@
+KlippShell 4 Creality
+© 2026 Ship of Agony LABs
+
+Third-Party Attributions & Open Source Notices:
+
+1. Core Inspiration
+This application is inspired by the awesome KlippHub project from DnG Crafts. Special thanks for their support and contribution to the 3D printing community!
+
+2. Google Material Design Icons
+Used for general user interface indicators and control elements.
+Licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+
+
+3. Kotlin Coroutines & Lifecycle Software
+Copyright © JetBrains s.r.o.
+Licensed under the Apache License 2.0.

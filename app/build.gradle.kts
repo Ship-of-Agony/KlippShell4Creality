@@ -11,10 +11,10 @@ android {
         minSdk = 24
         targetSdk = 36
 
-        // Interner Code für Updates (auf 10 erhöht für den Hotfix)
-        versionCode = 10
-        // Deine neue Hotfix RC-Versionsnummer
-        versionName = "0.8.4.300526-rc"
+        // Auf 11 erhöht für den neuen Release Candidate
+        versionCode = 11
+        // Deine neue Release-Versionsnummer
+        versionName = "0.8.5.050626-rc"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

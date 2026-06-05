@@ -24,25 +24,34 @@ object SoundManager {
 
     private val toneStep1Runnable = Runnable {
         try {
-            toneGenerator?.stopTone()
-            toneGenerator?.startTone(ToneGenerator.TONE_DTMF_3, 120)
+            val generator = getOrInitToneGenerator()
+            generator?.stopTone()
+            generator?.startTone(ToneGenerator.TONE_DTMF_3, 120)
         } catch (_: Exception) {}
     }
 
     private val toneStep2Runnable = Runnable {
         try {
-            toneGenerator?.stopTone()
-            toneGenerator?.startTone(ToneGenerator.TONE_DTMF_9, 250)
+            val generator = getOrInitToneGenerator()
+            generator?.stopTone()
+            generator?.startTone(ToneGenerator.TONE_DTMF_9, 250)
         } catch (_: Exception) {}
     }
 
-    init {
-        try {
-            toneGenerator = ToneGenerator(AudioManager.STREAM_ALARM, 100)
-        } catch (e: Exception) {
-            Log.e("KlippShell", "ToneGenerator konnte nicht initialisiert werden", e)
-            toneGenerator = null
+    /**
+     * Initiiert oder holt den ToneGenerator dynamisch ab. Falls der TV-Audiokanal
+     * blockiert war, wird die Instanz hier sicher neu aufgebaut.
+     */
+    private fun getOrInitToneGenerator(): ToneGenerator? {
+        if (toneGenerator == null) {
+            try {
+                toneGenerator = ToneGenerator(AudioManager.STREAM_ALARM, 100)
+            } catch (e: Exception) {
+                Log.e("KlippShell", "ToneGenerator konnte nicht initialisiert werden", e)
+                toneGenerator = null
+            }
         }
+        return toneGenerator
     }
 
     /**
@@ -70,7 +79,7 @@ object SoundManager {
     }
 
     private fun executeSingleTone(prefKey: String) {
-        val generator = toneGenerator ?: return
+        val generator = getOrInitToneGenerator() ?: return
         try {
             when {
                 prefKey.contains("error") -> {
@@ -87,12 +96,14 @@ object SoundManager {
                 }
             }
         } catch (e: Exception) {
-            Log.e("KlippShell", "Fehler bei der Tonausgabe", e)
+            Log.e("KlippShell", "Fehler bei der Tonausgabe, resette Kanal", e)
+            try { toneGenerator?.release() } catch (_: Exception) {}
+            toneGenerator = null
         }
     }
 
     private fun playHappySuccessMelody() {
-        val generator = toneGenerator ?: return
+        val generator = getOrInitToneGenerator() ?: return
         try {
             generator.startTone(ToneGenerator.TONE_DTMF_C, 120)
             melodyHandler.postDelayed(toneStep1Runnable, 130)

@@ -1,0 +1,14 @@
+v0.8.5.050626-rc
+
+• Added GitHub OTA Updater: Implemented asynchronous online checking for new app releases directly via the GitHub API
+• Integrated License Viewer: Added new TV-optimized, scrollable readme dialog for open source licenses and copyrights
+• Layout cleanup: Removed redundant UI text in the About section for a cleaner look on Android TV, while keeping the logo Easter egg in its entirety
+• Kotlin null safety & type safety increased: All string operations when reading out the package information are secured in a null-safe manner using safe calls
+• UI focus & color corrections: Interactive buttons and dialog actions adjusted in color to match the KlippShell design
+
+
+v0.8.4.300526-rc
+
+• Added TV search dialog for model selection
+• Tolerant G-code/model search implemented
+• Memory polling optimized for Moonraker

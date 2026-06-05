@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">No printers stored</string>
+    <string name="no_printers">No printers found</string>
     <string name="saved_printers">Saved Printers</string>
-    <string name="btn_search_network">Search Network</string>
-    <string name="search_network">Scan Network</string>
+    <string name="btn_search_network">Scan Network</string>
+    <string name="search_network">Scanning Network</string>
     <string name="btn_add">Add</string>
     <string name="btn_exit">Exit</string>
     <string name="btn_back">Back</string>
@@ -12,23 +12,26 @@
     <string name="printer_ip_hint">IP Address</string>
     <string name="printer_port_hint">Port (Optional)</string>
     <string name="printer_model_hint">Select Printer Model</string>
+    <string name="search_model_hint">Search... (e.g., CR 10)</string>
     <string name="choose_port">Select Port</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
     <string name="system_manual">Manual Input</string>
     <string name="add_printer_up">Add Printer ▲</string>
     <string name="add_printer_down">Add Printer ▼</string>
+
     <string name="choose_default_view_title">Default Interface</string>
     <string name="choose_default_view">Klipper OS</string>
     <string name="menu_change_camera_type">Live Stream</string>
+
     <string name="found_printers">Found Printers</string>
     <string name="toast_no_connection">No connection to printer</string>
     <string name="yes_delete">Delete</string>
     <string name="cancel">Cancel</string>
-    <string name="reset_confirm_msg">Do you really want to remove this printer?</string>
+    <string name="reset_confirm_msg">Are you sure you want to remove this printer?</string>
 
     <string name="settings_title">Settings</string>
-    <string name="theme_title">App Design</string>
+    <string name="theme_title">App Theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_system">System Default</string>
@@ -36,16 +39,36 @@
     <string name="settings_notify_title">Notifications</string>
     <string name="submenu_sounds_title">Manage Sounds</string>
     <string name="submenu_popups_title">Manage Popups</string>
-    <string name="settings_optimized_tv">Optimized for Android TV</string>
+
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Made with ❤️ in Germany</string>
-    <string name="dng_thanks">Inspired by the KlippHub project at DnG Crafts</string>
-    <string name="easter_egg_success">Level your bed before you ask me!</string>
+    <string name="dng_thanks">Inspired by the KlippHub project by DnG Crafts</string>
+    <string name="easter_egg_success">Level your bed before asking me!</string>
 
     <string name="reset_app">Reset App</string>
     <string name="reset_app_title">Delete all data?</string>
     <string name="reset_app_yes">Yes, delete everything</string>
     <string name="reset_app_cancel">Cancel</string>
+
+    <!-- THE ABOUT BLOCK -->
+    <string name="btn_about_menu">About KlippShell</string>
+    <string name="btn_check_updates">Check for Updates</string>
+
+    <!-- GitHub Updater -->
+    <string name="toast_checking_updates">Checking version…</string>
+    <string name="update_available_title">Update to version %1$s available!</string>
+    <string name="btn_download_now">Download Now</string>
+    <string name="btn_later">Later</string>
+    <string name="toast_update_error_code">Fetch error (Code: %1$d)</string>
+    <string name="toast_update_server_error">Server unreachable</string>
+    <string name="toast_update_browser_error">Could not open browser</string>
+
+    <!-- License Link -->
+    <string name="license_link_text">Licenses &amp; Copyrights</string>
+
+    <string name="about_changelog_title">Changelog</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub OTA Updater added: Async online update checks via GitHub API\n• Integrated License Viewer: Added new scrollable dialog for credits and copyrights\n• UI Clean-up: Removed redundant text lines in About section while protecting logo easter egg\n• Improved Stability: Fixed Kotlin null-safety bugs and optimized dialog focus\n\nv0.8.4.300526-rc\n• Added TV search dialog for model selection\n• Implemented tolerant G-code/model search\n• Optimized memory polling for Moonraker\n\nv0.8.3\n• Increased D-pad focus safety for menu layers\n• Stabilized SoundManager audio channels\n• Fixed SharedPreferences reset</string>
+    <string name="settings_optimized_tv">Optimized for Android TV</string>
 
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Show OSD</string>
@@ -57,7 +80,7 @@
     <string name="camera_type_html">Klipper HTML Stream</string>
     <string name="camera_type_port">Port 8080 Stream</string>
     <string name="camera_type_webcam">Webcam Path Stream</string>
-    <string name="menu_emergency_stop">EMERGENCY STOP</string>
+    <string name="menu_emergency_stop">ESTOP</string>
     <string name="dialog_stop_title">Stop Printer?</string>
     <string name="dialog_stop_confirm">YES - STOP IMMEDIATELY</string>
     <string name="dialog_cancel">Cancel</string>
@@ -77,15 +100,15 @@
 
     <string name="event_offline">Offline</string>
     <string name="event_first_layer">First Layer</string>
-    <string name="event_50">50% reached</string>
-    <string name="event_75">75% reached</string>
-    <string name="event_90">90% reached</string>
-    <string name="event_100">Completed</string>
+    <string name="event_50">50% completed</string>
+    <string name="event_75">75% completed</string>
+    <string name="event_90">90% completed</string>
+    <string name="event_100">Finished</string>
     <string name="event_error">Error</string>
 
     <string name="notify_title_offline">Connection Lost</string>
     <string name="notify_msg_offline">The printer is no longer responding.</string>
-    <string name="notify_btn_offline">Understood</string>
+    <string name="notify_btn_offline">Got it</string>
 
     <string name="notify_title_first_layer">First Layer</string>
     <string name="notify_msg_first_layer">The first layer is being printed.</string>
@@ -93,10 +116,10 @@
     <string name="notify_msg_50">50% of the print is completed.</string>
     <string name="notify_title_75">Almost done</string>
     <string name="notify_msg_75">75% of the print is completed.</string>
-    <string name="notify_title_90">Final spurt</string>
-    <string name="notify_msg_90">90% of the print has been reached.</string>
+    <string name="notify_title_90">Final stretch</string>
+    <string name="notify_msg_90">90% of the print is reached.</string>
     <string name="notify_title_100">Print Finished!</string>
-    <string name="notify_msg_100">The 3D print has been successfully completed.</string>
+    <string name="notify_msg_100">The 3D print completed successfully.</string>
     <string name="notify_title_error">Klipper Error</string>
     <string name="notify_msg_error">The printer aborted the print with an error.</string>
 
@@ -104,15 +127,15 @@
     <string name="notify_btn_success">Great</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Chamber Light On</string>
-    <string name="menu_light_off">Chamber Light Off</string>
-    <string name="toast_light_error">Sending failed</string>
+    <string name="menu_light_on">Light On</string>
+    <string name="menu_light_off">Light Off</string>
+    <string name="toast_light_error">Failed to send</string>
     <string name="menu_screensaver">Screensaver</string>
     <string name="screensaver_title">Automatic dimming after...</string>
-    <string name="screensaver_now">Activate immediately</string>
-    <string name="screensaver_30">30 Minutes</string>
-    <string name="screensaver_60">60 Minutes</string>
-    <string name="screensaver_90">90 Minutes</string>
-    <string name="screensaver_120">120 Minutes</string>
+    <string name="screensaver_now">Activate now</string>
+    <string name="screensaver_30">30 minutes</string>
+    <string name="screensaver_60">60 minutes</string>
+    <string name="screensaver_90">90 minutes</string>
+    <string name="screensaver_120">120 minutes</string>
     <string name="screensaver_off">Disabled</string>
 </resources>

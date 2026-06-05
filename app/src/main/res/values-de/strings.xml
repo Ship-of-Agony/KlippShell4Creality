@@ -12,6 +12,7 @@
     <string name="printer_ip_hint">IP-Adresse</string>
     <string name="printer_port_hint">Port (Optional)</string>
     <string name="printer_model_hint">Druckermodell auswählen</string>
+    <string name="search_model_hint">Suchen... (z.B. CR 10)</string>
     <string name="choose_port">Port auswählen</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
@@ -33,12 +34,12 @@
     <string name="theme_title">App-Design</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
-    <string name="theme_system">Systemstandard</string>
+    <string name="theme_system">Nach System</string>
     <string name="change_language">Sprache ändern</string>
     <string name="settings_notify_title">Benachrichtigungen</string>
     <string name="submenu_sounds_title">Töne verwalten</string>
     <string name="submenu_popups_title">Popups verwalten</string>
-    <string name="settings_optimized_tv">Optimiert für Android TV</string>
+
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Made with ❤️ in Germany</string>
     <string name="dng_thanks">Inspiriert vom KlippHub-Projekt bei DnG Crafts  </string>
@@ -48,6 +49,26 @@
     <string name="reset_app_title">Alle Daten löschen?</string>
     <string name="reset_app_yes">Ja, alles löschen</string>
     <string name="reset_app_cancel">Abbrechen</string>
+
+    <!-- THE ABOUT BLOCK -->
+    <string name="btn_about_menu">Über KlippShell</string>
+    <string name="btn_check_updates">Nach Updates suchen</string>
+
+    <!-- GitHub Updater Sprach-Ressourcen -->
+    <string name="toast_checking_updates">Prüfe Version…</string>
+    <string name="update_available_title">Update auf Version %1$s verfügbar!</string>
+    <string name="btn_download_now">Jetzt herunterladen</string>
+    <string name="btn_later">Später</string>
+    <string name="toast_update_error_code">Fehler beim Abruf (Code: %1$d)</string>
+    <string name="toast_update_server_error">Server nicht erreichbar</string>
+    <string name="toast_update_browser_error">Browser konnte nicht geöffnet werden</string>
+
+    <!-- Text für das klickbare Lizenz-TextView -->
+    <string name="license_link_text">Lizenzen &amp; Urheberrechte</string>
+
+    <string name="about_changelog_title">Changelog</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub-OTA-Updater hinzugefügt: Asynchrone Online-Prüfung auf neue Releases\n• Integrierter Lizenz-Viewer: Neues scrollbares Dialogfenster für Urheberrechte\n• Layout-Bereinigung: Redundante UI-Texte entfernt, Logo-Easter-Egg geschützt\n• Stabilität erhöht: Kotlin Null-Safety-Fehler behoben und Dialog-Fokus optimiert\n\nv0.8.4.300526-rc\n• TV-Suchdialog für Modell-Auswahl hinzugefügt\n• Tolerante G-Code/Modell-Suche implementiert\n• Speicher-Polling für Moonraker optimiert\n\nv0.8.3\n• D-Pad Fokus-Sicherheit für Menüebenen erhöht\n• SoundManager Audio-Kanäle stabilisiert\n• SharedPreferences-Reset gefixt</string>
+    <string name="settings_optimized_tv">Optimiert für Android TV</string>
 
     <string name="menu_options_title">Optionen</string>
     <string name="menu_osd_show">OSD einblenden</string>
@@ -106,8 +127,8 @@
     <string name="notify_btn_success">Super</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Bauraum Beleuchtung Ein</string>
-    <string name="menu_light_off">Bauraum Beleuchtung Aus</string>
+    <string name="menu_light_on">Beleuchtung Ein</string>
+    <string name="menu_light_off">Beleuchtung Aus</string>
     <string name="toast_light_error">Senden fehlgeschlagen</string>
     <string name="menu_screensaver">Bildschirmschoner</string>
     <string name="screensaver_title">Automatische Abdunklung nach...</string>

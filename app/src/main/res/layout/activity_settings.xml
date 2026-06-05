@@ -19,6 +19,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- LAYER 0: HAUPTMENÜ -->
     <LinearLayout
         android:id="@+id/panelSettings"
         android:layout_width="0dp"
@@ -26,12 +27,12 @@
         android:layout_marginTop="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        app:layout_constraintWidth_max="560dp"
         android:background="@drawable/bg_card"
         android:elevation="8dp"
         android:orientation="vertical"
         android:padding="20dp"
         android:visibility="visible"
+        app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
@@ -65,6 +66,20 @@
             app:cornerRadius="100dp" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGlobalScreensaver"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/menu_screensaver"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNotificationsMenu"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
@@ -73,6 +88,20 @@
             android:paddingTop="14dp"
             android:paddingBottom="14dp"
             android:text="@string/settings_notify_title"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAboutMenu"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/btn_about_menu"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
@@ -93,6 +122,89 @@
             app:cornerRadius="100dp" />
     </LinearLayout>
 
+    <!-- LAYER 5: APP DESIGN (THEME) -->
+    <LinearLayout
+        android:id="@+id/panelTheme"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/bg_card"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:visibility="gone"
+        app:layout_constraintWidth_max="560dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillThemeLight"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/theme_light"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillThemeDark"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/theme_dark"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPillThemeSystem"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/theme_system"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            app:cornerRadius="100dp" />
+    </LinearLayout>
+
+    <!-- LAYER 6: SPRACHE -->
+    <LinearLayout
+        android:id="@+id/panelLanguage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/bg_card"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:visibility="gone"
+        app:layout_constraintWidth_max="560dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
+
+        <LinearLayout
+            android:id="@+id/containerLanguageButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
+
+    <!-- LAYER 1: BENACHRICHTIGUNGEN HAUPT-AUSWAHL -->
     <LinearLayout
         android:id="@+id/panelNotifySelect"
         android:layout_width="0dp"
@@ -100,12 +212,12 @@
         android:layout_marginTop="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        app:layout_constraintWidth_max="560dp"
         android:background="@drawable/bg_card"
         android:elevation="8dp"
         android:orientation="vertical"
         android:padding="20dp"
         android:visibility="gone"
+        app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
@@ -138,270 +250,216 @@
             app:cornerRadius="100dp" />
     </LinearLayout>
 
+    <!-- LAYER 4: BILDSCHIRMSCHONER -->
     <LinearLayout
-        android:id="@+id/layoutMenuPopups"
+        android:id="@+id/panelScreensaver"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        app:layout_constraintWidth_max="560dp"
         android:background="@drawable/bg_card"
         android:elevation="8dp"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="20dp"
         android:visibility="gone"
+        app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillPopupFirstLayer"
+            android:id="@+id/btnPillSaver30"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_first_layer"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/screensaver_30"
             android:textAllCaps="false"
-            android:textSize="15sp"
+            android:textSize="16sp"
             app:cornerRadius="100dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillPopup50"
+            android:id="@+id/btnPillSaver60"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_50"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/screensaver_60"
             android:textAllCaps="false"
-            android:textSize="15sp"
+            android:textSize="16sp"
             app:cornerRadius="100dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillPopup75"
+            android:id="@+id/btnPillSaver90"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_75"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/screensaver_90"
             android:textAllCaps="false"
-            android:textSize="15sp"
+            android:textSize="16sp"
             app:cornerRadius="100dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillPopup90"
+            android:id="@+id/btnPillSaver120"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_90"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/screensaver_120"
             android:textAllCaps="false"
-            android:textSize="15sp"
+            android:textSize="16sp"
             app:cornerRadius="100dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillPopup100"
+            android:id="@+id/btnPillSaverOff"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_100"
+            android:layout_height="wrap_content"
+            android:text="@string/screensaver_off"
             android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="100dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillPopupOffline"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_offline"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="100dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillPopupError"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:text="@string/event_error"
-            android:textAllCaps="false"
-            android:textSize="15sp"
+            android:textSize="16sp"
             app:cornerRadius="100dp" />
     </LinearLayout>
 
+    <!-- LAYER 3: EIGENSTÄNDIGER ABOUT BLOCK -->
     <LinearLayout
-        android:id="@+id/layoutMenuSounds"
+        android:id="@+id/panelAbout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        app:layout_constraintWidth_max="560dp"
         android:background="@drawable/bg_card"
         android:elevation="8dp"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="20dp"
         android:visibility="gone"
+        app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillSoundFirstLayer"
-            style="@style/Widget.Material3.Button"
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_first_layer"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="100dp" />
+            android:layout_height="wrap_content"
+            android:text="@string/about_changelog_title"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal" />
+
+        <ScrollView
+            android:id="@+id/scrollChangelogBox"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:background="@drawable/bg_input_rounded"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"
+            android:focusable="true"
+            android:scrollbars="vertical">
+            <TextView
+                android:id="@+id/tvChangelogContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="14sp" />
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/layoutAboutInnerCredits"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical">
+
+            <!-- Das Logo bleibt felsenfest für das Easter-Egg! -->
+            <ImageView
+                android:id="@+id/ivAboutStudioLogo"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="6dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/klippshell_logo_new" />
+
+            <!-- Bereinigt: Der redundante KlippShell-Name und Studio-Name wurden entfernt -->
+            <TextView
+                android:id="@+id/tvAppVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:text="Version 0.0.0"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:text="@string/settings_optimized_tv"
+                android:textColor="#4CAF50"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:text="@string/made_in_germany"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/dng_thanks"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <!-- NEU: Der klickbare Text-Button für Lizenzen und Urheberrechte -->
+            <TextView
+                android:id="@+id/tvLicensesLink"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/license_link_text"
+                android:textColor="#2196F3"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="6dp" />
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillSound50"
+            android:id="@+id/btnCheckUpdates"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_50"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/btn_check_updates"
             android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="100dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillSound75"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_75"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="100dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillSound90"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_90"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="100dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillSound100"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_100"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="100dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillSoundOffline"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/event_offline"
-            android:textAllCaps="false"
-            android:textSize="15sp"
-            app:cornerRadius="100dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPillSoundError"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:text="@string/event_error"
-            android:textAllCaps="false"
-            android:textSize="15sp"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
             app:cornerRadius="100dp" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/layoutCredits"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        app:layout_constraintWidth_max="560dp"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@id/btnSettingsBack"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <ImageView
-            android:id="@+id/ivAboutStudioLogo"
-            android:layout_width="54dp"
-            android:layout_height="54dp"
-            android:layout_marginBottom="6dp"
-            android:contentDescription="@string/app_name"
-            android:src="@drawable/klippshell_logo_new" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="1dp"
-            android:text="@string/app_name"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="1dp"
-            android:text="@string/studio_name"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/tvAppVersion"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="3dp"
-            android:text="Version 0.0.0"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/tvTvOptimizationLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="@string/settings_optimized_tv"
-            android:textColor="#4CAF50"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:text="@string/made_in_germany"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/dng_thanks"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="11sp"
-            android:textStyle="italic" />
-    </LinearLayout>
-
+    <!-- GLOBALE BASISEBENE: HAUPTMENÜ ZURÜCK-BUTTON -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSettingsBack"
         style="@style/Widget.Material3.Button"
@@ -410,7 +468,6 @@
         android:layout_marginBottom="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        app:layout_constraintWidth_max="560dp"
         android:paddingTop="14dp"
         android:paddingBottom="14dp"
         android:text="@string/btn_back"
@@ -419,8 +476,13 @@
         android:textSize="18sp"
         app:backgroundTint="#2196F3"
         app:cornerRadius="100dp"
+        app:layout_constraintWidth_max="560dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout android:id="@+id/layoutMenuPopups" android:layout_width="0dp" android:layout_height="wrap_content" android:visibility="gone" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout android:id="@+id/layoutMenuSounds" android:layout_width="0dp" android:layout_height="wrap_content" android:visibility="gone" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout android:id="@+id/layoutCredits" android:layout_width="0dp" android:layout_height="wrap_content" android:visibility="gone" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

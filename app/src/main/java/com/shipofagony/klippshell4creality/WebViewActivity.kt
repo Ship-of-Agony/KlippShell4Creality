@@ -27,6 +27,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.*
@@ -68,6 +70,8 @@ class WebViewActivity : AppCompatActivity() {
     private lateinit var ivScreensaverLogo: ImageView
     private var screensaverJob: Job? = null
     private var screensaverTimeoutMs: Long = 0L
+    private var isInstantScreensaverActive: Boolean = false
+
     private val screensaverHandler = Handler(Looper.getMainLooper())
     private val startScreensaverRunnable = Runnable { activateScreensaver() }
 
@@ -85,6 +89,20 @@ class WebViewActivity : AppCompatActivity() {
 
     private var lastPrintState: String = ""
     private var pollingJob: Job? = null
+
+    private var cachedMoonrakerUrl: URL? = null
+    private var lastExtruderTemp = -1.0
+    private var lastExtruderTarget = -1.0
+    private var lastBedTemp = -1.0
+    private var lastBedTarget = -1.0
+    private var lastChamberTemp = -1.0
+    private var lastChamberHeaterTemp = -1.0
+    private var lastChamberHeaterTarget = -1.0
+    private var lastFanModelSpeed = -1.0
+    private var lastFanAuxSpeed = -1.0
+    private var lastFanChamberSpeed = -1.0
+    private var lastProgressPercent = -1.0
+    private var lastDurationSeconds = -1
 
     private val chamberSensorsToTry = listOf(
         "temperature_sensor chamber_temp", "temperature_sensor chamber",
@@ -147,8 +165,12 @@ class WebViewActivity : AppCompatActivity() {
 
         webView?.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
-                resetInactivityTimer()
-                showButtons()
+                if (layoutScreensaver.visibility == View.VISIBLE) {
+                    deactivateScreensaver()
+                } else {
+                    resetInactivityTimer()
+                    showButtons()
+                }
             }
             false
         }
@@ -197,7 +219,10 @@ class WebViewActivity : AppCompatActivity() {
         loadStreamOrUrl(currentActiveUrl, savedRatio)
         showButtons()
 
-        val savedSaverTime = prefs.getLong("screensaver_timeout_$hostIp", 0L)
+        val defaultTimeout = 120 * 60 * 1000L
+        val globalFallback = prefs.getLong("screensaver_timeout_global_fallback", defaultTimeout)
+        val savedSaverTime = prefs.getLong("screensaver_timeout_$hostIp", globalFallback)
+
         if (savedSaverTime > 0L) {
             screensaverTimeoutMs = savedSaverTime
             resetInactivityTimer()
@@ -249,22 +274,28 @@ class WebViewActivity : AppCompatActivity() {
                                 getString(R.string.screensaver_120),
                                 getString(R.string.screensaver_off)
                             )
-                            showPillDialog(getString(R.string.screensaver_title), timeOptions) { timeIndex ->
+                            showScreensaverPillDialog(getString(R.string.screensaver_title), timeOptions) { timeIndex ->
                                 when (timeIndex) {
-                                    0 -> { activateScreensaver() }
+                                    0 -> {
+                                        isInstantScreensaverActive = true
+                                        activateScreensaver()
+                                        return@showScreensaverPillDialog
+                                    }
                                     1 -> { screensaverTimeoutMs = 30 * 60 * 1000L }
                                     2 -> { screensaverTimeoutMs = 60 * 60 * 1000L }
                                     3 -> { screensaverTimeoutMs = 90 * 60 * 1000L }
                                     4 -> { screensaverTimeoutMs = 120 * 60 * 1000L }
                                     5 -> { screensaverTimeoutMs = 0L }
                                 }
+                                isInstantScreensaverActive = false
                                 prefs.edit().putLong("screensaver_timeout_$hostIpAddress", screensaverTimeoutMs).apply()
+                                prefs.edit().putLong("screensaver_timeout_global_fallback", screensaverTimeoutMs).apply()
                                 resetInactivityTimer()
                             }
                         }
                         3 -> {
                             val ratioOptions = arrayOf(
-                                getString(R.string.ratio_16_9),
+                                getString(R.string.menu_ratio),
                                 getString(R.string.ratio_4_3),
                                 getString(R.string.ratio_1_1)
                             )
@@ -311,6 +342,32 @@ class WebViewActivity : AppCompatActivity() {
                 showPillDialog(getString(R.string.dialog_stop_title), stopOptions, stopColors) { confirm ->
                     if (confirm == 0) sendEmergencyStop()
                 }
+            }
+        }
+
+        btnMenu.setOnLongClickListener {
+            if (isCameraMode && isOsdEnabled) {
+                val positionOptions = arrayOf("Oben Links", "Oben Mitte", "Oben Rechts", "Unten Mitte")
+                showPillDialog("OSD Position wählen", positionOptions) { index ->
+                    val uri = Uri.parse(currentActiveUrl)
+                    val hostIpAddress = uri.host ?: printerIp
+
+                    val posStr = when(index) {
+                        0 -> "top_left"
+                        1 -> "top_center"
+                        2 -> "top_right"
+                        else -> "bottom_center"
+                    }
+                    getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+                        .edit().putString("osd_position_$hostIpAddress", posStr).apply()
+
+                    applyOsdPositionAndStyle(posStr)
+                    showCenteredPillToast("Position gespeichert ✓")
+                }
+                true
+            } else {
+                showCenteredPillToast("Positionierung nur im Vollbild-Stream")
+                true
             }
         }
 
@@ -365,6 +422,10 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (layoutScreensaver.visibility == View.VISIBLE) {
+            deactivateScreensaver()
+            return true
+        }
         resetInactivityTimer()
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
@@ -399,7 +460,6 @@ class WebViewActivity : AppCompatActivity() {
             var posX = 150f
             var posY = 150f
 
-            // TIMING OPTIMIERT: Extrem reduzierte Pixelschritte für ruhiges Wandern
             var speedX = 0.4f
             var speedY = 0.3f
 
@@ -425,7 +485,7 @@ class WebViewActivity : AppCompatActivity() {
                     ivScreensaverLogo.x = posX
                     ivScreensaverLogo.y = posY
                 }
-                delay(32) // TIMING OPTIMIERT: Von 16 ms auf 32 ms erhöht, um nervöses Rasen zu bändigen
+                delay(32)
             }
         }
     }
@@ -434,6 +494,15 @@ class WebViewActivity : AppCompatActivity() {
         screensaverJob?.cancel()
         screensaverJob = null
         layoutScreensaver.visibility = View.GONE
+
+        if (isInstantScreensaverActive) {
+            isInstantScreensaverActive = false
+            val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+            val defaultTimeout = 120 * 60 * 1000L
+            val globalFallback = prefs.getLong("screensaver_timeout_global_fallback", defaultTimeout)
+            screensaverTimeoutMs = globalFallback
+        }
+
         resetInactivityTimer()
 
         if (isOsdEnabled) layoutOsd.visibility = View.VISIBLE
@@ -441,8 +510,27 @@ class WebViewActivity : AppCompatActivity() {
         btnToggle.requestFocus()
     }
 
+    private fun updateMoonrakerUrl(hostIp: String) {
+        try {
+            val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status" +
+                    "&output_pin%20fan0&output_pin%20fan2&temperature_fan%20chamber_fan&output_pin%20LED"
+            cachedMoonrakerUrl = URL("http://$hostIp:7125/$baseQuery$cachedChamberQueryString")
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Fehler beim Erzeugen der Polling URL", e)
+            cachedMoonrakerUrl = null
+        }
+    }
+
     private fun startOsdPolling() {
         pollingJob?.cancel()
+        val uri = Uri.parse(currentActiveUrl)
+        val hostIp = uri.host ?: return
+        updateMoonrakerUrl(hostIp)
+
+        val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+        val savedPosition = prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center"
+        applyOsdPositionAndStyle(savedPosition)
+
         pollingJob = lifecycleScope.launch(Dispatchers.IO) {
             while (isActive && isOsdEnabled && isCameraMode) {
                 fetchMoonrakerData()
@@ -526,7 +614,31 @@ class WebViewActivity : AppCompatActivity() {
         layoutOsd.background = seichterBg
     }
 
+    private fun resetPrintTriggers() {
+        hasTrigFirstLayer = false
+        hasTrig50 = false
+        hasTrig75 = false
+        hasTrig90 = false
+        hasTrig100 = false
+        hasTrigOffline = false
+        lastPrintState = ""
+
+        lastExtruderTemp = -1.0
+        lastExtruderTarget = -1.0
+        lastBedTemp = -1.0
+        lastBedTarget = -1.0
+        lastChamberTemp = -1.0
+        lastChamberHeaterTemp = -1.0
+        lastChamberHeaterTarget = -1.0
+        lastFanModelSpeed = -1.0
+        lastFanAuxSpeed = -1.0
+        lastFanChamberSpeed = -1.0
+        lastProgressPercent = -1.0
+        lastDurationSeconds = -1
+    }
+
     private fun loadStreamOrUrl(url: String, paddingTopPercent: Float) {
+        resetPrintTriggers()
         currentActiveUrl = url
         isCameraMode = url.contains("action=stream") || url.contains("camera.html")
 
@@ -560,9 +672,11 @@ class WebViewActivity : AppCompatActivity() {
                     params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
                 }
                 else -> {
-                    params.dimensionRatio = null
+                    params.dimensionRatio = "H,16:9"
                     params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                    params.height = ConstraintLayout.LayoutParams.MATCH_PARENT
+                    params.height = 0
+                    params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                    params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
                 }
             }
             viewRef.layoutParams = params
@@ -588,17 +702,11 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private suspend fun fetchMoonrakerData() {
-        val uri = Uri.parse(currentActiveUrl)
-        val hostIp = uri.host ?: return
-
-        val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status" +
-                "&output_pin%20fan0&output_pin%20fan2&temperature_fan%20chamber_fan&output_pin%20LED"
-
-        val urlStr = "http://$hostIp:7125/$baseQuery$cachedChamberQueryString"
+        val targetUrl = cachedMoonrakerUrl ?: return
 
         var conn: HttpURLConnection? = null
         val responseText = try {
-            conn = URL(urlStr).openConnection() as HttpURLConnection
+            conn = targetUrl.openConnection() as HttpURLConnection
             conn.connectTimeout = 2000
             conn.readTimeout = 2000
             if (conn.responseCode == 200) {
@@ -619,9 +727,11 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun handleMoonrakerResponse(responseText: String) {
         if (responseText.isEmpty()) {
-            tvOsdProgress?.text = getString(R.string.osd_printer_offline)
-            tvOsdProgress?.setTextColor(Color.parseColor("#E53935"))
-            tvOsdTime?.text = ""
+            if (tvOsdProgress?.text != getString(R.string.osd_printer_offline)) {
+                tvOsdProgress?.text = getString(R.string.osd_printer_offline)
+                tvOsdProgress?.setTextColor(Color.parseColor("#E53935"))
+                tvOsdTime?.text = ""
+            }
 
             if (!hasTrigOffline) {
                 hasTrigOffline = true
@@ -678,45 +788,67 @@ class WebViewActivity : AppCompatActivity() {
                 runChamberAutoSearch(status)
             }
 
-            val strExtruder = getString(R.string.osd_extruder, tempExtruder, targetExtruder)
-            if (tvOsdExtruder?.text != strExtruder) tvOsdExtruder?.text = strExtruder
+            val isHorizontal = (layoutOsd as? LinearLayout)?.orientation == LinearLayout.HORIZONTAL
+            val divider = if (isHorizontal) "  •  " else ""
 
-            val strBed = getString(R.string.osd_bed, tempBed, targetBed)
-            if (tvOsdBed?.text != strBed) tvOsdBed?.text = strBed
+            if (tempExtruder != lastExtruderTemp || targetExtruder != lastExtruderTarget) {
+                lastExtruderTemp = tempExtruder
+                lastExtruderTarget = targetExtruder
+                tvOsdExtruder?.text = getString(R.string.osd_extruder, tempExtruder, targetExtruder) + divider
+            }
 
-            if (tempChamber > 0) {
+            if (tempBed != lastBedTemp || targetBed != lastBedTarget) {
+                lastBedTemp = tempBed
+                lastBedTarget = targetBed
+                tvOsdBed?.text = getString(R.string.osd_bed, tempBed, targetBed) + divider
+            }
+
+            if (tempChamber > 0 && tempChamber != lastChamberTemp) {
+                lastChamberTemp = tempChamber
                 tvOsdChamberSensor?.visibility = View.VISIBLE
-                val strChamber = getString(R.string.osd_chamber_sensor, tempChamber)
-                if (tvOsdChamberSensor?.text != strChamber) tvOsdChamberSensor?.text = strChamber
+                tvOsdChamberSensor?.text = getString(R.string.osd_chamber_sensor, tempChamber) + divider
+            } else if (tempChamber <= 0) {
+                tvOsdChamberSensor?.visibility = View.GONE
             }
 
-            if (tempChamberHeater > 0 || targetChamberHeater > 0) {
+            if ((tempChamberHeater > 0 || targetChamberHeater > 0) && (tempChamberHeater != lastChamberHeaterTemp || targetChamberHeater != lastChamberHeaterTarget)) {
+                lastChamberHeaterTemp = tempChamberHeater
+                lastChamberHeaterTarget = targetChamberHeater
                 tvOsdChamberHeater?.visibility = View.VISIBLE
-                val strChamberHeater = getString(R.string.osd_chamber_heater, tempChamberHeater, targetChamberHeater)
-                if (tvOsdChamberHeater?.text != strChamberHeater) tvOsdChamberHeater?.text = strChamberHeater
+                tvOsdChamberHeater?.text = getString(R.string.osd_chamber_heater, tempChamberHeater, targetChamberHeater) + divider
+            } else if (tempChamberHeater <= 0 && targetChamberHeater <= 0) {
+                tvOsdChamberHeater?.visibility = View.GONE
             }
 
-            val strFanModel = getString(R.string.osd_fan_model, fanModelSpeed)
-            if (tvOsdFanModel?.text != strFanModel) tvOsdFanModel?.text = strFanModel
+            if (fanModelSpeed != lastFanModelSpeed) {
+                lastFanModelSpeed = fanModelSpeed
+                tvOsdFanModel?.text = getString(R.string.osd_fan_model, fanModelSpeed) + divider
+            }
 
-            val strFanAux = getString(R.string.osd_fan_aux, fanAuxSpeed)
-            if (tvOsdFanAux?.text != strFanAux) tvOsdFanAux?.text = strFanAux
+            if (fanAuxSpeed != lastFanAuxSpeed) {
+                lastFanAuxSpeed = fanAuxSpeed
+                tvOsdFanAux?.text = getString(R.string.osd_fan_aux, fanAuxSpeed) + divider
+            }
 
-            val strFanChamber = getString(R.string.osd_fan_chamber, fanChamberSpeed)
-            if (tvOsdFanChamber?.text != strFanChamber) tvOsdFanChamber?.text = strFanChamber
+            if (fanChamberSpeed != lastFanChamberSpeed) {
+                lastFanChamberSpeed = fanChamberSpeed
+                tvOsdFanChamber?.text = getString(R.string.osd_fan_chamber, fanChamberSpeed) + divider
+            }
 
-            val strProgress = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
-            if (tvOsdProgress?.text != strProgress) {
+            if (progress != lastProgressPercent) {
+                lastProgressPercent = progress
                 tvOsdProgress?.setTextColor(Color.parseColor("#1976D2"))
-                tvOsdProgress?.text = strProgress
+                val progressText = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
+                tvOsdProgress?.text = "Fortschritt: $progressText" + divider
             }
 
-            val passedMin = duration / 60
-            val passedSec = duration % 60
-
-            val timeDigits = String.format(Locale.getDefault(), "%02d:%02d", passedMin, passedSec)
-            val strTime = getString(R.string.osd_time, timeDigits, "--:--")
-            if (tvOsdTime?.text != strTime) tvOsdTime?.text = strTime
+            if (duration != lastDurationSeconds) {
+                lastDurationSeconds = duration
+                val passedMin = duration / 60
+                val passedSec = duration % 60
+                val timeDigits = String.format(Locale.getDefault(), "%02d:%02d", passedMin, passedSec)
+                tvOsdTime?.text = getString(R.string.osd_time, timeDigits, "--:--")
+            }
 
             if (currentState != "printing") {
                 hasTrigFirstLayer = false
@@ -779,7 +911,75 @@ class WebViewActivity : AppCompatActivity() {
             }
         }
         cachedChamberQueryString = "&${Uri.encode(knownChamberSensor)}&${Uri.encode(knownChamberHeater)}"
+
+        val uri = Uri.parse(currentActiveUrl)
+        val hostIp = uri.host ?: return
+        updateMoonrakerUrl(hostIp)
+
         chamberSearchIndex = chamberSensorsToTry.size
+    }
+
+    private fun applyOsdPositionAndStyle(position: String) {
+        val root = findViewById<ConstraintLayout>(R.id.rootLayout) ?: return
+        val container = layoutOsd as? LinearLayout ?: return
+
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(root)
+
+        constraintSet.clear(R.id.layoutOsd, ConstraintSet.TOP)
+        constraintSet.clear(R.id.layoutOsd, ConstraintSet.BOTTOM)
+        constraintSet.clear(R.id.layoutOsd, ConstraintSet.START)
+        constraintSet.clear(R.id.layoutOsd, ConstraintSet.END)
+
+        val marginHorizontal = 40
+        val marginTopBottom = 30
+
+        when (position) {
+            "top_left" -> {
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom)
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, marginHorizontal)
+                container.orientation = LinearLayout.VERTICAL
+            }
+            "top_center" -> {
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom)
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
+                container.orientation = LinearLayout.HORIZONTAL
+            }
+            "top_right" -> {
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom)
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END, marginHorizontal)
+                container.orientation = LinearLayout.VERTICAL
+            }
+            else -> { // bottom_center
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140)
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
+                constraintSet.connect(R.id.layoutOsd, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
+                container.orientation = LinearLayout.HORIZONTAL
+            }
+        }
+        constraintSet.applyTo(root)
+        updateOsdTextForm(container.orientation == LinearLayout.HORIZONTAL)
+    }
+
+    private fun updateOsdTextForm(isSingleLine: Boolean) {
+        val views = arrayOf(
+            tvOsdExtruder, tvOsdBed, tvOsdChamberSensor, tvOsdChamberHeater,
+            tvOsdFanModel, tvOsdFanAux, tvOsdFanChamber, tvOsdProgress, tvOsdTime
+        )
+        views.forEach { tv ->
+            tv?.let {
+                val lp = it.layoutParams as LinearLayout.LayoutParams
+                if (isSingleLine) {
+                    lp.width = LinearLayout.LayoutParams.WRAP_CONTENT
+                    lp.setMargins(16, 4, 16, 4)
+                } else {
+                    lp.width = LinearLayout.LayoutParams.MATCH_PARENT
+                    lp.setMargins(8, 2, 8, 2)
+                }
+                it.layoutParams = lp
+            }
+        }
     }
 
     private fun showPillDialog(
@@ -811,6 +1011,81 @@ class WebViewActivity : AppCompatActivity() {
 
                 if (customHex != null) {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex))
+                    setTextColor(Color.WHITE)
+                } else {
+                    backgroundTintList = ColorStateList.valueOf(btnBgColor)
+                    setTextColor(textColor)
+                }
+
+                isFocusable = true
+
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 10, 0, 10)
+                }
+
+                onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                    if (hasFocus) {
+                        v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
+                        strokeWidth = 6
+                        strokeColor = ColorStateList.valueOf(Color.WHITE)
+                    } else {
+                        v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
+                        strokeWidth = 0
+                    }
+                }
+
+                setOnClickListener {
+                    onSelected(index)
+                    dialog.dismiss()
+                }
+            }
+            container?.addView(btn)
+        }
+        dialog.show()
+    }
+
+    private fun showScreensaverPillDialog(
+        title: String,
+        items: Array<String>,
+        onSelected: (Int) -> Unit
+    ) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = title
+        val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val textColor = if (isNight) Color.WHITE else Color.BLACK
+        val btnBgColor = if (isNight) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888")
+
+        val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+        val activeTimeout = prefs.getLong("screensaver_timeout_global_fallback", 120 * 60 * 1000L)
+
+        items.forEachIndexed { index, itemText ->
+            val targetMs = when (index) {
+                1 -> 30 * 60 * 1000L
+                2 -> 60 * 60 * 1000L
+                3 -> 90 * 60 * 1000L
+                4 -> 120 * 60 * 1000L
+                else -> -1L
+            }
+
+            val isCurrentlyActive = (targetMs == activeTimeout) || (index == 5 && activeTimeout == 0L)
+
+            val btn = MaterialButton(this).apply {
+                text = itemText
+                isAllCaps = false
+                textSize = 16f
+                cornerRadius = 100
+                setPadding(0, 35, 0, 35)
+
+                if (isCurrentlyActive) {
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
                     setTextColor(Color.WHITE)
                 } else {
                     backgroundTintList = ColorStateList.valueOf(btnBgColor)
