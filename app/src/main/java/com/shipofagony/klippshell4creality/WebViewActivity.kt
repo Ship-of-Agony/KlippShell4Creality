@@ -77,7 +77,7 @@ class WebViewActivity : AppCompatActivity() {
 
     private var knownChamberSensor: String? = "temperature_sensor chamber_temp"
     private var knownChamberHeater: String? = "heater_generic chamber_heater"
-    private var cachedChamberQueryString: String = "&temperature_sensor%20chamber_temp&heater_generic%20chamber_heater"
+    private var cachedChamberQueryString: String = "&amp;temperature_sensor%20chamber_temp&amp;heater_generic%20chamber_heater"
     private var chamberSearchIndex = 0
 
     private var hasTrigFirstLayer = false
@@ -120,7 +120,7 @@ class WebViewActivity : AppCompatActivity() {
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedLang = prefs.getString("app_lang", "de") ?: "de"
-        val locale = Locale(savedLang)
+        val locale = Locale.forLanguageTag(savedLang)
         Locale.setDefault(locale)
 
         val config = newBase.resources.configuration
@@ -234,7 +234,7 @@ class WebViewActivity : AppCompatActivity() {
 
                 val menuOptions = arrayOf(
                     osdOptionText,
-                    getString(R.string.menu_light_on).substringBefore(" "),
+                    getString(R.string.menu_change_camera_type).substringBefore(" Live-Stream") + " Light",
                     getString(R.string.menu_screensaver),
                     getString(R.string.menu_ratio_title),
                     getString(R.string.menu_change_camera_type),
@@ -294,18 +294,16 @@ class WebViewActivity : AppCompatActivity() {
                             }
                         }
                         3 -> {
-                            // GEFIXT: Das Array lädt jetzt alle 3 echten Formate aus deiner strings.xml
                             val ratioOptions = arrayOf(
                                 getString(R.string.ratio_16_9_new),
                                 getString(R.string.ratio_4_3_new),
                                 getString(R.string.ratio_1_1_new)
                             )
-                            // menu_ratio_title wird hier sauber als Dialog-Überschrift übergeben
                             showPillDialog(getString(R.string.menu_ratio_title), ratioOptions) { ratioIndex ->
                                 val targetRatio = when(ratioIndex) {
-                                    0 -> 56.25f   // Index 0 schaltet fehlerfrei zurück auf 16:9 Breitbild
-                                    1 -> 75.0f    // Index 1 schaltet auf 4:3 Standard
-                                    else -> 100.0f // Index 2 schaltet auf 1:1 Quadrat
+                                    0 -> 56.25f
+                                    1 -> 75.0f
+                                    else -> 100.0f
                                 }
                                 getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
                                     .edit().putFloat("camera_ratio_$hostIpAddress", targetRatio).apply()
@@ -349,8 +347,13 @@ class WebViewActivity : AppCompatActivity() {
 
         btnMenu.setOnLongClickListener {
             if (isCameraMode && isOsdEnabled) {
-                val positionOptions = arrayOf("Oben Links", "Oben Mitte", "Oben Rechts", "Unten Mitte")
-                showPillDialog("OSD Position wählen", positionOptions) { index ->
+                val positionOptions = arrayOf(
+                    getString(R.string.osd_pos_top_left),
+                    getString(R.string.osd_pos_top_center),
+                    getString(R.string.osd_pos_top_right),
+                    getString(R.string.osd_pos_bottom_center)
+                )
+                showPillDialog(getString(R.string.osd_position_title), positionOptions) { index ->
                     val uri = Uri.parse(currentActiveUrl)
                     val hostIpAddress = uri.host ?: printerIp
 
@@ -364,11 +367,11 @@ class WebViewActivity : AppCompatActivity() {
                         .edit().putString("osd_position_$hostIpAddress", posStr).apply()
 
                     applyOsdPositionAndStyle(posStr)
-                    showCenteredPillToast("Position gespeichert ✓")
+                    showCenteredPillToast(getString(R.string.toast_position_saved))
                 }
                 true
             } else {
-                showCenteredPillToast("Positionierung nur im Vollbild-Stream")
+                showCenteredPillToast(getString(R.string.toast_position_fullscreen_only))
                 true
             }
         }
@@ -411,9 +414,7 @@ class WebViewActivity : AppCompatActivity() {
         super.onResume()
         showButtons()
         resetInactivityTimer()
-        btnToggle.post {
-            btnToggle.requestFocus()
-        }
+        btnToggle.post { btnToggle.requestFocus() }
     }
 
     override fun onUserInteraction() {
@@ -461,7 +462,6 @@ class WebViewActivity : AppCompatActivity() {
         screensaverJob = lifecycleScope.launch(Dispatchers.Main) {
             var posX = 150f
             var posY = 150f
-
             var speedX = 0.4f
             var speedY = 0.3f
 
@@ -514,8 +514,8 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun updateMoonrakerUrl(hostIp: String) {
         try {
-            val baseQuery = "printer/objects/query?extruder&heater_bed&print_stats&display_status" +
-                    "&output_pin%20fan0&output_pin%20fan2&temperature_fan%20chamber_fan&output_pin%20LED"
+            val baseQuery = "printer/objects/query?extruder&amp;heater_bed&amp;print_stats&amp;display_status" +
+                    "&amp;output_pin%20fan0&amp;output_pin%20fan2&amp;temperature_fan%20chamber_fan&amp;output_pin%20LED"
             cachedMoonrakerUrl = URL("http://$hostIp:7125/$baseQuery$cachedChamberQueryString")
         } catch (e: Exception) {
             Log.e("KlippShell", "Fehler beim Erzeugen der Polling URL", e)
@@ -546,8 +546,15 @@ class WebViewActivity : AppCompatActivity() {
         pollingJob = null
     }
 
+    override fun onPause() {
+        // Sicherstellen, dass das injizierte Overlay beim Activity-Wechsel sauber entfernt wird
+        NotificationManager.dismissActivePopup()
+        super.onPause()
+    }
+
     override fun onStop() {
         stopOsdPolling()
+        NotificationManager.dismissActivePopup()
         screensaverHandler.removeCallbacks(startScreensaverRunnable)
         screensaverJob?.cancel()
         uiHandler.removeCallbacks(hideUiRunnable)
@@ -557,6 +564,7 @@ class WebViewActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         stopOsdPolling()
+        NotificationManager.dismissActivePopup()
         screensaverHandler.removeCallbacks(startScreensaverRunnable)
         screensaverJob?.cancel()
         uiHandler.removeCallbacks(hideUiRunnable)
@@ -594,10 +602,7 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun hideButtons() {
-        layoutWebButtons.animate()
-            .alpha(0f)
-            .setDuration(500)
-            .start()
+        layoutWebButtons.animate().alpha(0f).setDuration(500).start()
     }
 
     private fun applySeichterOsdBackground() {
@@ -661,26 +666,18 @@ class WebViewActivity : AppCompatActivity() {
             when (paddingTopPercent) {
                 75.0f -> {
                     params.dimensionRatio = "H,4:3"
-                    params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                    params.height = 0
-                    params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                    params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
                 }
                 100.0f -> {
                     params.dimensionRatio = "H,1:1"
-                    params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                    params.height = 0
-                    params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                    params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
                 }
                 else -> {
                     params.dimensionRatio = "H,16:9"
-                    params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                    params.height = 0
-                    params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                    params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
                 }
             }
+            params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
+            params.height = 0
+            params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
             viewRef.layoutParams = params
 
         } else {
@@ -912,7 +909,7 @@ class WebViewActivity : AppCompatActivity() {
                 break
             }
         }
-        cachedChamberQueryString = "&${Uri.encode(knownChamberSensor)}&${Uri.encode(knownChamberHeater)}"
+        cachedChamberQueryString = "&amp;${Uri.encode(knownChamberSensor)}&amp;${Uri.encode(knownChamberHeater)}"
 
         val uri = Uri.parse(currentActiveUrl)
         val hostIp = uri.host ?: return

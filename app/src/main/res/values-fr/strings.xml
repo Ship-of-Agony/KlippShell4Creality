@@ -18,7 +18,7 @@
     <string name="system_standard">Klipper Standard (7125)</string>
     <string name="system_manual">Saisie Manuelle</string>
     <string name="add_printer_up">Ajouter une imprimante ▲</string>
-    <string name="add_printer_down">Ajouter une imprimante ▼</string>
+    <string name="add_printer_down">Ajouter eine imprimante ▼</string>
 
     <string name="choose_default_view_title">Interface par Défaut</string>
     <string name="choose_default_view">Klipper OS</string>
@@ -42,8 +42,9 @@
 
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Fait avec ❤️ en Allemagne</string>
-    <string name="dng_thanks">Inspiré par le projet KlippHub chez DnG Crafts</string>
     <string name="easter_egg_success">Nivelle ton lit avant de me demander !</string>
+    <string name="about_contact_text">Projet sur GitHub • Support par E-mail</string>
+    <string name="toast_email_error">Aucune application de messagerie trouvée</string>
 
     <string name="reset_app">Réinitialiser l\'App</string>
     <string name="reset_app_title">Supprimer toutes les données ?</string>
@@ -64,7 +65,7 @@
     <string name="license_link_text">Licences et Droits d\'Auteur</string>
 
     <string name="about_changelog_title">Journal des Modifications</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Ajout du programme de mise à jour OTA GitHub : Vérification en ligne asynchrone des versions\n• Visionneuse de licences intégrée : Nouvelle boîte de dialogue déroulante pour les droits d\'auteur\n• Nettoyage de la mise en page : Suppression des textes redondants, œuf de Pâques logo protégé\n• Stabilité accrue : Correction des bogues de null-safety Kotlin et optimisation de la mise au point du dialogue\n\nv0.8.4.300526-rc\n• Ajout d\'un dialogue de recherche TV pour le choix du modèle\n• Recherche tolérante de G-code/modèle implémentée\n• Polling de mémoire optimisé pour Moonraker\n• Canaux audio SoundManager stabilisés\n• Correction de la réinitialisation de SharedPreferences</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• Ajout du programme de mise à jour OTA GitHub : Vérification en ligne asynchrone des versions\n• Visionneuse de licences intégrée : Nouvelle boîte de dialogue déroulante pour les droits d\'auteur\n• Layout-Bereinigung: Redundante UI-Texte entfernt, Logo-Easter-Egg geschützt\n• Stabilité accrue : Correction des bogues de null-safety Kotlin et optimisation de la mise au point du dialogue\n\nv0.8.4.300526-rc\n• Ajout d\'un dialogue de recherche TV pour le choix du modèle\n• Recherche tolérante de G-code/modèle implémentée\n• Polling de mémoire optimisé pour Moonraker\n\nv0.8.3\n• Ajout d\'un dialogue de recherche TV pour le choix du modèle\n• Canaux audio SoundManager stabilisés\n• Correction de la réinitialisation de SharedPreferences</string>
     <string name="settings_optimized_tv">Optimisé pour Android TV</string>
 
     <string name="menu_options_title">Options</string>

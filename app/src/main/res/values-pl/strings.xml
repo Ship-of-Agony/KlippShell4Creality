@@ -42,8 +42,9 @@
 
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Wykonano z ❤️ w Niemczech</string>
-    <string name="dng_thanks">Inspirowane projektem KlippHub od DnG Crafts</string>
     <string name="easter_egg_success">Wypoziomuj stół, zanim zapytasz!</string>
+    <string name="about_contact_text">Projekt na GitHubie • Wsparcie przez E-mail</string>
+    <string name="toast_email_error">Nie znaleziono aplikacji pocztowej</string>
 
     <string name="reset_app">Resetuj Aplikację</string>
     <string name="reset_app_title">Usunąć wszystkie dane?</string>

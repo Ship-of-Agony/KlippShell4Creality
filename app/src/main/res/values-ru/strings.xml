@@ -42,8 +42,9 @@
 
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Сделано с ❤️ в Германии</string>
-    <string name="dng_thanks">Вдохновлено проектом KlippHub от DnG Crafts</string>
     <string name="easter_egg_success">Выровняй стол, прежде чем спрашивать меня!</string>
+    <string name="about_contact_text">Проект на GitHub • Поддержка по E-mail</string>
+    <string name="toast_email_error">Почтовое приложение не найдено</string>
 
     <string name="reset_app">Сбросить Приложение</string>
     <string name="reset_app_title">Удалить все данные?</string>
@@ -75,7 +76,7 @@
     <string name="osd_pos_top_left">Сверху Слева</string>
     <string name="osd_pos_top_center">Сверху По Центру</string>
     <string name="osd_pos_top_right">Сверху Справа</string>
-    <string name="osd_pos_bottom_center">Сниэу По Центру</string>
+    <string name="osd_pos_bottom_center">Снизу По Центру</string>
     <string name="toast_position_saved">Позиция сохранена ✓</string>
     <string name="toast_position_fullscreen_only">Позиционирование доступно только в полноэкранном режиме</string>
 
@@ -86,7 +87,7 @@
 
     <string name="menu_ratio">Изменить Соотношение Сторон</string>
     <string name="ratio_16_9">16:9 Широкоэкранный</string>
-    <string name="ratio_4_3">4:3 Стандартный</string>
+    <string name="ratio_4_3">4:3 Standardный</string>
     <string name="ratio_1_1">1:1 Квадратный</string>
 
     <string name="camera_type_html_new">Klipper (HTML-поток)</string>

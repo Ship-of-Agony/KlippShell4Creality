@@ -42,8 +42,9 @@
 
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Vyrobeno s ❤️ v Německu</string>
-    <string name="dng_thanks">Inspirováno projektem KlippHub od DnG Crafts</string>
     <string name="easter_egg_success">Vyrovnej podložku, než se mě zeptáš!</string>
+    <string name="about_contact_text">Projekt na GitHubu • Podpora přes E-mail</string>
+    <string name="toast_email_error">Nebyla nalezena žádná e-mailová aplikace</string>
 
     <string name="reset_app">Resetovat Aplikaci</string>
     <string name="reset_app_title">Smazat všechna data?</string>
@@ -100,7 +101,7 @@
     <string name="menu_emergency_stop">NOUZOVÉ ZASTAVENÍ</string>
     <string name="dialog_stop_title">Zastavit Tiskárnu?</string>
     <string name="dialog_stop_confirm">ANO - OKAMŽITĚ ZASTAVIT</string>
-    <string name="dialog_cancel">Anuluj</string>
+    <string name="dialog_cancel">Zrušit</string>
     <string name="toast_stop_success">NOUZOVÉ ZASTAVENÍ odesláno!</string>
     <string name="toast_stop_error">Chyba odesílání: </string>
     <string name="toast_loading_dashboard">Načítání Klipper OS...</string>
@@ -137,7 +138,7 @@
     <string name="notify_msg_90">Bylo dosaženo 90% tisku.</string>
     <string name="notify_title_100">Tisk Dokončen!</string>
     <string name="notify_msg_100">3D tisk byl úspěšně dokončen.</string>
-    <string name="notify_title_error">Chyba Klipperu</string>
+    <string name="notify_title_error">Čyba Klipperu</string>
     <string name="notify_msg_error">Tiskárna přerušila tisk s chybou.</string>
 
     <string name="notify_btn_error">Zavřít</string>

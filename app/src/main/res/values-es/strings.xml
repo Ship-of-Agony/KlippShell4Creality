@@ -42,8 +42,9 @@
 
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Hecho con ❤️ en Alemania</string>
-    <string name="dng_thanks">Inspirado en el proyecto KlippHub de DnG Crafts</string>
     <string name="easter_egg_success">¡Nivela tu cama antes de preguntarme!</string>
+    <string name="about_contact_text">Proyecto en GitHub • Soporte por E-mail</string>
+    <string name="toast_email_error">No se encontró ninguna aplicación de correo</string>
 
     <string name="reset_app">Restablecer App</string>
     <string name="reset_app_title">¿Eliminar todos los datos?</string>

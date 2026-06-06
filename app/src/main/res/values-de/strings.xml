@@ -42,8 +42,10 @@
 
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Made with ❤️ in Germany</string>
-    <string name="dng_thanks">Inspiriert vom KlippHub-Projekt bei DnG Crafts  </string>
     <string name="easter_egg_success">Level dein Bett, bevor du mich fragst!</string>
+
+    <string name="about_contact_text">Projekt auf GitHub • Support via E-Mail</string>
+    <string name="toast_email_error">Keine E-Mail-App gefunden</string>
 
     <string name="reset_app">App zurücksetzen</string>
     <string name="reset_app_title">Alle Daten löschen?</string>
@@ -64,7 +66,7 @@
     <string name="license_link_text">Lizenzen &amp; Urheberrechte</string>
 
     <string name="about_changelog_title">Changelog</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub-OTA-Updater hinzugefügt: Asynchrone Online-Prüfung auf neue Releases\n• Integrierter Lizenz-Viewer: Neues scrollbares Dialogfenster für Urheberrechte\n• Layout-Bereinigung: Redundante UI-Texte entfernt, Logo-Easter-Egg geschützt\n• Stabilität erhöht: Kotlin Null-Safety-Fehler behoben und Dialog-Fokus optimiert\n\nv0.8.4.300526-rc\n• TV-Suchdialog für Modell-Auswahl hinzugefügt\n• Tolerante G-Code/Modell-Suche implementiert\n• Speicher-Polling für Moonraker optimiert\n\nv0.8.3\n• D-Pad Fokus-Sicherheit für Menüebenen erhöht\n• SoundManager Audio-Kanäle stabilisiert\n• SharedPreferences-Reset gefixt</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub-OTA-Updater hinzugefügt: Asynchrone Online-Prüfung auf neue Releases\n• Integrierter Lizenz-Viewer: Neues scrollbares Dialogfenster für Urheberrechte\n• Layout-Bereinigung: Redundante UI-Texte entfernt, Logo-Easter-Egg geschützt\n• Stabilität erhöht: Kotlin Null-Safety-Fehler behoben und Dialog-Fokus optimiert\n\nv0.8.4.300526-rc\n• TV-Suchdialog für Modell-Auswahl hinzugefügt\n• Tolerante G-Code/Modell-Suche implementiert\n• Speicher-Polling für Moonraker optimiert\n\nv0.8.3\n• D-Pad Fokus-Sicherheit für Menüebenen erhöht\n• SoundManager Audio-Kanäle stabilisiert\n• Presets-Reset gefixt</string>
     <string name="settings_optimized_tv">Optimiert für Android TV</string>
 
     <string name="menu_options_title">Optionen</string>

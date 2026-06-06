@@ -56,6 +56,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var scrollChangelogBox: ScrollView
 
     private lateinit var tvLicensesLink: TextView
+    private lateinit var tvAboutContactLink: TextView // Sauber deklariert
 
     private var currentMenuLayer = 0
     private lateinit var prefs: SharedPreferences
@@ -99,6 +100,11 @@ class SettingsActivity : AppCompatActivity() {
 
         tvLicensesLink = findViewById(R.id.tvLicensesLink)
 
+        // REIN & SAUBER: Mappt jetzt ohne Umwege direkt auf deine neue XML-ID und den neuen String
+        tvAboutContactLink = findViewById(R.id.tvAboutContactLink)
+        tvAboutContactLink.text = getString(R.string.about_contact_text)
+        tvAboutContactLink.setTextColor(Color.parseColor("#2196F3"))
+
         val btnThemeSelect = findViewById<MaterialButton>(R.id.btnThemeSelect)
         val btnChangeLanguage = findViewById<MaterialButton>(R.id.btnChangeLanguage)
         val btnGlobalScreensaver = findViewById<MaterialButton>(R.id.btnGlobalScreensaver)
@@ -124,7 +130,7 @@ class SettingsActivity : AppCompatActivity() {
             val versionName = packageInfo.versionName
             findViewById<TextView>(R.id.tvAppVersion)?.text = "Version $versionName"
         } catch (e: Exception) {
-            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.4.300526-rc"
+            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.5.050626-rc"
         }
 
         btnThemeSelect.setOnClickListener {
@@ -239,6 +245,32 @@ class SettingsActivity : AppCompatActivity() {
             (v as TextView).setTextColor(if (hasFocus) Color.WHITE else Color.parseColor("#2196F3"))
         }
 
+        // Klick- & Fokus-Logik für deine Verlinkungen (Vollständig bereinigt)
+        tvAboutContactLink.setOnClickListener {
+            val contactOptions = arrayOf("GitHub Repository", "klippshell@gmail.com")
+            showTvDialog(getString(R.string.studio_name), contactOptions, arrayOf("#4CAF50", "#2196F3")) { choice ->
+                if (choice == 0) {
+                    val urlIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Ship-of-Agony/KlippShell4Creality"))
+                    startActivity(urlIntent)
+                } else {
+                    val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:")
+                        putExtra(Intent.EXTRA_EMAIL, arrayOf("klippshell@gmail.com"))
+                        putExtra(Intent.EXTRA_SUBJECT, "KlippShell Support Request")
+                    }
+                    try {
+                        startActivity(Intent.createChooser(emailIntent, "Send Mail..."))
+                    } catch (e: Exception) {
+                        showCenteredPillToast(getString(R.string.toast_email_error))
+                    }
+                }
+            }
+        }
+        tvAboutContactLink.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+            v.animate().scaleX(if (hasFocus) 1.08f else 1.0f).scaleY(if (hasFocus) 1.08f else 1.0f).setDuration(150).start()
+            (v as TextView).setTextColor(if (hasFocus) Color.WHITE else Color.parseColor("#2196F3"))
+        }
+
         setupSaverPagePill(R.id.btnPillSaver30, 30 * 60 * 1000L)
         setupSaverPagePill(R.id.btnPillSaver60, 60 * 60 * 1000L)
         setupSaverPagePill(R.id.btnPillSaver90, 90 * 60 * 1000L)
@@ -323,7 +355,6 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    // GEFIXT: Schließt jetzt kurz den Dialog, feuert das Popup im absoluten Vordergrund ab und öffnet ihn wieder
     private fun showPopupsConfigurationDialog() {
         val pOffline = prefs.getBoolean("popup_offline_enabled", true)
         val pFirst = prefs.getBoolean("popup_first_layer_enabled", false)
@@ -381,13 +412,11 @@ class SettingsActivity : AppCompatActivity() {
                     else -> R.string.notify_msg_100
                 }
 
-                // Exzellente TV-Nutzerführung: Kurze Verzögerung nutzen, damit die Kachel über dem abgedunkelten Dialog steht
                 Handler(Looper.getMainLooper()).postDelayed({
                     NotificationManager.showLivePopup(this@SettingsActivity, tag, titleRes, msgRes)
                 }, 100)
             }
 
-            // Der Dialog aktualisiert sich sofort im Hintergrund mit der neuen Farbe
             showPopupsConfigurationDialog()
         }
     }
@@ -703,9 +732,9 @@ class SettingsActivity : AppCompatActivity() {
                         }
 
                         val currentVersionName = try {
-                            packageManager.getPackageInfo(packageName, 0).versionName?.replace("v", "")?.trim() ?: "0.8.4"
+                            packageManager.getPackageInfo(packageName, 0).versionName?.replace("v", "")?.trim() ?: "0.8.5"
                         } catch (e: Exception) {
-                            "0.8.4"
+                            "0.8.5"
                         }
 
                         withContext(Dispatchers.Main) {

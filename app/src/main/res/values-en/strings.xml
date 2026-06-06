@@ -42,19 +42,18 @@
 
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Made with ❤️ in Germany</string>
-    <string name="dng_thanks">Inspired by the KlippHub project at DnG Crafts</string>
     <string name="easter_egg_success">Level your bed before asking me!</string>
+    <string name="about_contact_text">Project on GitHub • Support via Email</string>
+    <string name="toast_email_error">No email app found</string>
 
     <string name="reset_app">Reset App</string>
     <string name="reset_app_title">Delete all data?</string>
     <string name="reset_app_yes">Yes, delete everything</string>
     <string name="reset_app_cancel">Cancel</string>
 
-    <!-- THE ABOUT BLOCK -->
     <string name="btn_about_menu">About KlippShell</string>
     <string name="btn_check_updates">Check for Updates</string>
 
-    <!-- GitHub Updater -->
     <string name="toast_checking_updates">Checking version…</string>
     <string name="update_available_title">Update to version %1$s available!</string>
     <string name="btn_download_now">Download Now</string>
@@ -63,18 +62,16 @@
     <string name="toast_update_server_error">Server unreachable</string>
     <string name="toast_update_browser_error">Browser could not be opened</string>
 
-    <!-- Licenses -->
     <string name="license_link_text">Licenses &amp; Copyrights</string>
 
     <string name="about_changelog_title">Changelog</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Added GitHub OTA Updater: Asynchronous online check for new releases\n• Integrated License Viewer: New scrollable dialog window for copyrights\n• Layout Cleanup: Removed redundant UI texts, logo easter egg protected\n• Increased Stability: Fixed Kotlin null-safety bugs and optimized dialog focus\n\nv0.8.4.300526-rc\n• Added TV search dialog for model selection\n• Tolerant G-code/model search implemented\n• Memory polling optimized for Moonraker\n• Increased D-pad focus security for menu layers\n• Stabilized SoundManager audio channels\n• Fixed SharedPreferences reset</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• Added GitHub OTA Updater: Asynchronous online check for new releases\n• Integrated License Viewer: New scrollable dialog window for copyrights\n• Layout Cleanup: Removed redundant UI texts, logo easter egg protected\n• Increased Stability: Fixed Kotlin null-safety bugs and optimized dialog focus\n\nv0.8.4.300526-rc\n• Added TV search dialog for model selection\n• Tolerant G-code/model search implemented\n• Memory polling optimized for Moonraker\n\nv0.8.3\n• Increased D-pad focus security for menu layers\n• Stabilized SoundManager audio channels\n• Fixed SharedPreferences reset</string>
     <string name="settings_optimized_tv">Optimized for Android TV</string>
 
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Show OSD</string>
     <string name="menu_osd_hide">Hide OSD</string>
 
-    <!-- OSD Positions (NOW COMPLETELY TRANSLATED) -->
     <string name="osd_position_title">Select OSD Position</string>
     <string name="osd_pos_top_left">Top Left</string>
     <string name="osd_pos_top_center">Top Center</string>
@@ -83,7 +80,6 @@
     <string name="toast_position_saved">Position saved ✓</string>
     <string name="toast_position_fullscreen_only">Positioning only available in full-screen stream</string>
 
-    <!-- Aspect Ratio Options -->
     <string name="menu_ratio_title">Change Aspect Ratio</string>
     <string name="ratio_16_9_new">16:9 Widescreen</string>
     <string name="ratio_4_3_new">4:3 Standard</string>
@@ -94,7 +90,6 @@
     <string name="ratio_4_3">4:3 Standard</string>
     <string name="ratio_1_1">1:1 Square</string>
 
-    <!-- Camera Options -->
     <string name="camera_type_html_new">Klipper (HTML stream)</string>
     <string name="camera_type_port_new">Port (8080 stream)</string>
     <string name="camera_type_webcam_new">Webcam (/webcam stream)</string>
