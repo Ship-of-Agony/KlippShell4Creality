@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">Nebyly nalezeny žádné tiskárny</string>
+    <string name="no_printers">Žádné tiskárny nejsou uloženy</string>
     <string name="saved_printers">Uložené Tiskárny</string>
     <string name="btn_search_network">Prohledat Síť</string>
     <string name="search_network">Skenování Sítě</string>
@@ -10,19 +10,19 @@
     <string name="btn_back">Zpět</string>
     <string name="printer_name_hint">Název Tiskárny</string>
     <string name="printer_ip_hint">IP Adresa</string>
-    <string name="printer_port_hint">Port (Volitelný)</string>
+    <string name="printer_port_hint">Port (Volitelné)</string>
     <string name="printer_model_hint">Vybrat Model Tiskárny</string>
     <string name="search_model_hint">Hledat... (např. CR 10)</string>
     <string name="choose_port">Vybrat Port</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
     <string name="system_manual">Ruční Zadání</string>
-    <string name="add_printer_up">Přidat Tiskárnu ▲</string>
-    <string name="add_printer_down">Přidat Tiskárnu ▼</string>
+    <string name="add_printer_up">Přidat tiskárnu ▲</string>
+    <string name="add_printer_down">Přidat tiskárnu ▼</string>
 
     <string name="choose_default_view_title">Výchozí Rozhraní</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Živý Stream</string>
+    <string name="menu_change_camera_type">Živý stream přes</string>
 
     <string name="found_printers">Nalezené Tiskárny</string>
     <string name="toast_no_connection">Žádné připojení k tiskárně</string>
@@ -43,70 +43,87 @@
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Vyrobeno s ❤️ v Německu</string>
     <string name="dng_thanks">Inspirováno projektem KlippHub od DnG Crafts</string>
-    <string name="easter_egg_success">Než se mě zeptáš, vyrovnej podložku!</string>
+    <string name="easter_egg_success">Vyrovnej podložku, než se mě zeptáš!</string>
 
     <string name="reset_app">Resetovat Aplikaci</string>
     <string name="reset_app_title">Smazat všechna data?</string>
     <string name="reset_app_yes">Ano, smazat vše</string>
     <string name="reset_app_cancel">Zrušit</string>
 
-    <!-- THE ABOUT BLOCK -->
     <string name="btn_about_menu">O KlippShell</string>
     <string name="btn_check_updates">Zkontrolovat Aktualizace</string>
 
-    <!-- GitHub Updater -->
     <string name="toast_checking_updates">Kontrola verze…</string>
     <string name="update_available_title">Aktualizace na verzi %1$s je k dispozici!</string>
     <string name="btn_download_now">Stáhnout Nyní</string>
     <string name="btn_later">Později</string>
     <string name="toast_update_error_code">Chyba stahování (Kód: %1$d)</string>
-    <string name="toast_update_server_error">Server je nedostupný</string>
-    <string name="toast_update_browser_error">Prohlížeč nebylo možné otevřít</string>
+    <string name="toast_update_server_error">Server nedostupný</string>
+    <string name="toast_update_browser_error">Prohlížeč nelze otevřít</string>
 
-    <!-- License Link -->
-    <string name="license_link_text">Licence &amp; Autorská Práva</string>
+    <string name="license_link_text">Licence a Autorská Práva</string>
 
-    <string name="about_changelog_title">Historie změn</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Přidán GitHub OTA Updater: Asynchronní online kontrola aktualizací přes GitHub API\n• Integrovaný prohlížeč licencí: Přidáno nové rolovací dialogové okno pro kredity a autorská práva\n• Vyčištění UI: Odstraněny redundantní textové řádky v sekci O aplikaci, velikonoční vajíčko s logem chráněno\n• Zvýšená stabilita: Opraveny chyby null-safety v Kotlinu a optimalizováno zaměření dialogů\n\nv0.8.4.300526-rc\n• Přidáno vyhledávací dialogové okno TV pro výběr modelu\n• Implementováno tolerantní vyhledávání G-kódu/modelu\n• Optimalizováno dotazování paměti pro Moonraker\n\nv0.8.3\n• Zvýšená bezpečnost zaměření D-padu pro úrovně menu\n• Stabilizované audio kanály SoundManageru\n• Opraven reset SharedPreferences</string>
+    <string name="about_changelog_title">Seznam Změn</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• Přidán aktualizátor OTA GitHub: Asynchronní online kontrola nových verzí\n• Integrovaný prohlížeč licencí: Nové rolovací dialogové okno pro autorská práva\n• Čištění rozvržení: Odstraněny nadbytečné texty, chráněné velikonoční vajíčko loga\n• Zvýšená stabilita: Opraveny chyby null-safety v Kotlinu a optimalizováno zaměření dialogů\n\nv0.8.4.300526-rc\n• Přidán vyhledávací dialog TV pro výběr modelu\n• Implementováno tolerantní vyhledávání G-code/modelu\n• Optimalizováno dotazování paměti pro Moonraker\n• Zvýšená bezpečnost zaměření D-padu pro úrovně menu\n• Stabilizované zvukové kanály SoundManager\n• Opraven reset SharedPreferences</string>
     <string name="settings_optimized_tv">Optimalizováno pro Android TV</string>
 
     <string name="menu_options_title">Možnosti</string>
     <string name="menu_osd_show">Zobrazit OSD</string>
     <string name="menu_osd_hide">Skrýt OSD</string>
+
+    <string name="osd_position_title">Vybrat Pozici OSD</string>
+    <string name="osd_pos_top_left">Nahoře Vlevo</string>
+    <string name="osd_pos_top_center">Nahoře Uprostřed</string>
+    <string name="osd_pos_top_right">Nahoře Vpravo</string>
+    <string name="osd_pos_bottom_center">Dole Uprostřed</string>
+    <string name="toast_position_saved">Pozice uložena ✓</string>
+    <string name="toast_position_fullscreen_only">Polohování je k dispozici pouze v režimu celé obrazovky</string>
+
+    <string name="menu_ratio_title">Změnit Poměr Stran</string>
+    <string name="ratio_16_9_new">16:9 Širokoúhlé</string>
+    <string name="ratio_4_3_new">4:3 Standardní</string>
+    <string name="ratio_1_1_new">1:1 Čtverec</string>
+
     <string name="menu_ratio">Změnit Poměr Stran</string>
     <string name="ratio_16_9">16:9 Širokoúhlé</string>
     <string name="ratio_4_3">4:3 Standardní</string>
     <string name="ratio_1_1">1:1 Čtverec</string>
+
+    <string name="camera_type_html_new">Klipper (HTML stream)</string>
+    <string name="camera_type_port_new">Port (8080 stream)</string>
+    <string name="camera_type_webcam_new">Webcam (/webcam stream)</string>
+
     <string name="camera_type_html">HTML Stream Klipper</string>
-    <string name="camera_type_port">Stream Portu 8080</string>
-    <string name="camera_type_webcam">Stream Cesty Webkamery</string>
-    <string name="menu_emergency_stop">STOP</string>
+    <string name="camera_type_port">Stream z Portu 8080</string>
+    <string name="camera_type_webcam">Stream Cesty Webcam</string>
+
+    <string name="menu_emergency_stop">NOUZOVÉ ZASTAVENÍ</string>
     <string name="dialog_stop_title">Zastavit Tiskárnu?</string>
-    <string name="dialog_stop_confirm">ANO - IHNED ZASTAVIT</string>
-    <string name="dialog_cancel">Zrušit</string>
+    <string name="dialog_stop_confirm">ANO - OKAMŽITĚ ZASTAVIT</string>
+    <string name="dialog_cancel">Anuluj</string>
     <string name="toast_stop_success">NOUZOVÉ ZASTAVENÍ odesláno!</string>
-    <string name="toast_stop_error">Chyba při odesílání: </string>
+    <string name="toast_stop_error">Chyba odesílání: </string>
     <string name="toast_loading_dashboard">Načítání Klipper OS...</string>
     <string name="osd_printer_offline">Tiskárna Offline</string>
 
     <string name="osd_extruder">Tryska: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_bed">Podložka: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Komora: %1$.1f°C</string>
-    <string name="osd_chamber_heater">Ohřev: %1$.1f°C / %2$.1f°C</string>
+    <string name="osd_chamber_heater">Ohřívač: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_fan_model">Ofuk Modelu: %1$.0f%%</string>
     <string name="osd_fan_aux">Pomocný Ofuk: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Odtahový Ofuk: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Odtahový Ventilátor: %1$.0f%%</string>
     <string name="osd_time">Čas: %1$s / %2$s</string>
 
     <string name="event_offline">Offline</string>
     <string name="event_first_layer">První Vrstva</string>
-    <string name="event_50">50% hotovo</string>
-    <string name="event_75">75% hotovo</string>
-    <string name="event_90">90% hotovo</string>
+    <string name="event_50">Dosaženo 50%</string>
+    <string name="event_75">Dosaženo 75%</string>
+    <string name="event_90">Dosaženo 90%</string>
     <string name="event_100">Dokončeno</string>
     <string name="event_error">Chyba</string>
 
-    <string name="notify_title_offline">Ztráta Připojení</string>
+    <string name="notify_title_offline">Připojení Ztraceno</string>
     <string name="notify_msg_offline">Tiskárna již neodpovídá.</string>
     <string name="notify_btn_offline">Rozumím</string>
 
@@ -114,10 +131,10 @@
     <string name="notify_msg_first_layer">Tiskne se první vrstva.</string>
     <string name="notify_title_50">Polovina hotova!</string>
     <string name="notify_msg_50">50% tisku je dokončeno.</string>
-    <string name="notify_title_75">Téměř hotovo</string>
+    <string name="notify_title_75">Téměř Hotovo</string>
     <string name="notify_msg_75">75% tisku je dokončeno.</string>
-    <string name="notify_title_90">Závěrečná fáze</string>
-    <string name="notify_msg_90">Dosáhnuto 90% tisku.</string>
+    <string name="notify_title_90">Cílová Rovinka</string>
+    <string name="notify_msg_90">Bylo dosaženo 90% tisku.</string>
     <string name="notify_title_100">Tisk Dokončen!</string>
     <string name="notify_msg_100">3D tisk byl úspěšně dokončen.</string>
     <string name="notify_title_error">Chyba Klipperu</string>
@@ -127,15 +144,15 @@
     <string name="notify_btn_success">Super</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Osvětlení Zap</string>
-    <string name="menu_light_off">Osvětlení Vyp</string>
+    <string name="menu_light_on">Zapnout Osvětlení</string>
+    <string name="menu_light_off">Vypnout Osvětlení</string>
     <string name="toast_light_error">Odesílání selhalo</string>
-    <string name="menu_screensaver">Spořič obrazovky</string>
-    <string name="screensaver_title">Automatické ztmavení po...</string>
-    <string name="screensaver_now">Aktivovat ihned</string>
-    <string name="screensaver_30">30 minutách</string>
-    <string name="screensaver_60">60 minutách</string>
-    <string name="screensaver_90">90 minutách</string>
-    <string name="screensaver_120">120 minutách</string>
+    <string name="menu_screensaver">Spořič Obrazovky</string>
+    <string name="screensaver_title">Automatické ztlumení po...</string>
+    <string name="screensaver_now">Aktivovat Nyní</string>
+    <string name="screensaver_30">30 Minut</string>
+    <string name="screensaver_60">60 Minut</string>
+    <string name="screensaver_90">90 Minut</string>
+    <string name="screensaver_120">120 Minut</string>
     <string name="screensaver_off">Deaktivováno</string>
 </resources>

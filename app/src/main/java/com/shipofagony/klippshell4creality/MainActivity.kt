@@ -15,6 +15,7 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -60,6 +61,10 @@ class MainActivity : AppCompatActivity() {
     private var selectedSystemIndex = 0
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    // Karussell-Liste für den TV-Modus (Schnellauswahl via Links/Rechts)
+    private val tvTopModels = arrayOf("Custom Printer", "K1", "K1C", "K1 Max", "Ender 3 V3", "Ender 3 V3 KE")
+    private var currentTvModelIndex = 0
+
     private val printerMap = mapOf(
         "Custom Printer" to "custem",
         "CR-10" to "cr_10", "CR-10 SE" to "cr_10se", "CR-10 Smart" to "cr_10smart",
@@ -79,6 +84,11 @@ class MainActivity : AppCompatActivity() {
         "Sonic Pad (Ender 3 S1)" to "sonic_ender_3s1", "Sonic Pad (Ender 5 S1)" to "sonic_ender_5s1",
         "Spark Xi7" to "sparkxi7"
     )
+
+    private fun isAndroidTV(): Boolean {
+        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as android.app.UiModeManager
+        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+    }
 
     private fun getPrinterImageResource(modelName: String): Int {
         val mappedName = printerMap[modelName] ?: modelName.lowercase(Locale.getDefault()).replace(" ", "").replace("-", "_")
@@ -169,11 +179,62 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        actvMainPrinterModel.inputType = InputType.TYPE_NULL
-        actvMainPrinterModel.setOnClickListener {
-            val models = printerMap.keys.toTypedArray()
-            showModelSelectionSearchDialog(getString(R.string.printer_model_hint), models) { selectedModel ->
-                actvMainPrinterModel.setText(selectedModel, false)
+        // ---- STRUKTURELLE PLATTFORM-TRENNUNG FÜR DIE MODELLAUSWAHL ----
+        val models = printerMap.keys.toTypedArray()
+
+        if (isAndroidTV()) {
+            // Android TV Setup
+            actvMainPrinterModel.showSoftInputOnFocus = false
+            actvMainPrinterModel.inputType = InputType.TYPE_NULL
+
+            // Klick/Center-Taste öffnet sofort den Suchdialog
+            actvMainPrinterModel.setOnClickListener {
+                showModelSelectionSearchDialog(getString(R.string.printer_model_hint), models) { selectedModel ->
+                    actvMainPrinterModel.setText(selectedModel, false)
+                    // Index synchronisieren, falls das gewählte Modell im Karussell existiert
+                    val idx = tvTopModels.indexOf(selectedModel)
+                    if (idx != -1) currentTvModelIndex = idx
+                }
+            }
+
+            // D-Pad Links/Rechts-Navigation für das Karussell abfangen
+            actvMainPrinterModel.setOnKeyListener { _, keyCode, event ->
+                if (event.action == KeyEvent.ACTION_DOWN) {
+                    when (keyCode) {
+                        KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                            currentTvModelIndex = (currentTvModelIndex + 1) % tvTopModels.size
+                            actvMainPrinterModel.setText(tvTopModels[currentTvModelIndex], false)
+                            return@setOnKeyListener true
+                        }
+                        KeyEvent.KEYCODE_DPAD_LEFT -> {
+                            currentTvModelIndex = if (currentTvModelIndex - 1 < 0) tvTopModels.size - 1 else currentTvModelIndex - 1
+                            actvMainPrinterModel.setText(tvTopModels[currentTvModelIndex], false)
+                            return@setOnKeyListener true
+                        }
+                    }
+                }
+                false
+            }
+        } else {
+            // Smartphone Setup
+            actvMainPrinterModel.showSoftInputOnFocus = true
+            actvMainPrinterModel.inputType = InputType.TYPE_CLASS_TEXT
+
+            val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, models)
+            actvMainPrinterModel.setAdapter(adapter)
+
+            actvMainPrinterModel.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    if (actvMainPrinterModel.isFocused && !s.isNullOrEmpty()) {
+                        actvMainPrinterModel.showDropDown()
+                    }
+                }
+                override fun afterTextChanged(s: Editable?) {}
+            })
+
+            actvMainPrinterModel.setOnClickListener {
+                actvMainPrinterModel.showDropDown()
             }
         }
 
@@ -211,6 +272,7 @@ class MainActivity : AppCompatActivity() {
                     etMainPrinterIP.text.clear()
                     etMainPrinterPort.text.clear()
                     actvMainPrinterModel.setText("Custom Printer", false)
+                    currentTvModelIndex = 0
 
                     selectedSystemIndex = 0
                     btnSystemSelect.text = "4408"

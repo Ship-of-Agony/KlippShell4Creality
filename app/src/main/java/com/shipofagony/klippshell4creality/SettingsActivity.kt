@@ -33,6 +33,7 @@ import com.google.android.material.shape.ShapeAppearanceModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -110,6 +111,9 @@ class SettingsActivity : AppCompatActivity() {
         val btnPillThemeDark = findViewById<MaterialButton>(R.id.btnPillThemeDark)
         val btnPillThemeSystem = findViewById<MaterialButton>(R.id.btnPillThemeSystem)
 
+        val btnSubMenuSounds = findViewById<MaterialButton>(R.id.btnSubMenuSounds)
+        val btnSubMenuPopups = findViewById<MaterialButton>(R.id.btnSubMenuPopups)
+
         val btnCheckUpdates = findViewById<MaterialButton>(R.id.btnCheckUpdates)
         val ivAboutStudioLogo = findViewById<ImageView>(R.id.ivAboutStudioLogo)
 
@@ -177,7 +181,15 @@ class SettingsActivity : AppCompatActivity() {
             panelNotifySelect.visibility = View.VISIBLE
             currentMenuLayer = 1
             tvSettingsTitle.text = getString(R.string.settings_notify_title)
-            findViewById<MaterialButton>(R.id.btnSubMenuSounds).requestFocus()
+            btnSubMenuSounds.requestFocus()
+        }
+
+        btnSubMenuSounds.setOnClickListener {
+            showSoundsConfigurationDialog()
+        }
+
+        btnSubMenuPopups.setOnClickListener {
+            showPopupsConfigurationDialog()
         }
 
         btnAboutMenu.setOnClickListener {
@@ -248,7 +260,136 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        arrayOf(
+            btnThemeSelect, btnChangeLanguage, btnGlobalScreensaver, btnNotificationsMenu,
+            btnAboutMenu, btnResetApp, btnSubMenuSounds, btnSubMenuPopups
+        ).forEach { btn ->
+            btn.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
+                if (v is MaterialButton) {
+                    v.strokeWidth = if (hasFocus) 6 else 0
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+                }
+            }
+        }
+
         initPillButtonStates()
+    }
+
+    private fun showSoundsConfigurationDialog() {
+        val sOffline = prefs.getBoolean("sound_offline_enabled", true)
+        val sFirst = prefs.getBoolean("sound_first_layer_enabled", false)
+        val s50 = prefs.getBoolean("sound_50_enabled", false)
+        val s75 = prefs.getBoolean("sound_75_enabled", false)
+        val s90 = prefs.getBoolean("sound_90_enabled", false)
+        val s100 = prefs.getBoolean("sound_100_enabled", true)
+
+        val soundOptions = arrayOf(
+            getString(R.string.notify_title_offline),
+            getString(R.string.notify_title_first_layer),
+            getString(R.string.notify_title_50),
+            getString(R.string.notify_title_75),
+            getString(R.string.notify_title_90),
+            getString(R.string.notify_title_100)
+        )
+        val activeStates = arrayOf(sOffline, sFirst, s50, s75, s90, s100)
+        val customColors = Array<String?>(6) { i -> if (activeStates[i]) "#4CAF50" else null }
+
+        showTvDialog(getString(R.string.submenu_sounds_title), soundOptions, customColors) { index ->
+            val newState = !activeStates[index]
+            val key = when (index) {
+                0 -> "sound_offline_enabled"
+                1 -> "sound_first_layer_enabled"
+                2 -> "sound_50_enabled"
+                3 -> "sound_75_enabled"
+                4 -> "sound_90_enabled"
+                else -> "sound_100_enabled"
+            }
+            prefs.edit().putBoolean(key, newState).apply()
+
+            if (newState) {
+                val soundFile = when (index) {
+                    0 -> "sound_offline"
+                    1 -> "sound_first_layer"
+                    2 -> "sound_50"
+                    3 -> "sound_75"
+                    4 -> "sound_90"
+                    else -> "sound_100"
+                }
+                SoundManager.playLiveNotification(soundFile)
+            }
+
+            showSoundsConfigurationDialog()
+        }
+    }
+
+    // GEFIXT: Schließt jetzt kurz den Dialog, feuert das Popup im absoluten Vordergrund ab und öffnet ihn wieder
+    private fun showPopupsConfigurationDialog() {
+        val pOffline = prefs.getBoolean("popup_offline_enabled", true)
+        val pFirst = prefs.getBoolean("popup_first_layer_enabled", false)
+        val p50 = prefs.getBoolean("popup_50_enabled", false)
+        val p75 = prefs.getBoolean("popup_75_enabled", false)
+        val p90 = prefs.getBoolean("popup_90_enabled", false)
+        val p100 = prefs.getBoolean("popup_100_enabled", true)
+
+        val popupOptions = arrayOf(
+            getString(R.string.notify_title_offline),
+            getString(R.string.notify_title_first_layer),
+            getString(R.string.notify_title_50),
+            getString(R.string.notify_title_75),
+            getString(R.string.notify_title_90),
+            getString(R.string.notify_title_100)
+        )
+        val activeStates = arrayOf(pOffline, pFirst, p50, p75, p90, p100)
+        val customColors = Array<String?>(6) { i -> if (activeStates[i]) "#4CAF50" else null }
+
+        showTvDialog(getString(R.string.submenu_popups_title), popupOptions, customColors) { index ->
+            val newState = !activeStates[index]
+            val key = when (index) {
+                0 -> "popup_offline_enabled"
+                1 -> "popup_first_layer_enabled"
+                2 -> "popup_50_enabled"
+                3 -> "popup_75_enabled"
+                4 -> "popup_90_enabled"
+                else -> "popup_100_enabled"
+            }
+            prefs.edit().putBoolean(key, newState).apply()
+
+            if (newState) {
+                val tag = when (index) {
+                    0 -> "popup_offline"
+                    1 -> "popup_first_layer"
+                    2 -> "popup_50"
+                    3 -> "popup_75"
+                    4 -> "popup_90"
+                    else -> "popup_100"
+                }
+                val titleRes = when (index) {
+                    0 -> R.string.notify_title_offline
+                    1 -> R.string.notify_title_first_layer
+                    2 -> R.string.notify_title_50
+                    3 -> R.string.notify_title_75
+                    4 -> R.string.notify_title_90
+                    else -> R.string.notify_title_100
+                }
+                val msgRes = when (index) {
+                    0 -> R.string.notify_msg_offline
+                    1 -> R.string.notify_msg_first_layer
+                    2 -> R.string.notify_msg_50
+                    3 -> R.string.notify_msg_75
+                    4 -> R.string.notify_msg_90
+                    else -> R.string.notify_msg_100
+                }
+
+                // Exzellente TV-Nutzerführung: Kurze Verzögerung nutzen, damit die Kachel über dem abgedunkelten Dialog steht
+                Handler(Looper.getMainLooper()).postDelayed({
+                    NotificationManager.showLivePopup(this@SettingsActivity, tag, titleRes, msgRes)
+                }, 100)
+            }
+
+            // Der Dialog aktualisiert sich sofort im Hintergrund mit der neuen Farbe
+            showPopupsConfigurationDialog()
+        }
     }
 
     private fun buildDynamicLanguageMenu() {
@@ -530,7 +671,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun checkForUpdatesFromGithub() {
-        val apiUrl = "https://api.github.com/repos/shipofagony/KlippShell4Creality/releases/latest"
+        val apiUrl = "https://api.github.com/repos/shipofagony/KlippShell4Creality/releases"
 
         lifecycleScope.launch(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
@@ -538,42 +679,54 @@ class SettingsActivity : AppCompatActivity() {
                 val url = URL(apiUrl)
                 connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
-                connection.connectTimeout = 3000
-                connection.readTimeout = 3000
+                connection.connectTimeout = 4000
+                connection.readTimeout = 4000
+                connection.useCaches = false
+
+                connection.setRequestProperty("User-Agent", "KlippShell-App")
                 connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
 
-                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
                     val responseText = connection.inputStream.bufferedReader().use { it.readText() }
-                    val jsonObject = JSONObject(responseText)
+                    val jsonArray = JSONArray(responseText)
 
-                    val latestVersionTag = jsonObject.optString("tag_name", "").replace("v", "").trim()
+                    if (jsonArray.length() > 0) {
+                        val jsonObject = jsonArray.getJSONObject(0)
 
-                    val assetsArray = jsonObject.optJSONArray("assets")
-                    var downloadUrl = ""
-                    if (assetsArray != null && assetsArray.length() > 0) {
-                        downloadUrl = assetsArray.optJSONObject(0).optString("browser_download_url", "")
-                    }
+                        val latestVersionTag = jsonObject.optString("tag_name", "").replace("v", "").trim()
 
-                    val currentVersionName = try {
-                        packageManager.getPackageInfo(packageName, 0).versionName?.replace("v", "")?.trim() ?: "0.8.4"
-                    } catch (e: Exception) {
-                        "0.8.4"
-                    }
+                        val assetsArray = jsonObject.optJSONArray("assets")
+                        var downloadUrl = ""
+                        if (assetsArray != null && assetsArray.length() > 0) {
+                            downloadUrl = assetsArray.optJSONObject(0).optString("browser_download_url", "")
+                        }
 
-                    withContext(Dispatchers.Main) {
-                        if (latestVersionTag.isNotEmpty() && latestVersionTag != currentVersionName) {
-                            showUpdateAvailableDialog(latestVersionTag, downloadUrl)
-                        } else {
+                        val currentVersionName = try {
+                            packageManager.getPackageInfo(packageName, 0).versionName?.replace("v", "")?.trim() ?: "0.8.4"
+                        } catch (e: Exception) {
+                            "0.8.4"
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            if (latestVersionTag.isNotEmpty() && latestVersionTag != currentVersionName) {
+                                showUpdateAvailableDialog(latestVersionTag, downloadUrl)
+                            } else {
+                                showCenteredPillToast(getString(R.string.btn_check_updates) + " ✓")
+                            }
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
                             showCenteredPillToast(getString(R.string.btn_check_updates) + " ✓")
                         }
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        showCenteredPillToast(getString(R.string.toast_update_error_code, connection.responseCode))
+                        showCenteredPillToast(getString(R.string.toast_update_error_code, responseCode))
                     }
                 }
             } catch (e: Exception) {
-                Log.e("KlippShell", "GitHub Update-Check fehlgeschlagen", e)
+                Log.e("KlippShell", "GitHub Update-Check failed", e)
                 withContext(Dispatchers.Main) {
                     showCenteredPillToast(getString(R.string.toast_update_server_error))
                 }
@@ -638,7 +791,6 @@ class SettingsActivity : AppCompatActivity() {
         scrollView.addView(tvContent)
         container?.addView(scrollView)
 
-        // GEFIXT: Der „OK“-Schließen Button leuchtet nun im einheitlichen KlippShell-Grün (#4CAF50)
         val closeBtn = MaterialButton(this).apply {
             text = getString(R.string.notify_btn_default)
             isAllCaps = false
@@ -647,7 +799,6 @@ class SettingsActivity : AppCompatActivity() {
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
             setPadding(0, 30, 0, 30)
 
-            // Hier weisen wir ihm die grüne Akzentfarbe und weiße Schrift zu
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
             setTextColor(Color.WHITE)
 

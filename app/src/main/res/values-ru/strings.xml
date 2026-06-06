@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">Принтеры не найдены</string>
+    <string name="no_printers">Нет сохраненных принтеров</string>
     <string name="saved_printers">Сохраненные Принтеры</string>
-    <string name="btn_search_network">Сканировать Сеть</string>
+    <string name="btn_search_network">Поиск в Сети</string>
     <string name="search_network">Сканирование Сети</string>
     <string name="btn_add">Добавить</string>
     <string name="btn_exit">Выход</string>
     <string name="btn_back">Назад</string>
     <string name="printer_name_hint">Имя Принтера</string>
     <string name="printer_ip_hint">IP-Адрес</string>
-    <string name="printer_port_hint">Порт (Опционально)</string>
+    <string name="printer_port_hint">Port (Опционально)</string>
     <string name="printer_model_hint">Выбрать Модель Принтера</string>
     <string name="search_model_hint">Поиск... (напр., CR 10)</string>
     <string name="choose_port">Выбрать Порт</string>
     <string name="system_creality">Creality OS (4408)</string>
-    <string name="system_standard">Klipper Standard (7125)</string>
+    <string name="system_standard">Klipper Стандарт (7125)</string>
     <string name="system_manual">Ручной Ввод</string>
-    <string name="add_printer_up">Добавить Принтер ▲</string>
-    <string name="add_printer_down">Добавить Принтер ▼</string>
+    <string name="add_printer_up">Добавить принтер ▲</string>
+    <string name="add_printer_down">Добавить принтер ▼</string>
 
     <string name="choose_default_view_title">Интерфейс по Умолчанию</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Live-Поток</string>
+    <string name="menu_change_camera_type">Прямой эфир через</string>
 
     <string name="found_printers">Найденные Принтеры</string>
-    <string name="toast_no_connection">Нет подключения к принтеру</string>
+    <string name="toast_no_connection">Нет связи с принтером</string>
     <string name="yes_delete">Удалить</string>
     <string name="cancel">Отмена</string>
-    <string name="reset_confirm_msg">Вы уверены, что хотите удалить этот принтер?</string>
+    <string name="reset_confirm_msg">Вы действительно хотите удалить этот принтер?</string>
 
     <string name="settings_title">Настройки</string>
-    <string name="theme_title">Тема Приложения</string>
+    <string name="theme_title">Дизайн Приложения</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Темная</string>
     <string name="theme_system">Как в Системе</string>
@@ -50,44 +50,61 @@
     <string name="reset_app_yes">Да, удалить все</string>
     <string name="reset_app_cancel">Отмена</string>
 
-    <!-- THE ABOUT BLOCK -->
     <string name="btn_about_menu">О KlippShell</string>
     <string name="btn_check_updates">Проверить Обновления</string>
 
-    <!-- GitHub Updater -->
     <string name="toast_checking_updates">Проверка версии…</string>
     <string name="update_available_title">Доступно обновление до версии %1$s!</string>
     <string name="btn_download_now">Скачать Сейчас</string>
     <string name="btn_later">Позже</string>
-    <string name="toast_update_error_code">Ошибка загрузки (Код: %1$d)</string>
-    <string name="toast_update_server_error">Сервер недоступен</string>
+    <string name="toast_update_error_code">Ошибка получения (Код: %1$d)</string>
+    <string name="toast_update_server_error">Server не доступен</string>
     <string name="toast_update_browser_error">Не удалось открыть браузер</string>
 
-    <!-- License Link -->
-    <string name="license_link_text">Лицензии &amp; Авторские Права</string>
+    <string name="license_link_text">Лицензии и Авторские Права</string>
 
-    <string name="about_changelog_title">История изменений</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Добавлен GitHub OTA Updater: Асинхронная проверка обновлений онлайн через GitHub API\n• Встроенный просмотрщик лицензий: Добавлено новое прокручиваемое диалоговое окно для авторов и лицензий\n• Очистка интерфейса: Удалены лишние строки текста в разделе О программе, пасхалка с логотипом сохранена\n• Повышена стабильность: Исправлены ошибки null-safety в Kotlin и оптимизирован фокус диалогов\n\nv0.8.4.300526-rc\n• Добавлен поисковый ТВ-диалог для выбора модели\n• Реализован толерантный поиск G-кода/модели\n• Оптимизирован опрос памяти для Moonraker\n\nv0.8.3\n• Повышена безопасность фокуса D-pad для уровней меню\n• Стабилизированы аудиоканалы SoundManager\n• Исправлен сброс SharedPreferences</string>
+    <string name="about_changelog_title">Список Изменений</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• Добавлено обновление OTA через GitHub: Асинхронная проверка новых релизов в сети\n• Встроенный просмотрщик лицензий: Новое прокручиваемое диалоговое окно авторских прав\n• Очистка макета: Удалены лишние тексты, защищена пасхалка с логотипом\n• Повышена стабильность: Исправлены ошибки null-safety в Kotlin и оптимизирован фокус диалогов\n\nv0.8.4.300526-rc\n• Добавлен диалог поиска на ТВ для выбора модели\n• Реализован толерантный поиск G-кода/модели\n• Оптимизирован опрос памяти для Moonraker\n• Повышена безопасность фокуса D-pad для слоев меню\n• Стабилизированы аудиоканалы SoundManager\n• Исправлен сброс SharedPreferences</string>
     <string name="settings_optimized_tv">Оптимизировано для Android TV</string>
 
     <string name="menu_options_title">Опции</string>
     <string name="menu_osd_show">Показать OSD</string>
     <string name="menu_osd_hide">Скрыть OSD</string>
+
+    <string name="osd_position_title">Выбрать Позицию OSD</string>
+    <string name="osd_pos_top_left">Сверху Слева</string>
+    <string name="osd_pos_top_center">Сверху По Центру</string>
+    <string name="osd_pos_top_right">Сверху Справа</string>
+    <string name="osd_pos_bottom_center">Сниэу По Центру</string>
+    <string name="toast_position_saved">Позиция сохранена ✓</string>
+    <string name="toast_position_fullscreen_only">Позиционирование доступно только в полноэкранном режиме</string>
+
+    <string name="menu_ratio_title">Изменить Соотношение Сторон</string>
+    <string name="ratio_16_9_new">16:9 Широкоэкранный</string>
+    <string name="ratio_4_3_new">4:3 Стандартный</string>
+    <string name="ratio_1_1_new">1:1 Квадратный</string>
+
     <string name="menu_ratio">Изменить Соотношение Сторон</string>
-    <string name="ratio_16_9">16:9 Широкоформатный</string>
+    <string name="ratio_16_9">16:9 Широкоэкранный</string>
     <string name="ratio_4_3">4:3 Стандартный</string>
     <string name="ratio_1_1">1:1 Квадратный</string>
-    <string name="camera_type_html">Klipper HTML Поток</string>
-    <string name="camera_type_port">Поток Порта 8080</string>
-    <string name="camera_type_webcam">Поток по Пути Веб-камеры</string>
-    <string name="menu_emergency_stop">СТОП</string>
+
+    <string name="camera_type_html_new">Klipper (HTML-поток)</string>
+    <string name="camera_type_port_new">Порт (Поток 8080)</string>
+    <string name="camera_type_webcam_new">Веб-камера (Поток /webcam)</string>
+
+    <string name="camera_type_html">HTML-Поток Klipper</string>
+    <string name="camera_type_port">Поток с Порта 8080</string>
+    <string name="camera_type_webcam">Поток Пути Веб-камеры</string>
+
+    <string name="menu_emergency_stop">АВАРИЙНЫЙ ОСТАНОВ</string>
     <string name="dialog_stop_title">Остановить Принтер?</string>
     <string name="dialog_stop_confirm">ДА - ОСТАНОВИТЬ НЕМЕДЛЕННО</string>
     <string name="dialog_cancel">Отмена</string>
-    <string name="toast_stop_success">АВАРИЙНЫЙ СТОП отправлен!</string>
-    <string name="toast_stop_error">Ошибка при отправке: </string>
+    <string name="toast_stop_success">АВАРИЙНЫЙ ОСТАНОВ отправлен!</string>
+    <string name="toast_stop_error">Ошибка отправки: </string>
     <string name="toast_loading_dashboard">Загрузка Klipper OS...</string>
-    <string name="osd_printer_offline">Принтер Офлайн</string>
+    <string name="osd_printer_offline">Принтер Не в Сети</string>
 
     <string name="osd_extruder">Сопло: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_bed">Стол: %1$.1f°C / %2$.1f°C</string>
@@ -95,28 +112,28 @@
     <string name="osd_chamber_heater">Нагреватель: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_fan_model">Обдув Модели: %1$.0f%%</string>
     <string name="osd_fan_aux">Доп. Обдув: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Вытяжной Обдув: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Вытяжной Вентилятор: %1$.0f%%</string>
     <string name="osd_time">Время: %1$s / %2$s</string>
 
     <string name="event_offline">Офлайн</string>
     <string name="event_first_layer">Первый Слой</string>
-    <string name="event_50">50% завершено</string>
-    <string name="event_75">75% завершено</string>
-    <string name="event_90">90% завершено</string>
-    <string name="event_100">Готово</string>
+    <string name="event_50">Достигнуто 50%</string>
+    <string name="event_75">Достигнуто 75%</string>
+    <string name="event_90">Достигнуто 90%</string>
+    <string name="event_100">Завершено</string>
     <string name="event_error">Ошибка</string>
 
     <string name="notify_title_offline">Связь Потеряна</string>
     <string name="notify_msg_offline">Принтер больше не отвечает.</string>
-    <string name="notify_btn_offline">Понятно</string>
+    <string name="notify_btn_offline">Закрыть</string>
 
     <string name="notify_title_first_layer">Первый Слой</string>
     <string name="notify_msg_first_layer">Печатается первый слой.</string>
     <string name="notify_title_50">Экватор!</string>
-    <string name="notify_msg_50">50% печати успешно завершено.</string>
-    <string name="notify_title_75">Почти готово</string>
-    <string name="notify_msg_75">75% печати успешно завершено.</string>
-    <string name="notify_title_90">Финишная прямая</string>
+    <string name="notify_msg_50">50% печати завершено.</string>
+    <string name="notify_title_75">Почти Готово</string>
+    <string name="notify_msg_75">75% печати завершено.</string>
+    <string name="notify_title_90">Финишная Прямая</string>
     <string name="notify_msg_90">Достигнуто 90% печати.</string>
     <string name="notify_title_100">Печать Завершена!</string>
     <string name="notify_msg_100">3D-печать успешно завершена.</string>
@@ -127,15 +144,15 @@
     <string name="notify_btn_success">Отлично</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Включить Свет</string>
-    <string name="menu_light_off">Выключить Свет</string>
+    <string name="menu_light_on">Включить Подсветку</string>
+    <string name="menu_light_off">Выключить Подсветку</string>
     <string name="toast_light_error">Ошибка отправки</string>
-    <string name="menu_screensaver">Хранитель экрана</string>
+    <string name="menu_screensaver">Хранитель Экрана</string>
     <string name="screensaver_title">Автозатемнение через...</string>
-    <string name="screensaver_now">Активировать сейчас</string>
-    <string name="screensaver_30">30 минут</string>
-    <string name="screensaver_60">60 минут</string>
-    <string name="screensaver_90">90 минут</string>
-    <string name="screensaver_120">120 минут</string>
+    <string name="screensaver_now">Aктивировать Сейчас</string>
+    <string name="screensaver_30">30 Минут</string>
+    <string name="screensaver_60">60 Минут</string>
+    <string name="screensaver_90">90 Минут</string>
+    <string name="screensaver_120">120 Минут</string>
     <string name="screensaver_off">Отключен</string>
 </resources>

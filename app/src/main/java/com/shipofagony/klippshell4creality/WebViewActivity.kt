@@ -236,7 +236,7 @@ class WebViewActivity : AppCompatActivity() {
                     osdOptionText,
                     getString(R.string.menu_light_on).substringBefore(" "),
                     getString(R.string.menu_screensaver),
-                    getString(R.string.menu_ratio),
+                    getString(R.string.menu_ratio_title),
                     getString(R.string.menu_change_camera_type),
                     getString(R.string.menu_emergency_stop)
                 )
@@ -294,16 +294,18 @@ class WebViewActivity : AppCompatActivity() {
                             }
                         }
                         3 -> {
+                            // GEFIXT: Das Array lädt jetzt alle 3 echten Formate aus deiner strings.xml
                             val ratioOptions = arrayOf(
-                                getString(R.string.menu_ratio),
-                                getString(R.string.ratio_4_3),
-                                getString(R.string.ratio_1_1)
+                                getString(R.string.ratio_16_9_new),
+                                getString(R.string.ratio_4_3_new),
+                                getString(R.string.ratio_1_1_new)
                             )
-                            showPillDialog(getString(R.string.menu_ratio), ratioOptions) { ratioIndex ->
+                            // menu_ratio_title wird hier sauber als Dialog-Überschrift übergeben
+                            showPillDialog(getString(R.string.menu_ratio_title), ratioOptions) { ratioIndex ->
                                 val targetRatio = when(ratioIndex) {
-                                    1 -> 75.0f
-                                    2 -> 100.0f
-                                    else -> 56.25f
+                                    0 -> 56.25f   // Index 0 schaltet fehlerfrei zurück auf 16:9 Breitbild
+                                    1 -> 75.0f    // Index 1 schaltet auf 4:3 Standard
+                                    else -> 100.0f // Index 2 schaltet auf 1:1 Quadrat
                                 }
                                 getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
                                     .edit().putFloat("camera_ratio_$hostIpAddress", targetRatio).apply()
@@ -313,9 +315,9 @@ class WebViewActivity : AppCompatActivity() {
                         4 -> {
                             val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIpAddress", initialPort)
                             val camOptions = arrayOf(
-                                getString(R.string.camera_type_html),
-                                getString(R.string.camera_type_port),
-                                getString(R.string.camera_type_webcam)
+                                getString(R.string.camera_type_html_new),
+                                getString(R.string.camera_type_port_new),
+                                getString(R.string.camera_type_webcam_new)
                             )
                             showPillDialog(getString(R.string.menu_change_camera_type), camOptions) { camIndex ->
                                 val newUrl = when(camIndex) {

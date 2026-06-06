@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">Nie znaleziono drukarek</string>
+    <string name="no_printers">Brak zapisanych drukarek</string>
     <string name="saved_printers">Zapisane Drukarki</string>
     <string name="btn_search_network">Przeszukaj Sieć</string>
     <string name="search_network">Skanowanie Sieci</string>
@@ -17,12 +17,12 @@
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
     <string name="system_manual">Ręczne Wprowadzanie</string>
-    <string name="add_printer_up">Dodaj Drukarkę ▲</string>
-    <string name="add_printer_down">Dodaj Drukarkę ▼</string>
+    <string name="add_printer_up">Dodaj drukarkę ▲</string>
+    <string name="add_printer_down">Dodaj drukarkę ▼</string>
 
     <string name="choose_default_view_title">Domyślny Interfejs</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Stream na Żywo</string>
+    <string name="menu_change_camera_type">Strumień na żywo przez</string>
 
     <string name="found_printers">Znalezione Drukarki</string>
     <string name="toast_no_connection">Brak połączenia z drukarką</string>
@@ -41,20 +41,18 @@
     <string name="submenu_popups_title">Zarządzaj Popupami</string>
 
     <string name="studio_name">Ship of Agony LABs</string>
-    <string name="made_in_germany">Wyprodukowano z ❤️ w Niemczech</string>
-    <string name="dng_thanks">Inspirowane projektem KlippHub autorstwa DnG Crafts</string>
-    <string name="easter_egg_success">Wypoziomuj stół zanim mnie zapytasz!</string>
+    <string name="made_in_germany">Wykonano z ❤️ w Niemczech</string>
+    <string name="dng_thanks">Inspirowane projektem KlippHub od DnG Crafts</string>
+    <string name="easter_egg_success">Wypoziomuj stół, zanim zapytasz!</string>
 
     <string name="reset_app">Resetuj Aplikację</string>
     <string name="reset_app_title">Usunąć wszystkie dane?</string>
     <string name="reset_app_yes">Tak, usuń wszystko</string>
     <string name="reset_app_cancel">Anuluj</string>
 
-    <!-- THE ABOUT BLOCK -->
     <string name="btn_about_menu">O KlippShell</string>
     <string name="btn_check_updates">Sprawdź Aktualizacje</string>
 
-    <!-- GitHub Updater -->
     <string name="toast_checking_updates">Sprawdzanie wersji…</string>
     <string name="update_available_title">Aktualizacja do wersji %1$s jest dostępna!</string>
     <string name="btn_download_now">Pobierz Teraz</string>
@@ -63,24 +61,43 @@
     <string name="toast_update_server_error">Serwer niedostępny</string>
     <string name="toast_update_browser_error">Nie można otworzyć przeglądarki</string>
 
-    <!-- License Link -->
-    <string name="license_link_text">Licencje &amp; Prawa Autorskie</string>
+    <string name="license_link_text">Licencje i Prawa Autorskie</string>
 
-    <string name="about_changelog_title">Lista zmian</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Dodano GitHub OTA Updater: Asynchroniczne sprawdzanie aktualizacji online przez API GitHub\n• Zintegrowana przeglądarka licencji: Dodano nowe przewijalne okno dialogowe dla kredytów i licencji\n• Czyszczenie UI: Usunięto redundantne linie tekstu w sekcji O aplikacji, zabezpieczono Easter Egg z logo\n• Zwiększona stabilność: Naprawiono błędy null-safety w Kotlinie i zoptymalizowano fokus okien\n\nv0.8.4.300526-rc\n• Dodano okno wyszukiwania TV do wyboru modelu\n• Zaimplementowano tolerancyjne wyszukiwanie kodu G/modelu\n• Zoptymalizowano odpytywanie pamięci dla Moonraker\n\nv0.8.3\n• Zwiększone bezpieczeństwo fokusu D-pad dla poziomów menu\n• Stabilizacja kanałów audio w SoundManagerze\n• Naprawiono reset SharedPreferences</string>
+    <string name="about_changelog_title">Lista Zmian</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• Dodano aktualizator OTA GitHub: Asynchroniczne sprawdzanie nowych wydań online\n• Zintegrowana przeglądarka licencji: Nowe przewijane okno dialogowe praw autorskich\n• Czyszczenie układu: Usunięto nadmiarowe teksty, ukryte logo easter egg chronione\n• Zwiększona stabilność: Naprawiono błędy null-safety w Kotlinie i zoptymalizowano ostrość dialogów\n\nv0.8.4.300526-rc\n• Dodano dialog wyszukiwania TV dla wyboru modelu\n• Wdrożono tolerancyjne wyszukiwanie G-code/modelu\n• Zoptymalizowano odpytywanie pamięci dla Moonrakera\n• Zwiększono bezpieczeństwo fokusu D-pada dla warstw menu\n• Stabilizacja kanałów audio SoundManager\n• Naprawiono reset SharedPreferences</string>
     <string name="settings_optimized_tv">Zoptymalizowano dla Android TV</string>
 
     <string name="menu_options_title">Opcje</string>
     <string name="menu_osd_show">Pokaż OSD</string>
     <string name="menu_osd_hide">Ukryj OSD</string>
-    <string name="menu_ratio">Zmień Proporcje Obrazu</string>
+
+    <string name="osd_position_title">Wybierz Pozycję OSD</string>
+    <string name="osd_pos_top_left">Góra Lewo</string>
+    <string name="osd_pos_top_center">Góra Środek</string>
+    <string name="osd_pos_top_right">Góra Prawo</string>
+    <string name="osd_pos_bottom_center">Dół Środek</string>
+    <string name="toast_position_saved">Pozycja zapisana ✓</string>
+    <string name="toast_position_fullscreen_only">Pozycjonowanie dostępne tylko w strumieniu pełnoekranowym</string>
+
+    <string name="menu_ratio_title">Zmień Proporcje Ekranu</string>
+    <string name="ratio_16_9_new">16:9 Panoramiczny</string>
+    <string name="ratio_4_3_new">4:3 Standardowy</string>
+    <string name="ratio_1_1_new">1:1 Kwadratowy</string>
+
+    <string name="menu_ratio">Zmień Proporcje Ekranu</string>
     <string name="ratio_16_9">16:9 Panoramiczny</string>
     <string name="ratio_4_3">4:3 Standardowy</string>
-    <string name="ratio_1_1">1:1 Kwadrat</string>
-    <string name="camera_type_html">Stream HTML Klipper</string>
-    <string name="camera_type_port">Stream Port 8080</string>
-    <string name="camera_type_webcam">Stream Ścieżki Webcam</string>
-    <string name="menu_emergency_stop">STOP</string>
+    <string name="ratio_1_1">1:1 Kwadratowy</string>
+
+    <string name="camera_type_html_new">Klipper (Strumień HTML)</string>
+    <string name="camera_type_port_new">Port (Strumień 8080)</string>
+    <string name="camera_type_webcam_new">Webcam (Strumień /webcam)</string>
+
+    <string name="camera_type_html">Strumień HTML Klipper</string>
+    <string name="camera_type_port">Strumień z Portu 8080</string>
+    <string name="camera_type_webcam">Strumień Ścieżki Webcam</string>
+
+    <string name="menu_emergency_stop">ZATRZYMANIE AWARYJNE</string>
     <string name="dialog_stop_title">Zatrzymać Drukarkę?</string>
     <string name="dialog_stop_confirm">TAK - ZATRZYMAJ NATYCHMIAST</string>
     <string name="dialog_cancel">Anuluj</string>
@@ -93,33 +110,33 @@
     <string name="osd_bed">Stół: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Komora: %1$.1f°C</string>
     <string name="osd_chamber_heater">Grzałka: %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_fan_model">Wenty. Wydruku: %1$.0f%%</string>
-    <string name="osd_fan_aux">Wenty. Pomocniczy: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Wenty. Wyciągowy: %1$.0f%%</string>
+    <string name="osd_fan_model">Wentylator Wydruku: %1$.0f%%</string>
+    <string name="osd_fan_aux">Wentylator Pomocniczy: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Wentylator Wyciągowy: %1$.0f%%</string>
     <string name="osd_time">Czas: %1$s / %2$s</string>
 
     <string name="event_offline">Offline</string>
     <string name="event_first_layer">Pierwsza Warstwa</string>
-    <string name="event_50">50% ukończono</string>
-    <string name="event_75">75% ukończono</string>
-    <string name="event_90">90% ukończono</string>
+    <string name="event_50">Osiągnięto 50%</string>
+    <string name="event_75">Osiągnięto 75%</string>
+    <string name="event_90">Osiągnięto 90%</string>
     <string name="event_100">Ukończono</string>
     <string name="event_error">Błąd</string>
 
     <string name="notify_title_offline">Połączenie Przerwane</string>
-    <string name="notify_msg_offline">Drukarka przestała odpowiadać.</string>
-    <string name="notify_btn_offline">Rozumiem</string>
+    <string name="notify_msg_offline">Drukarka nie odpowiada.</string>
+    <string name="notify_btn_offline">Zamknij</string>
 
     <string name="notify_title_first_layer">Pierwsza Warstwa</string>
     <string name="notify_msg_first_layer">Pierwsza warstwa jest drukowana.</string>
     <string name="notify_title_50">Półmetek!</string>
-    <string name="notify_msg_50">50% wydruku zostało ukończone.</string>
-    <string name="notify_title_75">Już prawie</string>
-    <string name="notify_msg_75">75% wydruku zostało ukończone.</string>
-    <string name="notify_title_90">Faza końcowa</string>
+    <string name="notify_msg_50">Ukończono 50% wydruku.</string>
+    <string name="notify_title_75">Prawie Gotowe</string>
+    <string name="notify_msg_75">Ukończono 75% wydruku.</string>
+    <string name="notify_title_90">Ostatnia Prosta</string>
     <string name="notify_msg_90">Osiągnięto 90% wydruku.</string>
-    <string name="notify_title_100">Druk Ukończony!</string>
-    <string name="notify_msg_100">Drukowanie 3D zakończyło się sukcesem.</string>
+    <string name="notify_title_100">Druk Zakończony!</string>
+    <string name="notify_msg_100">Drukowanie 3D zakończyło się pomyślnie.</string>
     <string name="notify_title_error">Błąd Klippera</string>
     <string name="notify_msg_error">Drukarka przerwała drukowanie z powodu błędu.</string>
 
@@ -127,15 +144,15 @@
     <string name="notify_btn_success">Super</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Oświetlenie Wł</string>
-    <string name="menu_light_off">Oświetlenie Wył</string>
+    <string name="menu_light_on">Włącz Oświetlenie</string>
+    <string name="menu_light_off">Wyłącz Oświetlenie</string>
     <string name="toast_light_error">Wysyłanie nie powiodło się</string>
-    <string name="menu_screensaver">Wygaszacz ekranu</string>
+    <string name="menu_screensaver">Wygaszacz Ekranu</string>
     <string name="screensaver_title">Automatyczne przyciemnianie po...</string>
-    <string name="screensaver_now">Aktywuj teraz</string>
-    <string name="screensaver_30">30 minutach</string>
-    <string name="screensaver_60">60 minutach</string>
-    <string name="screensaver_90">90 minutach</string>
-    <string name="screensaver_120">120 minutach</string>
-    <string name="screensaver_off">Dezaktywowany</string>
+    <string name="screensaver_now">Aktywuj Teraz</string>
+    <string name="screensaver_30">30 Minut</string>
+    <string name="screensaver_60">60 Minut</string>
+    <string name="screensaver_90">90 Minut</string>
+    <string name="screensaver_120">120 Minut</string>
+    <string name="screensaver_off">Wyłączony</string>
 </resources>

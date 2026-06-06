@@ -2,6 +2,7 @@ package com.shipofagony.klippshell4creality
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.util.Log
 import android.view.Gravity
@@ -82,6 +83,11 @@ object NotificationManager {
                 }
             }
 
+            // GEFIXT: Der Schließen-Button leuchtet nun im satten KlippShell-Grün mit abgerundeten Ecken
+            btnDismiss.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            btnDismiss.setTextColor(Color.WHITE)
+            btnDismiss.cornerRadius = 100
+
             btnDismiss.setOnClickListener { dismissActivePopup() }
 
             dialog.show()
@@ -97,7 +103,7 @@ object NotificationManager {
     }
 
     /**
-     * Schließt das aktive Popup sicher ab.
+     * Schließt das active Popup sicher ab.
      */
     fun dismissActivePopup() {
         try {

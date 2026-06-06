@@ -22,7 +22,7 @@
 
     <string name="choose_default_view_title">Standard Oberfläche</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Live-Stream</string>
+    <string name="menu_change_camera_type">Live-Stream über</string>
 
     <string name="found_printers">Gefundene Drucker</string>
     <string name="toast_no_connection">Keine Verbindung zum Drucker</string>
@@ -50,11 +50,9 @@
     <string name="reset_app_yes">Ja, alles löschen</string>
     <string name="reset_app_cancel">Abbrechen</string>
 
-    <!-- THE ABOUT BLOCK -->
     <string name="btn_about_menu">Über KlippShell</string>
     <string name="btn_check_updates">Nach Updates suchen</string>
 
-    <!-- GitHub Updater Sprach-Ressourcen -->
     <string name="toast_checking_updates">Prüfe Version…</string>
     <string name="update_available_title">Update auf Version %1$s verfügbar!</string>
     <string name="btn_download_now">Jetzt herunterladen</string>
@@ -63,7 +61,6 @@
     <string name="toast_update_server_error">Server nicht erreichbar</string>
     <string name="toast_update_browser_error">Browser konnte nicht geöffnet werden</string>
 
-    <!-- Text für das klickbare Lizenz-TextView -->
     <string name="license_link_text">Lizenzen &amp; Urheberrechte</string>
 
     <string name="about_changelog_title">Changelog</string>
@@ -73,13 +70,33 @@
     <string name="menu_options_title">Optionen</string>
     <string name="menu_osd_show">OSD einblenden</string>
     <string name="menu_osd_hide">OSD ausblenden</string>
+
+    <string name="osd_position_title">OSD Position wählen</string>
+    <string name="osd_pos_top_left">Oben Links</string>
+    <string name="osd_pos_top_center">Oben Mitte</string>
+    <string name="osd_pos_top_right">Oben Rechts</string>
+    <string name="osd_pos_bottom_center">Unten Mitte</string>
+    <string name="toast_position_saved">Position gespeichert ✓</string>
+    <string name="toast_position_fullscreen_only">Positionierung nur im Vollbild-Stream</string>
+
+    <string name="menu_ratio_title">Bildformat ändern</string>
+    <string name="ratio_16_9_new">16:9 Breitbild</string>
+    <string name="ratio_4_3_new">4:3 Standard</string>
+    <string name="ratio_1_1_new">1:1 Quadrat</string>
+
     <string name="menu_ratio">Bildformat ändern</string>
     <string name="ratio_16_9">16:9 Breitbild</string>
     <string name="ratio_4_3">4:3 Standard</string>
     <string name="ratio_1_1">1:1 Quadrat</string>
+
+    <string name="camera_type_html_new">Klipper (HTML-Stream)</string>
+    <string name="camera_type_port_new">Port (8080-Stream)</string>
+    <string name="camera_type_webcam_new">Webcam (/webcam-Stream)</string>
+
     <string name="camera_type_html">Klipper HTML Stream</string>
     <string name="camera_type_port">Port 8080 Stream</string>
     <string name="camera_type_webcam">Webcam-Pfad Stream</string>
+
     <string name="menu_emergency_stop">NOT-AUS</string>
     <string name="dialog_stop_title">Drucker stoppen?</string>
     <string name="dialog_stop_confirm">JA - SOFORT STOPPEN</string>

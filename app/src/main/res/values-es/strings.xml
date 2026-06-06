@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">No se encontraron impresoras</string>
+    <string name="no_printers">No hay impresoras registradas</string>
     <string name="saved_printers">Impresoras Guardadas</string>
-    <string name="btn_search_network">Escanear Red</string>
-    <string name="search_network">Escaneando Red</string>
+    <string name="btn_search_network">Buscar en la Red</string>
+    <string name="search_network">Escanear Red</string>
     <string name="btn_add">Añadir</string>
     <string name="btn_exit">Salir</string>
     <string name="btn_back">Volver</string>
@@ -12,7 +12,7 @@
     <string name="printer_ip_hint">Dirección IP</string>
     <string name="printer_port_hint">Puerto (Opcional)</string>
     <string name="printer_model_hint">Seleccionar Modelo</string>
-    <string name="search_model_hint">Buscar... (ej., CR 10)</string>
+    <string name="search_model_hint">Buscar... (ej. CR 10)</string>
     <string name="choose_port">Seleccionar Puerto</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Estándar (7125)</string>
@@ -22,19 +22,19 @@
 
     <string name="choose_default_view_title">Interfaz Predeterminada</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Transmisión en Vivo</string>
+    <string name="menu_change_camera_type">Transmisión en vivo vía</string>
 
     <string name="found_printers">Impresoras Encontradas</string>
     <string name="toast_no_connection">Sin conexión con la impresora</string>
     <string name="yes_delete">Eliminar</string>
     <string name="cancel">Cancelar</string>
-    <string name="reset_confirm_msg">¿Seguro que quieres eliminar esta impresora?</string>
+    <string name="reset_confirm_msg">¿Realmente deseas eliminar esta impresora?</string>
 
     <string name="settings_title">Ajustes</string>
     <string name="theme_title">Diseño de la App</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Oscuro</string>
-    <string name="theme_system">Por Defecto del Sistema</string>
+    <string name="theme_system">Según el Sistema</string>
     <string name="change_language">Cambiar Idioma</string>
     <string name="settings_notify_title">Notificaciones</string>
     <string name="submenu_sounds_title">Gestionar Sonidos</string>
@@ -50,60 +50,77 @@
     <string name="reset_app_yes">Sí, eliminar todo</string>
     <string name="reset_app_cancel">Cancelar</string>
 
-    <!-- THE ABOUT BLOCK -->
     <string name="btn_about_menu">Acerca de KlippShell</string>
     <string name="btn_check_updates">Buscar Actualizaciones</string>
 
-    <!-- GitHub Updater -->
     <string name="toast_checking_updates">Comprobando versión…</string>
-    <string name="update_available_title">¡Actualización v%1$s disponible!</string>
+    <string name="update_available_title">¡Actualización a la versión %1$s disponible!</string>
     <string name="btn_download_now">Descargar Ahora</string>
-    <string name="btn_later">Más Tarde</string>
-    <string name="toast_update_error_code">Error de descarga (Código: %1$d)</string>
+    <string name="btn_later">Más tarde</string>
+    <string name="toast_update_error_code">Error de obtención (Código: %1$d)</string>
     <string name="toast_update_server_error">Servidor no disponible</string>
     <string name="toast_update_browser_error">No se pudo abrir el navegador</string>
 
-    <!-- License Link -->
-    <string name="license_link_text">Licencias &amp; Derechos de Autor</string>
+    <string name="license_link_text">Licencias y Derechos de Autor</string>
 
-    <string name="about_changelog_title">Historial de cambios</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Actualizador OTA de GitHub: Comprobación asíncrona de actualizaciones en línea mediante la API de GitHub\n• Visor de licencias integrado: Añadido nuevo diálogo desplazable para créditos y licencias\n• Limpieza de interfaz: Eliminadas líneas redundantes en la sección Acerca de, protegiendo el huevo de pascua del logo\n• Estabilidad mejorada: Corregidos errores de null-safety en Kotlin y optimizado el enfoque de diálogos\n\nv0.8.4.300526-rc\n• Añadido diálogo de búsqueda en TV para selección de modelo\n• Implementada búsqueda tolerante de G-code/modelo\n• Optimizado el sondeo de memoria para Moonraker\n\nv0.8.3\n• Mayor seguridad de enfoque del D-pad para capas de menú\n• Canales de audio de SoundManager estabilizados\n• Corrección de restablecimiento de SharedPreferences</string>
+    <string name="about_changelog_title">Historial de Cambios</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• Añadido actualizador OTA de GitHub: Comprobación asíncrona en línea de nuevos lanzamientos\n• Visor de licencias integrado: Nuevo diálogo desplazable para derechos de autor\n• Limpieza de diseño: Eliminados textos redundantes, mapa de easter egg protegido\n• Mayor estabilidad: Corregidos errores de null-safety en Kotlin y enfoque de diálogo optimizado\n\nv0.8.4.300526-rc\n• Añadido diálogo de búsqueda en TV para selección de modelo\n• Búsqueda tolerante de G-code/modelo implementada\n• Polling de memoria optimizado para Moonraker\n\nv0.8.3\n• Mayor seguridad de enfoque del D-pad para capas de menú\n• Canales de audio de SoundManager estabilizados\n• Restablecimiento de SharedPreferences corregido</string>
     <string name="settings_optimized_tv">Optimizado para Android TV</string>
 
     <string name="menu_options_title">Opciones</string>
     <string name="menu_osd_show">Mostrar OSD</string>
     <string name="menu_osd_hide">Ocultar OSD</string>
+
+    <string name="osd_position_title">Seleccionar Posición OSD</string>
+    <string name="osd_pos_top_left">Arriba a la izquierda</string>
+    <string name="osd_pos_top_center">Arriba al centro</string>
+    <string name="osd_pos_top_right">Arriba a la derecha</string>
+    <string name="osd_pos_bottom_center">Abajo al centro</string>
+    <string name="toast_position_saved">Posición guardada ✓</string>
+    <string name="toast_position_fullscreen_only">Posicionamiento solo disponible en transmisión a pantalla completa</string>
+
+    <string name="menu_ratio_title">Cambiar Relación de Aspecto</string>
+    <string name="ratio_16_9_new">16:9 Pantalla Ancha</string>
+    <string name="ratio_4_3_new">4:3 Estándar</string>
+    <string name="ratio_1_1_new">1:1 Cuadrado</string>
+
     <string name="menu_ratio">Cambiar Relación de Aspecto</string>
-    <string name="ratio_16_9">Pantalla Ancha 16:9</string>
-    <string name="ratio_4_3">Estándar 4:3</string>
-    <string name="ratio_1_1">Cuadrado 1:1</string>
-    <string name="camera_type_html">Transmisión HTML Klipper</string>
-    <string name="camera_type_port">Transmisión Puerto 8080</string>
-    <string name="camera_type_webcam">Transmisión Ruta Webcam</string>
-    <string name="menu_emergency_stop">PARADA EMERGENCY</string>
+    <string name="ratio_16_9">16:9 Pantalla Ancha</string>
+    <string name="ratio_4_3">4:3 Estándar</string>
+    <string name="ratio_1_1">1:1 Cuadrado</string>
+
+    <string name="camera_type_html_new">Klipper (Stream HTML)</string>
+    <string name="camera_type_port_new">Puerto (Stream 8080)</string>
+    <string name="camera_type_webcam_new">Webcam (Stream /webcam)</string>
+
+    <string name="camera_type_html">Stream HTML de Klipper</string>
+    <string name="camera_type_port">Stream de Puerto 8080</string>
+    <string name="camera_type_webcam">Stream de Ruta Webcam</string>
+
+    <string name="menu_emergency_stop">PARADA DE EMERGENCIA</string>
     <string name="dialog_stop_title">¿Detener Impresora?</string>
     <string name="dialog_stop_confirm">SÍ - DETENER INMEDIATAMENTE</string>
     <string name="dialog_cancel">Cancelar</string>
     <string name="toast_stop_success">¡PARADA DE EMERGENCIA enviada!</string>
     <string name="toast_stop_error">Error al enviar: </string>
     <string name="toast_loading_dashboard">Cargando Klipper OS...</string>
-    <string name="osd_printer_offline">Impresora Fuera de Línea</string>
+    <string name="osd_printer_offline">Impresora fuera de línea</string>
 
     <string name="osd_extruder">Boquilla: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_bed">Cama: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Cámara: %1$.1f°C</string>
     <string name="osd_chamber_heater">Calentador: %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_fan_model">Vent. Capa: %1$.0f%%</string>
-    <string name="osd_fan_aux">Vent. Aux: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Vent. Extractor: %1$.0f%%</string>
+    <string name="osd_fan_model">Ventilador de Capa: %1$.0f%%</string>
+    <string name="osd_fan_aux">Ventilador Auxiliar: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Ventilador de Extracción: %1$.0f%%</string>
     <string name="osd_time">Tiempo: %1$s / %2$s</string>
 
-    <string name="event_offline">Fuera de línea</string>
+    <string name="event_offline">Desconectado</string>
     <string name="event_first_layer">Primera Capa</string>
-    <string name="event_50">50% completado</string>
-    <string name="event_75">75% completado</string>
-    <string name="event_90">90% completado</string>
-    <string name="event_100">Terminado</string>
+    <string name="event_50">50% Alcanzado</string>
+    <string name="event_75">75% Alcanzado</string>
+    <string name="event_90">90% Alcanzado</string>
+    <string name="event_100">Completado</string>
     <string name="event_error">Error</string>
 
     <string name="notify_title_offline">Conexión Perdida</string>
@@ -113,29 +130,29 @@
     <string name="notify_title_first_layer">Primera Capa</string>
     <string name="notify_msg_first_layer">Se está imprimiendo la primera capa.</string>
     <string name="notify_title_50">¡Mitad del camino!</string>
-    <string name="notify_msg_50">El 50% de la impresión está completado.</string>
-    <string name="notify_title_75">Casi listo</string>
-    <string name="notify_msg_75">El 75% de la impresión está completado.</string>
-    <string name="notify_title_90">Fase final</string>
+    <string name="notify_msg_50">Se ha completado el 50% de la impresión.</string>
+    <string name="notify_title_75">Casi Listo</string>
+    <string name="notify_msg_75">Se ha completado el 75% de la impresión.</string>
+    <string name="notify_title_90">Último Tramo</string>
     <string name="notify_msg_90">Se ha alcanzado el 90% de la impresión.</string>
-    <string name="notify_title_100">¡Impresión Finalizada!</string>
-    <string name="notify_msg_100">La impresión 3D terminó correctamente.</string>
+    <string name="notify_title_100">¡Impresión Terminada!</string>
+    <string name="notify_msg_100">La impresión 3D se ha completado con éxito.</string>
     <string name="notify_title_error">Error de Klipper</string>
-    <string name="notify_msg_error">La impresora abortó la impresión con un error.</string>
+    <string name="notify_msg_error">La impresora ha abortado la impresión con un error.</string>
 
     <string name="notify_btn_error">Cerrar</string>
     <string name="notify_btn_success">Genial</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Luz Encendida</string>
-    <string name="menu_light_off">Luz Apagada</string>
+    <string name="menu_light_on">Encender Luz</string>
+    <string name="menu_light_off">Apagar Luz</string>
     <string name="toast_light_error">Error al enviar</string>
     <string name="menu_screensaver">Salvapantallas</string>
     <string name="screensaver_title">Atenuación automática tras...</string>
-    <string name="screensaver_now">Activar ahora</string>
-    <string name="screensaver_30">30 minutos</string>
-    <string name="screensaver_60">60 minutos</string>
-    <string name="screensaver_90">90 minutos</string>
-    <string name="screensaver_120">120 minutos</string>
+    <string name="screensaver_now">Activar Ahora</string>
+    <string name="screensaver_30">30 Minutos</string>
+    <string name="screensaver_60">60 Minutos</string>
+    <string name="screensaver_90">90 Minutos</string>
+    <string name="screensaver_120">120 Minutos</string>
     <string name="screensaver_off">Desactivado</string>
 </resources>
