@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">No printers configured</string>
+    <string name="no_printers">No printers registered</string>
     <string name="saved_printers">Saved Printers</string>
     <string name="btn_search_network">Search Network</string>
     <string name="search_network">Scan Network</string>
@@ -16,11 +16,11 @@
     <string name="choose_port">Select Port</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
-    <string name="system_manual">Manual Input</string>
+    <string name="system_manual">Manual Entry</string>
     <string name="add_printer_up">Add Printer ▲</string>
     <string name="add_printer_down">Add Printer ▼</string>
 
-    <string name="choose_default_view_title">Default Interface</string>
+    <string name="choose_default_view_title">Default UI</string>
     <string name="choose_default_view">Klipper OS</string>
     <string name="menu_change_camera_type">Live Stream via</string>
     <string name="found_printers">Found Printers</string>
@@ -30,10 +30,10 @@
     <string name="reset_confirm_msg">Do you really want to remove this printer?</string>
 
     <string name="settings_title">Settings</string>
-    <string name="theme_title">App Design</string>
+    <string name="theme_title">App Theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="theme_system">System Default</string>
+    <string name="theme_system">Follow System</string>
     <string name="change_language">Change Language</string>
     <string name="settings_notify_title">Notifications</string>
     <string name="submenu_sounds_title">Manage Sounds</string>
@@ -42,7 +42,7 @@
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Made with ❤️ in Germany</string>
     <string name="easter_egg_success">Level your bed before asking me!</string>
-    <string name="about_contact_text">Project on GitHub • Support via Email</string>
+    <string name="about_contact_text">Project on GitHub • Support via E-Mail</string>
     <string name="toast_email_error">No email app found</string>
 
     <string name="reset_app">Reset App</string>
@@ -51,29 +51,16 @@
     <string name="reset_app_cancel">Cancel</string>
 
     <string name="btn_about_menu">About KlippShell</string>
-    <string name="btn_check_updates">Check for Updates</string>
+    <string name="btn_check_updates">Update</string>
     <string name="license_link_text">Licenses &amp; Copyrights</string>
     <string name="about_changelog_title">Changelog</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Added GitHub OTA Updater: Asynchronous online check for new releases\n• Integrated License Viewer: New scrollable dialog window for copyrights\n• Layout Cleanup: Removed redundant UI texts, logo easter egg protected\n• Increased Stability: Fixed Kotlin null-safety bugs and optimized dialog focus\n\nv0.8.4.300526-rc\n• Added TV search dialog for model selection\n• Tolerant G-code/model search implemented\n• Memory polling optimized for Moonraker\n\nv0.8.3\n• Increased D-pad focus security for menu layers\n• Stabilized SoundManager audio channels\n• Fixed SharedPreferences reset</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub OTA Updater added: Asynchronous online verification for new releases\n• Integrated License Viewer: New scrollable dialog window for copyrights\n• Layout cleanup: Redundant UI texts removed, logo easter egg protected\n• Stability increased: Kotlin null safety errors fixed and dialog focus optimized\n\nv0.8.4.300526-rc\n• TV search dialog for model selection added\n• Tolerant G-code/model search implemented\n• Memory polling for Moonraker optimized\n\nv0.8.3\n• D-Pad focus security for menu levels increased\n• SoundManager audio channels stabilized\n• Presets reset fixed</string>
     <string name="settings_optimized_tv">Optimized for Android TV</string>
-
-    <string name="toast_updater_checking">Checking version…</string>
-    <string name="toast_updater_up_to_date">KlippShell is up to date ✓</string>
-    <string name="toast_updater_server_error">Update server unreachable (404 / Timeout)</string>
-    <string name="toast_updater_error_code">Fetch error (Code: %1$d)</string>
-    <string name="update_available_title">Update to version %1$s available!</string>
-    <string name="btn_download_now">Download Now</string>
-    <string name="btn_later">Later</string>
-    <string name="toast_update_browser_error">Browser could not be opened</string>
-    <string name="submenu_update_title">Update</string>
-    <string name="btn_manual_search">Check for Updates</string>
-    <string name="pill_auto_check_on">Auto check on start: ON</string>
-    <string name="pill_auto_check_off">Auto check on start: OFF</string>
 
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Show OSD</string>
     <string name="menu_osd_hide">Hide OSD</string>
-    <string name="osd_position_title">Select OSD Position</string>
+    <string name="osd_position_title">Choose OSD Position</string>
     <string name="osd_pos_top_left">Top Left</string>
     <string name="osd_pos_top_center">Top Center</string>
     <string name="osd_pos_top_right">Top Right</string>
@@ -90,9 +77,9 @@
     <string name="ratio_4_3">4:3 Standard</string>
     <string name="ratio_1_1">1:1 Square</string>
 
-    <string name="camera_type_html_new">Klipper (HTML stream)</string>
-    <string name="camera_type_port_new">Port (8080 stream)</string>
-    <string name="camera_type_webcam_new">Webcam (/webcam stream)</string>
+    <string name="camera_type_html_new">Klipper (HTML Stream)</string>
+    <string name="camera_type_port_new">Port (8080 Stream)</string>
+    <string name="camera_type_webcam_new">Webcam (/webcam Stream)</string>
     <string name="camera_type_html">Klipper HTML Stream</string>
     <string name="camera_type_port">Port 8080 Stream</string>
     <string name="camera_type_webcam">Webcam Path Stream</string>
@@ -102,7 +89,7 @@
     <string name="dialog_stop_confirm">YES - STOP IMMEDIATELY</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="toast_stop_success">EMERGENCY STOP sent!</string>
-    <string name="toast_stop_error">Error sending: </string>
+    <string name="toast_stop_error">Error while sending: </string>
     <string name="toast_loading_dashboard">Loading Klipper OS...</string>
     <string name="osd_printer_offline">Printer Offline</string>
 
@@ -110,8 +97,8 @@
     <string name="osd_bed">Bed: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Chamber: %1$.1f°C</string>
     <string name="osd_chamber_heater">Heater: %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_fan_model">Part Cooling Fan: %1$.0f%%</string>
-    <string name="osd_fan_aux">Auxiliary Fan: %1$.0f%%</string>
+    <string name="osd_fan_model">Part Fan: %1$.0f%%</string>
+    <string name="osd_fan_aux">Aux Fan: %1$.0f%%</string>
     <string name="osd_fan_chamber">Exhaust Fan: %1$.0f%%</string>
     <string name="osd_time">Time: %1$s / %2$s</string>
 
@@ -125,32 +112,53 @@
 
     <string name="notify_title_offline">Connection Lost</string>
     <string name="notify_msg_offline">The printer is no longer responding.</string>
-    <string name="notify_btn_offline">Dismiss</string>
+    <string name="notify_btn_offline">Understood</string>
     <string name="notify_title_first_layer">First Layer</string>
     <string name="notify_msg_first_layer">The first layer is being printed.</string>
     <string name="notify_title_50">Halfway there!</string>
-    <string name="notify_msg_50">50% of the print is completed.</string>
-    <string name="notify_title_75">Almost Done</string>
+    <string name="notify_msg_50">50% of the print is done.</string>
+    <string name="notify_title_75">Almost done</string>
     <string name="notify_msg_75">75% of the print is completed.</string>
-    <string name="notify_title_90">Final Stretch</string>
-    <string name="notify_msg_90">90% of the print is reached.</string>
+    <string name="notify_title_90">Final stretch</string>
+    <string name="notify_msg_90">90% of the print has been reached.</string>
     <string name="notify_title_100">Print Finished!</string>
-    <string name="notify_msg_100">The 3D print has been completed successfully.</string>
+    <string name="notify_msg_100">The 3D print was successfully completed.</string>
     <string name="notify_title_error">Klipper Error</string>
-    <string name="notify_msg_error">The printer has aborted the print with an error.</string>
+    <string name="notify_msg_error">The printer aborted the print with an error.</string>
     <string name="notify_btn_error">Close</string>
-    <string name="notify_btn_success">Awesome</string>
+    <string name="notify_btn_success">Great</string>
     <string name="notify_btn_default">OK</string>
 
     <string name="menu_light_on">Light On</string>
     <string name="menu_light_off">Light Off</string>
-    <string name="toast_light_error">Failed to send</string>
+    <string name="toast_light_error">Sending failed</string>
     <string name="menu_screensaver">Screensaver</string>
-    <string name="screensaver_title">Automatic Dimming after...</string>
-    <string name="screensaver_now">Activate Now</string>
+    <string name="screensaver_title">Automatic dimming after...</string>
+    <string name="screensaver_now">Activate immediately</string>
     <string name="screensaver_30">30 Minutes</string>
     <string name="screensaver_60">60 Minutes</string>
     <string name="screensaver_90">90 Minutes</string>
     <string name="screensaver_120">120 Minutes</string>
     <string name="screensaver_off">Disabled</string>
+
+    <string name="toast_updater_checking">Checking version…</string>
+    <string name="toast_updater_up_to_date">KlippShell is up to date ✓</string>
+    <string name="toast_updater_server_error">Update server unreachable (404 / Timeout)</string>
+    <string name="toast_updater_error_code">Retrieval error (Code: %1$d)</string>
+    <string name="update_available_title">Update to version %1$s available!</string>
+    <string name="btn_download_now">Download Now</string>
+    <string name="btn_later">Later</string>
+    <string name="toast_update_browser_error">Browser could not be opened</string>
+    <string name="submenu_update_title">Update</string>
+    <string name="btn_manual_search">Search for Updates</string>
+    <string name="pill_auto_check_on">Automatically check on startup</string>
+    <string name="pill_auto_check_off">Automatically check on startup</string>
+    <string name="toast_loading_livestream">Loading Live-Stream...</string>
+
+    <string name="menu_pip_start">Send to Background (PiP)</string>
+    <string name="pip_progress_format">Print Progress: %1$d%%</string>
+    <string name="btn_pip_close">Close</string>
+    <string name="btn_pip_resize">Resize Window</string>
+    <string name="menu_pip_name">Picture in Picture (PIP)</string>
+    <string name="menu_light_control">Light Control</string>
 </resources>

@@ -1,16 +1,25 @@
 package com.shipofagony.klippshell4creality
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.Icon
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.util.Rational
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.KeyEvent
@@ -24,6 +33,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -117,6 +127,16 @@ class WebViewActivity : AppCompatActivity() {
     private val hideUiRunnable = Runnable { hideButtons() }
     private val immersiveTimeout = 5000L
 
+    // PiP Skalierungs-Tracker (True = 16:9 Breitbild, False = 1:1 Quadrat)
+    private var isPipWideRatio = true
+
+    // PiP Actions Konstanten & Receiver
+    private val PIP_REQUEST_CODE_MAXIMIZE = 101
+    private val PIP_REQUEST_CODE_RESIZE = 102
+    private val PIP_ACTION_MAXIMIZE = "com.shipofagony.klippshell4creality.PIP_ACTION_MAXIMIZE"
+    private val PIP_ACTION_RESIZE = "com.shipofagony.klippshell4creality.PIP_ACTION_RESIZE"
+    private var pipReceiver: BroadcastReceiver? = null
+
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedLang = prefs.getString("app_lang", "de") ?: "de"
@@ -132,6 +152,13 @@ class WebViewActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        initFullScreenBinding()
+    }
+
+    /**
+     * Initialisiert das komplette Layout und bindet alle Views der regulären Vollbildansicht.
+     */
+    private fun initFullScreenBinding() {
         setContentView(R.layout.activity_webview)
 
         webView = findViewById(R.id.webView)
@@ -205,10 +232,12 @@ class WebViewActivity : AppCompatActivity() {
         val printerPort = intent.getStringExtra("PRINTER_PORT") ?: "7125"
         val isCameraDefault = intent.getBooleanExtra("IS_CAMERA_VIEW", false)
 
-        currentActiveUrl = if (isCameraDefault) {
-            "http://$printerIp:$printerPort/camera.html"
-        } else {
-            "http://$printerIp:$printerPort"
+        if (currentActiveUrl.isEmpty()) {
+            currentActiveUrl = if (isCameraDefault) {
+                "http://$printerIp:$printerPort/camera.html"
+            } else {
+                "http://$printerIp:$printerPort"
+            }
         }
 
         val hostIp = Uri.parse(currentActiveUrl).host ?: printerIp
@@ -234,13 +263,14 @@ class WebViewActivity : AppCompatActivity() {
 
                 val menuOptions = arrayOf(
                     osdOptionText,
-                    getString(R.string.menu_change_camera_type).substringBefore(" Live-Stream") + " Light",
+                    getString(R.string.menu_pip_name),
+                    getString(R.string.menu_light_control),
                     getString(R.string.menu_screensaver),
                     getString(R.string.menu_ratio_title),
                     getString(R.string.menu_change_camera_type),
                     getString(R.string.menu_emergency_stop)
                 )
-                val menuColors = arrayOf<String?>(null, null, null, null, null, "#E53935")
+                val menuColors = arrayOf<String?>(null, null, null, null, null, null, "#E53935")
 
                 showPillDialog(getString(R.string.menu_options_title), menuOptions, menuColors) { which ->
                     val uri = Uri.parse(currentActiveUrl)
@@ -262,10 +292,13 @@ class WebViewActivity : AppCompatActivity() {
                             }
                         }
                         1 -> {
+                            enterPipMode()
+                        }
+                        2 -> {
                             isLightOn = !isLightOn
                             sendLightCommand(isLightOn)
                         }
-                        2 -> {
+                        3 -> {
                             val timeOptions = arrayOf(
                                 getString(R.string.screensaver_now),
                                 getString(R.string.screensaver_30),
@@ -293,7 +326,7 @@ class WebViewActivity : AppCompatActivity() {
                                 resetInactivityTimer()
                             }
                         }
-                        3 -> {
+                        4 -> {
                             val ratioOptions = arrayOf(
                                 getString(R.string.ratio_16_9_new),
                                 getString(R.string.ratio_4_3_new),
@@ -310,7 +343,7 @@ class WebViewActivity : AppCompatActivity() {
                                 loadStreamOrUrl(currentActiveUrl, targetRatio)
                             }
                         }
-                        4 -> {
+                        5 -> {
                             val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIpAddress", initialPort)
                             val camOptions = arrayOf(
                                 getString(R.string.camera_type_html_new),
@@ -326,7 +359,7 @@ class WebViewActivity : AppCompatActivity() {
                                 loadStreamOrUrl(newUrl, 56.25f)
                             }
                         }
-                        5 -> {
+                        6 -> {
                             val stopOptions = arrayOf(getString(R.string.dialog_stop_confirm), getString(R.string.dialog_cancel))
                             val stopColors = arrayOf<String?>("#E53935", null)
 
@@ -353,6 +386,7 @@ class WebViewActivity : AppCompatActivity() {
                     getString(R.string.osd_pos_top_right),
                     getString(R.string.osd_pos_bottom_center)
                 )
+                // GEFIXT: String-Auflösung von R.string.osd_position_title statt view id
                 showPillDialog(getString(R.string.osd_position_title), positionOptions) { index ->
                     val uri = Uri.parse(currentActiveUrl)
                     val hostIpAddress = uri.host ?: printerIp
@@ -389,6 +423,8 @@ class WebViewActivity : AppCompatActivity() {
                 val savedRatio = try { prefs.getFloat("camera_ratio_$hostIpAddress", 56.25f) } catch(e: Exception) { 56.25f }
                 val fallbackUrl = if (lastCameraUrl.isNotEmpty()) lastCameraUrl else "http://$hostIpAddress:$savedDashboardPort/camera.html"
                 loadStreamOrUrl(fallbackUrl, savedRatio)
+                // GEFIXT: Zeigt nun synchron den passenden Toast an beim Laden des Video-Streams
+                showCenteredPillToast(getString(R.string.toast_loading_livestream))
             }
         }
 
@@ -410,11 +446,181 @@ class WebViewActivity : AppCompatActivity() {
         btnClose.setOnClickListener { finish() }
     }
 
+    // --- NATIVE PICTURE-IN-PICTURE LOGIK ---
+
+    /**
+     * Erstellt die nativen Symbole für das Android-System-Overlay im PiP-Modus.
+     * Schützt vor dem Blockieren durch die Glasscheibe auf Smartphones.
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun updatePipActions() {
+        val actions = ArrayList<RemoteAction>()
+
+        // 1. Native Action: Vollbild (App reaktivieren)
+        val maxIntent = Intent(PIP_ACTION_MAXIMIZE).setPackage(packageName)
+        val maxPendingIntent = PendingIntent.getBroadcast(
+            this, PIP_REQUEST_CODE_MAXIMIZE, maxIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val maxIcon = Icon.createWithResource(this, android.R.drawable.ic_menu_revert)
+        val maxAction = RemoteAction(maxIcon, getString(R.string.menu_pip_name), getString(R.string.menu_pip_name), maxPendingIntent)
+        actions.add(maxAction)
+
+        // 2. Native Action: Formatgröße ändern (Skalieren)
+        val resizeIntent = Intent(PIP_ACTION_RESIZE).setPackage(packageName)
+        val resizePendingIntent = PendingIntent.getBroadcast(
+            this, PIP_REQUEST_CODE_RESIZE, resizeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val resizeIcon = Icon.createWithResource(this, android.R.drawable.ic_menu_crop)
+        val resizeAction = RemoteAction(resizeIcon, getString(R.string.btn_pip_resize), getString(R.string.btn_pip_resize), resizePendingIntent)
+        actions.add(resizeAction)
+
+        val pipParams = PictureInPictureParams.Builder()
+            .setActions(actions)
+            .setAspectRatio(if (isPipWideRatio) Rational(16, 9) else Rational(1, 1))
+            .build()
+
+        setPictureInPictureParams(pipParams)
+    }
+
+    /**
+     * Startet den PiP-Modus manuell aus dem Video-Optionsmenü heraus.
+     */
+    private fun enterPipMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val aspectRatio = Rational(16, 9)
+            val pipParams = PictureInPictureParams.Builder()
+                .setAspectRatio(aspectRatio)
+                .build()
+            enterPictureInPictureMode(pipParams)
+        } else {
+            showCenteredPillToast("PiP wird von diesem Gerät nicht unterstützt")
+        }
+    }
+
+    /**
+     * Ändert das Seitenverhältnis des PiP-Fensters flüssig zur Laufzeit.
+     */
+    private fun togglePipWindowSize() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            isPipWideRatio = !isPipWideRatio
+            updatePipActions()
+        }
+    }
+
+    /**
+     * Android Lifecycle-Callback: Wechselt das Layout beim Verkleinern/Maximieren des Fensters.
+     * GEFIXT: Lagert Steuerelemente in native System-Aktionen aus, um Touch-Blockaden zu umgehen.
+     */
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+
+        if (isInPictureInPictureMode) {
+            uiHandler.removeCallbacks(hideUiRunnable)
+            screensaverHandler.removeCallbacks(startScreensaverRunnable)
+
+            webView?.let { view ->
+                (view.parent as? ViewGroup)?.removeView(view)
+            }
+
+            setContentView(R.layout.activity_pip_status)
+
+            val videoContainer = findViewById<FrameLayout>(R.id.pipVideoContainer)
+            webView?.let { view ->
+                videoContainer?.addView(view, FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                ))
+            }
+
+            val tvPipProgress = findViewById<TextView>(R.id.tvPipProgress)
+            if (lastProgressPercent >= 0.0) {
+                val progressText = String.format(Locale.getDefault(), "%.1f%%", lastProgressPercent * 100)
+                tvPipProgress?.text = progressText
+            } else {
+                tvPipProgress?.text = "--%"
+            }
+
+            // Native Overlays zur Laufzeit einspeisen
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                updatePipActions()
+            }
+
+            // BroadcastReceiver initialisieren, um die Klicks der System-Icons zu verarbeiten
+            pipReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    if (intent == null) return
+                    when (intent.action) {
+                        PIP_ACTION_MAXIMIZE -> {
+                            val maxIntent = Intent(this@WebViewActivity, WebViewActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                            }
+                            startActivity(maxIntent)
+                        }
+                        PIP_ACTION_RESIZE -> {
+                            togglePipWindowSize()
+                        }
+                    }
+                }
+            }
+            val filter = IntentFilter().apply {
+                addAction(PIP_ACTION_MAXIMIZE)
+                addAction(PIP_ACTION_RESIZE)
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(pipReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(pipReceiver, filter)
+            }
+
+            if (pollingJob == null || !pollingJob!!.isActive) {
+                isOsdEnabled = true
+                startOsdPolling()
+            }
+
+            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(homeIntent)
+
+        } else {
+            // Beim Verlassen des PiP-Modus den Receiver ruinieren
+            try {
+                pipReceiver?.let { unregisterReceiver(it) }
+            } catch (_: Exception) {}
+            pipReceiver = null
+
+            webView?.let { view ->
+                (view.parent as? ViewGroup)?.removeView(view)
+            }
+
+            initFullScreenBinding()
+
+            val staticWebViewPlaceholder = findViewById<WebView>(R.id.webView)
+            val rootWebViewContainer = staticWebViewPlaceholder?.parent as? ViewGroup
+            if (staticWebViewPlaceholder != null && webView != null) {
+                val index = rootWebViewContainer?.indexOfChild(staticWebViewPlaceholder) ?: -1
+                if (index != -1) {
+                    val lp = staticWebViewPlaceholder.layoutParams
+                    rootWebViewContainer?.removeViewAt(index)
+                    rootWebViewContainer?.addView(webView, index, lp)
+                }
+            }
+
+            if (isOsdEnabled && isCameraMode) {
+                startOsdPolling()
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
-        showButtons()
-        resetInactivityTimer()
-        btnToggle.post { btnToggle.requestFocus() }
+        if (!isInPictureInPictureMode) {
+            showButtons()
+            resetInactivityTimer()
+            btnToggle.post { btnToggle.requestFocus() }
+        }
     }
 
     override fun onUserInteraction() {
@@ -425,6 +631,8 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (isInPictureInPictureMode) return super.onKeyDown(keyCode, event)
+
         if (layoutScreensaver.visibility == View.VISIBLE) {
             deactivateScreensaver()
             return true
@@ -442,12 +650,13 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun resetInactivityTimer() {
         screensaverHandler.removeCallbacks(startScreensaverRunnable)
-        if (isCameraMode && screensaverTimeoutMs > 0L && layoutScreensaver.visibility != View.VISIBLE) {
+        if (isCameraMode && screensaverTimeoutMs > 0L && layoutScreensaver.visibility != View.VISIBLE && !isInPictureInPictureMode) {
             screensaverHandler.postDelayed(startScreensaverRunnable, screensaverTimeoutMs)
         }
     }
 
     private fun activateScreensaver() {
+        if (isInPictureInPictureMode) return
         screensaverHandler.removeCallbacks(startScreensaverRunnable)
 
         uiHandler.removeCallbacks(hideUiRunnable)
@@ -529,9 +738,11 @@ class WebViewActivity : AppCompatActivity() {
         val hostIp = uri.host ?: return
         updateMoonrakerUrl(hostIp)
 
-        val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        val savedPosition = prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center"
-        applyOsdPositionAndStyle(savedPosition)
+        if (!isInPictureInPictureMode) {
+            val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+            val savedPosition = prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center"
+            applyOsdPositionAndStyle(savedPosition)
+        }
 
         pollingJob = lifecycleScope.launch(Dispatchers.IO) {
             while (isActive && isOsdEnabled && isCameraMode) {
@@ -547,13 +758,14 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        // Sicherstellen, dass das injizierte Overlay beim Activity-Wechsel sauber entfernt wird
         NotificationManager.dismissActivePopup()
         super.onPause()
     }
 
     override fun onStop() {
-        stopOsdPolling()
+        if (!isInPictureInPictureMode) {
+            stopOsdPolling()
+        }
         NotificationManager.dismissActivePopup()
         screensaverHandler.removeCallbacks(startScreensaverRunnable)
         screensaverJob?.cancel()
@@ -591,7 +803,7 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun showButtons() {
-        if (layoutScreensaver.visibility == View.VISIBLE) return
+        if (layoutScreensaver.visibility == View.VISIBLE || isInPictureInPictureMode) return
 
         uiHandler.removeCallbacks(hideUiRunnable)
         if (layoutWebButtons.visibility != View.VISIBLE) {
@@ -726,10 +938,17 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun handleMoonrakerResponse(responseText: String) {
         if (responseText.isEmpty()) {
-            if (tvOsdProgress?.text != getString(R.string.osd_printer_offline)) {
-                tvOsdProgress?.text = getString(R.string.osd_printer_offline)
-                tvOsdProgress?.setTextColor(Color.parseColor("#E53935"))
-                tvOsdTime?.text = ""
+            if (!isInPictureInPictureMode) {
+                if (tvOsdProgress?.text != getString(R.string.osd_printer_offline)) {
+                    tvOsdProgress?.text = getString(R.string.osd_printer_offline)
+                    tvOsdProgress?.setTextColor(Color.parseColor("#E53935"))
+                    tvOsdTime?.text = ""
+                }
+            } else {
+                findViewById<TextView>(R.id.tvPipProgress)?.apply {
+                    text = getString(R.string.osd_printer_offline)
+                    setTextColor(Color.parseColor("#E53935"))
+                }
             }
 
             if (!hasTrigOffline) {
@@ -787,66 +1006,74 @@ class WebViewActivity : AppCompatActivity() {
                 runChamberAutoSearch(status)
             }
 
-            val isHorizontal = (layoutOsd as? LinearLayout)?.orientation == LinearLayout.HORIZONTAL
-            val divider = if (isHorizontal) "  •  " else ""
+            lastProgressPercent = progress
 
-            if (tempExtruder != lastExtruderTemp || targetExtruder != lastExtruderTarget) {
-                lastExtruderTemp = tempExtruder
-                lastExtruderTarget = targetExtruder
-                tvOsdExtruder?.text = getString(R.string.osd_extruder, tempExtruder, targetExtruder) + divider
-            }
-
-            if (tempBed != lastBedTemp || targetBed != lastBedTarget) {
-                lastBedTemp = tempBed
-                lastBedTarget = targetBed
-                tvOsdBed?.text = getString(R.string.osd_bed, tempBed, targetBed) + divider
-            }
-
-            if (tempChamber > 0 && tempChamber != lastChamberTemp) {
-                lastChamberTemp = tempChamber
-                tvOsdChamberSensor?.visibility = View.VISIBLE
-                tvOsdChamberSensor?.text = getString(R.string.osd_chamber_sensor, tempChamber) + divider
-            } else if (tempChamber <= 0) {
-                tvOsdChamberSensor?.visibility = View.GONE
-            }
-
-            if ((tempChamberHeater > 0 || targetChamberHeater > 0) && (tempChamberHeater != lastChamberHeaterTemp || targetChamberHeater != lastChamberHeaterTarget)) {
-                lastChamberHeaterTemp = tempChamberHeater
-                lastChamberHeaterTarget = targetChamberHeater
-                tvOsdChamberHeater?.visibility = View.VISIBLE
-                tvOsdChamberHeater?.text = getString(R.string.osd_chamber_heater, tempChamberHeater, targetChamberHeater) + divider
-            } else if (tempChamberHeater <= 0 && targetChamberHeater <= 0) {
-                tvOsdChamberHeater?.visibility = View.GONE
-            }
-
-            if (fanModelSpeed != lastFanModelSpeed) {
-                lastFanModelSpeed = fanModelSpeed
-                tvOsdFanModel?.text = getString(R.string.osd_fan_model, fanModelSpeed) + divider
-            }
-
-            if (fanAuxSpeed != lastFanAuxSpeed) {
-                lastFanAuxSpeed = fanAuxSpeed
-                tvOsdFanAux?.text = getString(R.string.osd_fan_aux, fanAuxSpeed) + divider
-            }
-
-            if (fanChamberSpeed != lastFanChamberSpeed) {
-                lastFanChamberSpeed = fanChamberSpeed
-                tvOsdFanChamber?.text = getString(R.string.osd_fan_chamber, fanChamberSpeed) + divider
-            }
-
-            if (progress != lastProgressPercent) {
-                lastProgressPercent = progress
-                tvOsdProgress?.setTextColor(Color.parseColor("#1976D2"))
+            if (isInPictureInPictureMode) {
+                val tvPipProgress = findViewById<TextView>(R.id.tvPipProgress)
                 val progressText = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
-                tvOsdProgress?.text = "Fortschritt: $progressText" + divider
-            }
+                tvPipProgress?.text = progressText
+                tvPipProgress?.setTextColor(Color.WHITE)
+            } else {
+                val isHorizontal = (layoutOsd as? LinearLayout)?.orientation == LinearLayout.HORIZONTAL
+                val divider = if (isHorizontal) "  •  " else ""
 
-            if (duration != lastDurationSeconds) {
-                lastDurationSeconds = duration
-                val passedMin = duration / 60
-                val passedSec = duration % 60
-                val timeDigits = String.format(Locale.getDefault(), "%02d:%02d", passedMin, passedSec)
-                tvOsdTime?.text = getString(R.string.osd_time, timeDigits, "--:--")
+                if (tempExtruder != lastExtruderTemp || targetExtruder != lastExtruderTarget) {
+                    lastExtruderTemp = tempExtruder
+                    lastExtruderTarget = targetExtruder
+                    tvOsdExtruder?.text = getString(R.string.osd_extruder, tempExtruder, targetExtruder) + divider
+                }
+
+                if (tempBed != lastBedTemp || targetBed != lastBedTarget) {
+                    lastBedTemp = tempBed
+                    lastBedTarget = targetBed
+                    tvOsdBed?.text = getString(R.string.osd_bed, tempBed, targetBed) + divider
+                }
+
+                if (tempChamber > 0 && tempChamber != lastChamberTemp) {
+                    lastChamberTemp = tempChamber
+                    tvOsdChamberSensor?.visibility = View.VISIBLE
+                    tvOsdChamberSensor?.text = getString(R.string.osd_chamber_sensor, tempChamber) + divider
+                } else if (tempChamber <= 0) {
+                    tvOsdChamberSensor?.visibility = View.GONE
+                }
+
+                if ((tempChamberHeater > 0 || targetChamberHeater > 0) && (tempChamberHeater != lastChamberHeaterTemp || targetChamberHeater != lastChamberHeaterTarget)) {
+                    lastChamberHeaterTemp = tempChamberHeater
+                    lastChamberHeaterTarget = targetChamberHeater
+                    tvOsdChamberHeater?.visibility = View.VISIBLE
+                    tvOsdChamberHeater?.text = getString(R.string.osd_chamber_heater, tempChamberHeater, targetChamberHeater) + divider
+                } else if (tempChamberHeater <= 0 && targetChamberHeater <= 0) {
+                    tvOsdChamberHeater?.visibility = View.GONE
+                }
+
+                if (fanModelSpeed != lastFanModelSpeed) {
+                    lastFanModelSpeed = fanModelSpeed
+                    tvOsdFanModel?.text = getString(R.string.osd_fan_model, fanModelSpeed) + divider
+                }
+
+                if (fanAuxSpeed != lastFanAuxSpeed) {
+                    lastFanAuxSpeed = fanAuxSpeed
+                    tvOsdFanAux?.text = getString(R.string.osd_fan_aux, fanAuxSpeed) + divider
+                }
+
+                if (fanChamberSpeed != lastFanChamberSpeed) {
+                    lastFanChamberSpeed = fanChamberSpeed
+                    tvOsdFanChamber?.text = getString(R.string.osd_fan_chamber, fanChamberSpeed) + divider
+                }
+
+                if (progress != lastProgressPercent) {
+                    tvOsdProgress?.setTextColor(Color.parseColor("#1976D2"))
+                    val progressText = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
+                    tvOsdProgress?.text = "Fortschritt: $progressText" + divider
+                }
+
+                if (duration != lastDurationSeconds) {
+                    lastDurationSeconds = duration
+                    val passedMin = duration / 60
+                    val passedSec = duration % 60
+                    val timeDigits = String.format(Locale.getDefault(), "%02d:%02d", passedMin, passedSec)
+                    tvOsdTime?.text = getString(R.string.osd_time, timeDigits, "--:--")
+                }
             }
 
             if (currentState != "printing") {
@@ -950,7 +1177,7 @@ class WebViewActivity : AppCompatActivity() {
                 constraintSet.connect(R.id.layoutOsd, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END, marginHorizontal)
                 container.orientation = LinearLayout.VERTICAL
             }
-            else -> { // bottom_center
+            else -> {
                 constraintSet.connect(R.id.layoutOsd, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140)
                 constraintSet.connect(R.id.layoutOsd, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
                 constraintSet.connect(R.id.layoutOsd, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
