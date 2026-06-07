@@ -34,7 +34,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -56,11 +55,14 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var scrollChangelogBox: ScrollView
 
     private lateinit var tvLicensesLink: TextView
-    private lateinit var tvAboutContactLink: TextView // Sauber deklariert
+    private lateinit var tvAboutContactLink: TextView
 
     private var currentMenuLayer = 0
     private lateinit var prefs: SharedPreferences
     private var easterEggClickCount = 0
+
+    // NEU: Erkennt vollautomatisch, ob das Side-by-Side TV-/Tablet-Layout geladen wurde
+    private var isDualScreenMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -75,6 +77,9 @@ class SettingsActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+
+        // Prüft, ob das TV-Layout aktiv ist (Guideline existiert nur im layout-sw600dp-land)
+        isDualScreenMode = findViewById<View>(R.id.guidelineCenter) != null
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -100,7 +105,6 @@ class SettingsActivity : AppCompatActivity() {
 
         tvLicensesLink = findViewById(R.id.tvLicensesLink)
 
-        // REIN & SAUBER: Mappt jetzt ohne Umwege direkt auf deine neue XML-ID und den neuen String
         tvAboutContactLink = findViewById(R.id.tvAboutContactLink)
         tvAboutContactLink.text = getString(R.string.about_contact_text)
         tvAboutContactLink.setTextColor(Color.parseColor("#2196F3"))
@@ -123,6 +127,7 @@ class SettingsActivity : AppCompatActivity() {
         val btnCheckUpdates = findViewById<MaterialButton>(R.id.btnCheckUpdates)
         val ivAboutStudioLogo = findViewById<ImageView>(R.id.ivAboutStudioLogo)
 
+        // Standardmäßig Fokus anfordern
         btnThemeSelect.requestFocus()
 
         try {
@@ -134,7 +139,10 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         btnThemeSelect.setOnClickListener {
-            panelSettings.visibility = View.GONE
+            // GEFIXT: Verhindert das Verstecken des Hauptmenüs im TV Dual-Screen Modus
+            if (!isDualScreenMode) panelSettings.visibility = View.GONE
+            hideAllSubPanelsExcept(panelTheme)
+
             panelTheme.visibility = View.VISIBLE
             currentMenuLayer = 5
             tvSettingsTitle.text = getString(R.string.theme_title)
@@ -166,7 +174,9 @@ class SettingsActivity : AppCompatActivity() {
         btnPillThemeSystem.setOnClickListener(themeClick)
 
         btnChangeLanguage.setOnClickListener {
-            panelSettings.visibility = View.GONE
+            if (!isDualScreenMode) panelSettings.visibility = View.GONE
+            hideAllSubPanelsExcept(panelLanguage)
+
             panelLanguage.visibility = View.VISIBLE
             currentMenuLayer = 6
             tvSettingsTitle.text = getString(R.string.change_language)
@@ -174,7 +184,9 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         btnGlobalScreensaver.setOnClickListener {
-            panelSettings.visibility = View.GONE
+            if (!isDualScreenMode) panelSettings.visibility = View.GONE
+            hideAllSubPanelsExcept(panelScreensaver)
+
             panelScreensaver.visibility = View.VISIBLE
             currentMenuLayer = 4
             tvSettingsTitle.text = getString(R.string.menu_screensaver)
@@ -183,7 +195,9 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         btnNotificationsMenu.setOnClickListener {
-            panelSettings.visibility = View.GONE
+            if (!isDualScreenMode) panelSettings.visibility = View.GONE
+            hideAllSubPanelsExcept(panelNotifySelect)
+
             panelNotifySelect.visibility = View.VISIBLE
             currentMenuLayer = 1
             tvSettingsTitle.text = getString(R.string.settings_notify_title)
@@ -199,7 +213,9 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         btnAboutMenu.setOnClickListener {
-            panelSettings.visibility = View.GONE
+            if (!isDualScreenMode) panelSettings.visibility = View.GONE
+            hideAllSubPanelsExcept(panelAbout)
+
             panelAbout.visibility = View.VISIBLE
             currentMenuLayer = 3
             tvSettingsTitle.text = getString(R.string.btn_about_menu)
@@ -232,7 +248,6 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        // Modifiziert: Ruft jetzt das neue Update-Untermenü auf
         btnCheckUpdates.setOnClickListener {
             showUpdateSubMenuDialog()
         }
@@ -245,7 +260,6 @@ class SettingsActivity : AppCompatActivity() {
             (v as TextView).setTextColor(if (hasFocus) Color.WHITE else Color.parseColor("#2196F3"))
         }
 
-        // Klick- & Fokus-Logik für deine Verlinkungen (Vollständig bereinigt)
         tvAboutContactLink.setOnClickListener {
             val contactOptions = arrayOf("GitHub Repository", "klippshell@gmail.com")
             showTvDialog(getString(R.string.studio_name), contactOptions, arrayOf("#4CAF50", "#2196F3")) { choice ->
@@ -306,17 +320,27 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         initPillButtonStates()
+
+        // NEU & DIREKT IN ONCREATE: Triggert das erste Menü rechts exakt beim Starten auf Tablets/TVs
+        if (isDualScreenMode) {
+            hideAllSubPanelsExcept(panelTheme)
+            panelTheme.visibility = View.VISIBLE
+            currentMenuLayer = 5
+            tvSettingsTitle.text = getString(R.string.theme_title)
+
+            val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            updateSubpagePillColor(btnPillThemeLight, currentMode == AppCompatDelegate.MODE_NIGHT_NO)
+            updateSubpagePillColor(btnPillThemeDark, currentMode == AppCompatDelegate.MODE_NIGHT_YES)
+            updateSubpagePillColor(btnPillThemeSystem, currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        }
     }
 
-    // Neu implementiert: Schlichtes Untermenü "Update" via showTvDialog
     private fun showUpdateSubMenuDialog() {
         val isAutoCheckActive = prefs.getBoolean("update_auto_check", true)
-
         val options = arrayOf(
             getString(R.string.btn_manual_search),
             if (isAutoCheckActive) getString(R.string.pill_auto_check_on) else getString(R.string.pill_auto_check_off)
         )
-
         val hexColors = arrayOf(null, if (isAutoCheckActive) "#4CAF50" else "#E53935")
 
         showTvDialog(getString(R.string.submenu_update_title), options, hexColors) { index ->
@@ -339,12 +363,9 @@ class SettingsActivity : AppCompatActivity() {
         val s100 = prefs.getBoolean("sound_100_enabled", true)
 
         val soundOptions = arrayOf(
-            getString(R.string.notify_title_offline),
-            getString(R.string.notify_title_first_layer),
-            getString(R.string.notify_title_50),
-            getString(R.string.notify_title_75),
-            getString(R.string.notify_title_90),
-            getString(R.string.notify_title_100)
+            getString(R.string.notify_title_offline), getString(R.string.notify_title_first_layer),
+            getString(R.string.notify_title_50), getString(R.string.notify_title_75),
+            getString(R.string.notify_title_90), getString(R.string.notify_title_100)
         )
         val activeStates = arrayOf(sOffline, sFirst, s50, s75, s90, s100)
         val customColors = Array<String?>(6) { i -> if (activeStates[i]) "#4CAF50" else null }
@@ -372,7 +393,6 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 SoundManager.playLiveNotification(soundFile)
             }
-
             showSoundsConfigurationDialog()
         }
     }
@@ -386,12 +406,9 @@ class SettingsActivity : AppCompatActivity() {
         val p100 = prefs.getBoolean("popup_100_enabled", true)
 
         val popupOptions = arrayOf(
-            getString(R.string.notify_title_offline),
-            getString(R.string.notify_title_first_layer),
-            getString(R.string.notify_title_50),
-            getString(R.string.notify_title_75),
-            getString(R.string.notify_title_90),
-            getString(R.string.notify_title_100)
+            getString(R.string.notify_title_offline), getString(R.string.notify_title_first_layer),
+            getString(R.string.notify_title_50), getString(R.string.notify_title_75),
+            getString(R.string.notify_title_90), getString(R.string.notify_title_100)
         )
         val activeStates = arrayOf(pOffline, pFirst, p50, p75, p90, p100)
         val customColors = Array<String?>(6) { i -> if (activeStates[i]) "#4CAF50" else null }
@@ -438,7 +455,6 @@ class SettingsActivity : AppCompatActivity() {
                     NotificationManager.showLivePopup(this@SettingsActivity, tag, titleRes, msgRes)
                 }, 100)
             }
-
             showPopupsConfigurationDialog()
         }
     }
@@ -536,11 +552,34 @@ class SettingsActivity : AppCompatActivity() {
         btn.setTextColor(if (isSelected) Color.WHITE else ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
     }
 
+    // GEFIXT: Schließt im Dual-Screen Modus sowohl die inneren Panels als auch die äußeren Scroll-Kapseln!
+    private fun hideAllSubPanelsExcept(activePanel: View) {
+        val panels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelAbout)
+        panels.forEach { panel ->
+            if (panel != activePanel) {
+                panel.visibility = View.GONE
+                // Wenn wir im Tablet-/TV-Modus sind, blenden wir auch die umschließende Kapsel aus
+                if (isDualScreenMode) {
+                    val parentScrollView = panel.parent as? ScrollView
+                    parentScrollView?.visibility = View.GONE
+                }
+            } else {
+                // Das ausgewählte Panel und seine Kapsel werden aktiv geschaltet
+                if (isDualScreenMode) {
+                    val parentScrollView = panel.parent as? ScrollView
+                    parentScrollView?.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
+    // GEFIXT: Schaltet die übergeordneten Scrollviews beim Zurückgehen im Dual-Screen Modus auf GONE
     private fun handleBackNavigation() {
         when (currentMenuLayer) {
             6 -> {
                 panelLanguage.visibility = View.GONE
-                panelSettings.visibility = View.VISIBLE
+                if (isDualScreenMode) (panelLanguage.parent as? ScrollView)?.visibility = View.GONE
+                if (!isDualScreenMode) panelSettings.visibility = View.VISIBLE
                 currentMenuLayer = 0
                 tvSettingsTitle.text = getString(R.string.settings_title)
                 val targetBtn = findViewById<MaterialButton>(R.id.btnChangeLanguage)
@@ -548,7 +587,8 @@ class SettingsActivity : AppCompatActivity() {
             }
             5 -> {
                 panelTheme.visibility = View.GONE
-                panelSettings.visibility = View.VISIBLE
+                if (isDualScreenMode) (panelTheme.parent as? ScrollView)?.visibility = View.GONE
+                if (!isDualScreenMode) panelSettings.visibility = View.VISIBLE
                 currentMenuLayer = 0
                 tvSettingsTitle.text = getString(R.string.theme_title)
                 val targetBtn = findViewById<MaterialButton>(R.id.btnThemeSelect)
@@ -556,7 +596,8 @@ class SettingsActivity : AppCompatActivity() {
             }
             4 -> {
                 panelScreensaver.visibility = View.GONE
-                panelSettings.visibility = View.VISIBLE
+                if (isDualScreenMode) (panelScreensaver.parent as? ScrollView)?.visibility = View.GONE
+                if (!isDualScreenMode) panelSettings.visibility = View.VISIBLE
                 currentMenuLayer = 0
                 tvSettingsTitle.text = getString(R.string.menu_screensaver)
                 val targetBtn = findViewById<MaterialButton>(R.id.btnGlobalScreensaver)
@@ -564,7 +605,8 @@ class SettingsActivity : AppCompatActivity() {
             }
             3 -> {
                 panelAbout.visibility = View.GONE
-                panelSettings.visibility = View.VISIBLE
+                if (isDualScreenMode) (panelAbout.parent as? ScrollView)?.visibility = View.GONE
+                if (!isDualScreenMode) panelSettings.visibility = View.VISIBLE
                 currentMenuLayer = 0
                 tvSettingsTitle.text = getString(R.string.btn_about_menu)
                 val targetBtn = findViewById<MaterialButton>(R.id.btnAboutMenu)
@@ -572,7 +614,8 @@ class SettingsActivity : AppCompatActivity() {
             }
             1 -> {
                 panelNotifySelect.visibility = View.GONE
-                panelSettings.visibility = View.VISIBLE
+                if (isDualScreenMode) (panelNotifySelect.parent as? ScrollView)?.visibility = View.GONE
+                if (!isDualScreenMode) panelSettings.visibility = View.VISIBLE
                 currentMenuLayer = 0
                 tvSettingsTitle.text = getString(R.string.settings_notify_title)
                 val targetBtn = findViewById<MaterialButton>(R.id.btnNotificationsMenu)
@@ -721,7 +764,6 @@ class SettingsActivity : AppCompatActivity() {
         btn.setTextColor(normalTxtColor)
     }
 
-    // Modifiziert: API-URL korrigiert (Ship-of-Agony) & Mathematischer Vergleich eingebaut
     private fun checkForUpdatesFromGithub() {
         val apiUrl = "https://api.github.com/repos/Ship-of-Agony/KlippShell4Creality/releases"
 
@@ -759,16 +801,13 @@ class SettingsActivity : AppCompatActivity() {
                             "0.8.5"
                         }
 
-                        // MATHEMATISCHER VERGLEICH: Wandelt "0.8.5" in 85 um für einen sauberen Richtungsvergleich
                         val latestNumeric = latestVersionTag.replace(".", "").toIntOrNull() ?: 0
                         val currentNumeric = currentVersionName.replace(".", "").toIntOrNull() ?: 0
 
                         withContext(Dispatchers.Main) {
-                            // Update wird NUR getriggert, wenn die Online-Version echt größer ist als die lokale Version
                             if (latestNumeric > currentNumeric && downloadUrl.isNotEmpty()) {
                                 showUpdateAvailableDialog(latestVersionTag, downloadUrl)
                             } else {
-                                // Fängt deinen Entwicklerzweig (Lokal >= GitHub) sauber ab
                                 showCenteredPillToast(getString(R.string.toast_updater_up_to_date))
                             }
                         }
@@ -830,10 +869,8 @@ class SettingsActivity : AppCompatActivity() {
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.license_link_text)
-
         val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
-        // MODIFIZIERT: Höhe moderat von 260dp auf 330dp angehoben für optimalen Platz auf TVs & Smartphones
         val scrollView = ScrollView(this).apply {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 330.toPx(this@SettingsActivity))
             setPadding(12, 12, 12, 12)

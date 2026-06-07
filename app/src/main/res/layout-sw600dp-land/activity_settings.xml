@@ -19,18 +19,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineCenter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
     <ScrollView
         android:id="@+id/scrollPanelSettings"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
-        app:layout_constrainedHeight="true"
-        app:layout_constraintWidth_max="560dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:fillViewport="true"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@id/guidelineCenter"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
@@ -134,16 +141,16 @@
     <ScrollView
         android:id="@+id/scrollPanelTheme"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="12dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
-        app:layout_constrainedHeight="true"
-        app:layout_constraintWidth_max="560dp"
+        android:fillViewport="true"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
 
@@ -155,7 +162,8 @@
             android:elevation="8dp"
             android:orientation="vertical"
             android:padding="20dp"
-            android:visibility="gone">
+            android:visibility="gone"
+            tools:visibility="visible">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPillThemeLight"
@@ -200,16 +208,16 @@
     <ScrollView
         android:id="@+id/scrollPanelLanguage"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="12dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
-        app:layout_constrainedHeight="true"
-        app:layout_constraintWidth_max="560dp"
+        android:fillViewport="true"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
 
@@ -234,16 +242,16 @@
     <ScrollView
         android:id="@+id/scrollPanelNotifySelect"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="12dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
-        app:layout_constrainedHeight="true"
-        app:layout_constraintWidth_max="560dp"
+        android:fillViewport="true"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
 
@@ -289,16 +297,16 @@
     <ScrollView
         android:id="@+id/scrollPanelScreensaver"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="12dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
-        app:layout_constrainedHeight="true"
-        app:layout_constraintWidth_max="560dp"
+        android:fillViewport="true"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
 
@@ -379,16 +387,16 @@
     <ScrollView
         android:id="@+id/scrollPanelAbout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="12dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
-        app:layout_constrainedHeight="true"
-        app:layout_constraintWidth_max="560dp"
+        android:fillViewport="true"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
 
@@ -415,7 +423,7 @@
             <ScrollView
                 android:id="@+id/scrollChangelogBox"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="140dp"
                 android:background="@drawable/bg_input_rounded"
                 android:padding="12dp"
                 android:layout_marginBottom="16dp"

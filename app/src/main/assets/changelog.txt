@@ -1,3 +1,11 @@
+v0.8.6.070626-rc
+
+• Responsive Dual-Screen Layout: Implemented an automatic side-by-side dashboard for tablets and Android TV devices for improved navigation.
+• Persistent Main Menu: The navigation list remains visible on the left side, while sub-menus open instantly in the right column.
+• Enhanced Input Support: Optimized touch and D-Pad focus management ensures all elements are fully interactive across all screen sizes.
+• Automatic Dashboard Startup: The primary sub-menu now loads automatically in landscape mode, providing an immediate full-screen experience.
+
+
 v0.8.5.070626-rc
 
 • OTA Updater Optimization: Implemented automatic, silent update checks upon application startup.
