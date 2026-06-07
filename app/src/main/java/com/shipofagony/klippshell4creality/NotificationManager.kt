@@ -31,7 +31,10 @@ object NotificationManager {
         }
 
         val prefs = context.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        val isDefaultEnabled = prefKey.contains("error") || prefKey.contains("100")
+
+        // GEFIXT: Standardmäßig sind ALLE Popups aktiv (true).
+        // Das sorgt dafür, dass offline, first_layer, 50, 75, 90 etc. ab Werk durchkommen!
+        val isDefaultEnabled = true
 
         val isSettingsContext = context is SettingsActivity
         val isPopupAllowed = if (isSettingsContext) true else prefs.getBoolean(prefKey, isDefaultEnabled)

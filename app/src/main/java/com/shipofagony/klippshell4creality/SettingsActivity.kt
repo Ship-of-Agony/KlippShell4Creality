@@ -318,22 +318,23 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        // Stark abgrenzende Umrandungen für 3-4m Sichtbarkeit im Menü
         arrayOf(
             btnThemeSelect, btnChangeLanguage, btnGlobalScreensaver, btnNotificationsMenu,
-            btnAboutMenu, btnResetApp, btnPillThemeSounds, btnPillThemePopups
+            btnAboutMenu, btnResetApp, btnPillThemeSounds, btnPillThemePopups,
+            btnPillThemeLight, btnPillThemeDark, btnPillThemeSystem
         ).forEach { btn ->
             btn.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
                 if (v is MaterialButton) {
-                    v.strokeWidth = if (hasFocus) 6 else 0
-                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+                    v.strokeWidth = if (hasFocus) 8 else 0
+                    val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
                 }
             }
         }
 
         initPillButtonStates()
-
-        // Prüft direkt beim Öffnen, ob der Advanced-Modus aktiv ist und rendert das Menü
         checkAndRenderAdvancedMenu()
 
         if (isDualScreenMode) {
@@ -349,10 +350,37 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Programmatisches Rendering des Advanced-Bereichs über dem Reset-Button.
-     * Nutzt lokalisierte Strings aus der XML-Datei und verhindert Hardcoding.
-     */
+    private fun adjustLayoutForTvAndMobile() {
+        val parentGroup = panelSettings.parent as? ViewGroup ?: return
+        if (parentGroup !is ScrollView) {
+            val index = parentGroup.indexOfChild(panelSettings)
+            parentGroup.removeView(panelSettings)
+            val scrollView = ScrollView(this).apply {
+                isFillViewport = true
+                clipChildren = false
+                clipToPadding = false
+            }
+            scrollView.addView(panelSettings, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            parentGroup.addView(scrollView, index, panelSettings.layoutParams)
+        }
+    }
+
+    // Schützt den Rahmen davor, beim Ändern der Auswahlfarben gelöscht zu werden
+    private fun updateSubpagePillColor(btn: MaterialButton?, isSelected: Boolean) {
+        if (btn == null) return
+        btn.backgroundTintList = ColorStateList.valueOf(if (isSelected) Color.parseColor("#4CAF50") else ContextCompat.getColor(this, R.color.pill_normal_inactive))
+        btn.setTextColor(if (isSelected) Color.WHITE else ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
+
+        if (!btn.isFocused) {
+            btn.strokeWidth = 0
+            btn.strokeColor = null
+        } else {
+            btn.strokeWidth = 8
+            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            btn.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun checkAndRenderAdvancedMenu() {
         val isAdvancedActive = prefs.getBoolean("is_advanced_mode", false)
@@ -369,53 +397,39 @@ class SettingsActivity : AppCompatActivity() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textLabelColor = if (isNight) Color.parseColor("#80FFFFFF") else Color.parseColor("#80000000")
 
-        // 1. Text-Trenner "Advanced" erzeugen und ZENTRIEREN
         advancedHeaderView = TextView(this).apply {
             text = "Advanced"
             textSize = 14f
             gravity = Gravity.CENTER_HORIZONTAL
             setTextColor(textLabelColor)
-            setPadding(0, 24.toPx(this@SettingsActivity), 0, 8.toPx(this@SettingsActivity))
+            setPadding(0, toPx(24), 0, toPx(8))
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
 
-        // 2. Neuer Pill-Button "TV-Launcher aktualisieren" erzeugen
         advancedTvButton = MaterialButton(this).apply {
             text = getString(R.string.btn_advanced_trigger_tv)
             isAllCaps = false
             textSize = 16f
             isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-
-            setPadding(0, 14.toPx(this@SettingsActivity), 0, 14.toPx(this@SettingsActivity))
-
+            setPadding(0, toPx(14), 0, toPx(14))
             backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this@SettingsActivity, R.color.pill_normal_inactive))
             setTextColor(ContextCompat.getColor(this@SettingsActivity, R.color.pill_normal_inactive_text))
-
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(0, 8.toPx(this@SettingsActivity), 0, 8.toPx(this@SettingsActivity))
+                setMargins(0, toPx(8), 0, toPx(8))
             }
-
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
-                strokeWidth = if (hasFocus) 6 else 0
-                strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+                if (v is MaterialButton) {
+                    v.strokeWidth = if (hasFocus) 8 else 0
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
+                }
             }
-
             setOnClickListener {
                 try {
-                    // Triggert dein internes Popup-System zur visuellen Bestätigung mit neuen XML-Einträgen
-                    NotificationManager.showLivePopup(
-                        this@SettingsActivity,
-                        "popup_advanced_sync",
-                        R.string.popup_advanced_sync_title,
-                        R.string.popup_advanced_sync_msg
-                    )
-
+                    NotificationManager.showLivePopup(this@SettingsActivity, "popup_advanced_sync", R.string.popup_advanced_sync_title, R.string.popup_advanced_sync_msg)
                     val workClass = Class.forName("com.shipofagony.klippshell4creality.KlipperTvWorker") as Class<out androidx.work.ListenableWorker>
-                    val workRequest = OneTimeWorkRequest.Builder(workClass).build()
-                    WorkManager.getInstance(applicationContext).enqueue(workRequest)
-
+                    WorkManager.getInstance(applicationContext).enqueue(OneTimeWorkRequest.Builder(workClass).build())
                     showCenteredPillToast(getString(R.string.btn_advanced_trigger_tv) + " ✓")
                 } catch (e: Exception) {
                     Log.e("KlippShell", "Advanced TV-Worker Trigger failed", e)
@@ -427,9 +441,6 @@ class SettingsActivity : AppCompatActivity() {
         mainContainer.addView(advancedTvButton, indexReset + 1)
     }
 
-    /**
-     * Entfernt die Advanced-Views restlos aus der UI-Struktur, falls die App resettet wird.
-     */
     private fun removeAdvancedMenuViews() {
         val mainContainer = findViewById<LinearLayout>(R.id.panelSettings) ?: return
         advancedHeaderView?.let { mainContainer.removeView(it); advancedHeaderView = null }
@@ -438,10 +449,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun showUpdateSubMenuDialog() {
         val isAutoCheckActive = prefs.getBoolean("update_auto_check", true)
-        val options = arrayOf(
-            getString(R.string.btn_manual_search),
-            if (isAutoCheckActive) getString(R.string.pill_auto_check_on) else getString(R.string.pill_auto_check_off)
-        )
+        val options = arrayOf(getString(R.string.btn_manual_search), if (isAutoCheckActive) getString(R.string.pill_auto_check_on) else getString(R.string.pill_auto_check_off))
         val hexColors = arrayOf(null, if (isAutoCheckActive) "#4CAF50" else "#E53935")
 
         showTvDialog(getString(R.string.submenu_update_title), options, hexColors) { index ->
@@ -554,9 +562,10 @@ class SettingsActivity : AppCompatActivity() {
 
                 Handler(Looper.getMainLooper()).postDelayed({
                     NotificationManager.showLivePopup(this@SettingsActivity, tag, titleRes, msgRes)
-                }, 100)
+                }, 150)
+            } else {
+                showPopupsConfigurationDialog()
             }
-            showPopupsConfigurationDialog()
         }
     }
 
@@ -578,7 +587,7 @@ class SettingsActivity : AppCompatActivity() {
                 textSize = 16f
                 isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-                setPadding(0, 30.toPx(this@SettingsActivity), 0, 30.toPx(this@SettingsActivity))
+                setPadding(0, toPx(30), 0, toPx(30))
 
                 if (isSelected) {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
@@ -589,14 +598,15 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(0, 8.toPx(this@SettingsActivity), 0, 8.toPx(this@SettingsActivity))
+                    setMargins(0, toPx(8), 0, toPx(8))
                 }
 
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
-                        (v as MaterialButton).strokeWidth = 6
-                        v.strokeColor = ColorStateList.valueOf(Color.WHITE)
+                        (v as MaterialButton).strokeWidth = 8
+                        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                        v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 0
@@ -647,12 +657,6 @@ class SettingsActivity : AppCompatActivity() {
         updateSubpagePillColor(findViewById(R.id.btnPillSaverOff), activeTimeout == 0L)
     }
 
-    private fun updateSubpagePillColor(btn: MaterialButton?, isSelected: Boolean) {
-        if (btn == null) return
-        btn.backgroundTintList = ColorStateList.valueOf(if (isSelected) Color.parseColor("#4CAF50") else ContextCompat.getColor(this, R.color.pill_normal_inactive))
-        btn.setTextColor(if (isSelected) Color.WHITE else ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
-    }
-
     private fun hideAllSubPanelsExcept(activePanel: View) {
         val panels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelAbout)
         panels.forEach { panel ->
@@ -678,7 +682,7 @@ class SettingsActivity : AppCompatActivity() {
                 if (isDualScreenMode) (panelLanguage.parent as? ScrollView)?.visibility = View.GONE
                 if (!isDualScreenMode) panelSettings.visibility = View.VISIBLE
                 currentMenuLayer = 0
-                tvSettingsTitle.text = getString(R.string.settings_title)
+                tvSettingsTitle.text = getString(R.string.change_language)
                 val targetBtn = findViewById<MaterialButton>(R.id.btnChangeLanguage)
                 targetBtn?.post { targetBtn.requestFocus() }
             }
@@ -748,7 +752,7 @@ class SettingsActivity : AppCompatActivity() {
                 textSize = 16f
                 isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-                setPadding(0, 30.toPx(this@SettingsActivity), 0, 30.toPx(this@SettingsActivity))
+                setPadding(0, toPx(30), 0, toPx(30))
 
                 if (customHex != null) {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex))
@@ -759,14 +763,15 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(0, 10.toPx(this@SettingsActivity), 0, 10.toPx(this@SettingsActivity))
+                    setMargins(0, toPx(10), 0, toPx(10))
                 }
 
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
-                        (v as MaterialButton).strokeWidth = 6
-                        v.strokeColor = ColorStateList.valueOf(Color.WHITE)
+                        (v as MaterialButton).strokeWidth = 8
+                        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                        v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 0
@@ -802,7 +807,7 @@ class SettingsActivity : AppCompatActivity() {
         val container = FrameLayout(this).apply {
             val params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
                 gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-                setMargins(0, 0, 0, 120.toPx(this@SettingsActivity))
+                setMargins(0, 0, 0, toPx(120))
             }
             layoutParams = params
             addView(pillView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
@@ -969,7 +974,7 @@ class SettingsActivity : AppCompatActivity() {
         val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         val scrollView = ScrollView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 330.toPx(this@SettingsActivity))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(330))
             setPadding(12, 12, 12, 12)
             background = ContextCompat.getDrawable(this@SettingsActivity, R.drawable.bg_input_rounded)
         }
@@ -989,19 +994,20 @@ class SettingsActivity : AppCompatActivity() {
             textSize = 16f
             isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-            setPadding(0, 30.toPx(this@SettingsActivity), 0, 30.toPx(this@SettingsActivity))
+            setPadding(0, toPx(30), 0, toPx(30))
 
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
             setTextColor(Color.WHITE)
 
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(0, 16.toPx(this@SettingsActivity), 0, 0)
+                setMargins(0, 16, 0, 0)
             }
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
                     v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
-                    (v as MaterialButton).strokeWidth = 6
-                    v.strokeColor = ColorStateList.valueOf(Color.WHITE)
+                    (v as MaterialButton).strokeWidth = 8 // Breiterer Rahmen
+                    val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                    v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
                 } else {
                     v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                     (v as MaterialButton).strokeWidth = 0
@@ -1018,8 +1024,8 @@ class SettingsActivity : AppCompatActivity() {
         closeBtn.requestFocus()
     }
 
-    private fun Int.toPx(context: Context): Int {
-        return (this * context.resources.displayMetrics.density).toInt()
+    private fun toPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 
     override fun onPause() {

@@ -28,6 +28,8 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layout_constrainedHeight="true"
         app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -42,7 +44,12 @@
             android:background="@drawable/bg_card"
             android:elevation="8dp"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="visible">
 
             <com.google.android.material.button.MaterialButton
@@ -140,6 +147,8 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layout_constrainedHeight="true"
         app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -154,7 +163,12 @@
             android:background="@drawable/bg_card"
             android:elevation="8dp"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
@@ -206,6 +220,8 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layout_constrainedHeight="true"
         app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -220,7 +236,12 @@
             android:background="@drawable/bg_card"
             android:elevation="8dp"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone">
 
             <LinearLayout
@@ -240,6 +261,8 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layout_constrainedHeight="true"
         app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -254,7 +277,12 @@
             android:background="@drawable/bg_card"
             android:elevation="8dp"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
@@ -295,6 +323,8 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layout_constrainedHeight="true"
         app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -309,7 +339,12 @@
             android:background="@drawable/bg_card"
             android:elevation="8dp"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
@@ -385,6 +420,8 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layout_constrainedHeight="true"
         app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -399,7 +436,12 @@
             android:background="@drawable/bg_card"
             android:elevation="8dp"
             android:orientation="vertical"
-            android:padding="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone">
 
             <TextView

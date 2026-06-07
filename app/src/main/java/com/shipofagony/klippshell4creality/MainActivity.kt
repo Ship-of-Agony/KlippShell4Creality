@@ -16,7 +16,6 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.view.Gravity
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -71,28 +70,23 @@ class MainActivity : AppCompatActivity() {
     private var selectedSystemIndex = 0
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    // Karussell-Liste für den TV-Modus (Schnellauswahl via Links/Rechts)
-    private val tvTopModels = arrayOf("Custom Printer", "K1", "K1C", "K1 Max", "Ender 3 V3", "Ender 3 V3 KE")
-    private var currentTvModelIndex = 0
-
     private val printerMap = mapOf(
-        "Custom Printer" to "custem",
         "CR-10" to "cr_10", "CR-10 SE" to "cr_10se", "CR-10 Smart" to "cr_10smart",
         "CR-10 Smart Pro" to "cr_10smartpro", "CR-10S Pro V2" to "cr_10sprov2",
         "CR-20 Pro" to "cr_20pro", "CR-30" to "cr_30", "CR-6 SE" to "cr_6se",
-        "CR-M4" to "cr_m4", "CR-M4 SE" to "cr_m4se", "Ender 2 Pro" to "ender_2pro",
-        "Ender 3" to "ender_3", "Ender 3 Max" to "ender_3max", "Ender 3 Max Neo" to "ender_3maxneo",
-        "Ender 3 Neo" to "ender_3neo", "Ender 3 S1" to "ender_3s1", "Ender 3 S1 Plus" to "ender_3s1plus",
-        "Ender 3 S1 Pro" to "ender_3s1pro", "Ender 3 V2" to "ender_3v2", "Ender 3 V3" to "ender_3v3",
-        "Ender 3 V3 KE" to "ender_3v3ke", "Ender 3 V3 Plus" to "ender_3v3plus", "Ender 3 V3 SE" to "ender_3v3se",
-        "Ender 4" to "ender_4", "Ender 5 Max" to "ender_5max", "Ender 5 Plus" to "ender_5plus",
-        "Ender 5 S1" to "ender_5s1", "GS-01" to "gs_01", "GS-02" to "gs_02", "GS-03" to "gs_03",
-        "GS-04" to "gs_04", "HI" to "hi", "K1" to "k1", "K1C" to "k1c", "K1 Max" to "k1max",
-        "K1 SE" to "k1se", "K2" to "k2", "K2 Plus" to "k2plus", "K2 Pro" to "k2pro",
-        "K2 SE" to "k2se", "Sermoon D3" to "sermoond3", "Sermoon D3 Pro" to "sermoond3pro",
-        "Sermoon M300" to "sermoonm300", "Sermoon V1 Pro" to "sermoonv1pro",
-        "Sonic Pad (Ender 3 S1)" to "sonic_ender_3s1", "Sonic Pad (Ender 5 S1)" to "sonic_ender_5s1",
-        "Spark Xi7" to "sparkxi7"
+        "CR-M4" to "cr_m4", "CR-M4 SE" to "cr_m4se", "Custom Printer" to "custem",
+        "Ender 2 Pro" to "ender_2pro", "Ender 3" to "ender_3", "Ender 3 Max" to "ender_3max",
+        "Ender 3 Max Neo" to "ender_3maxneo", "Ender 3 Neo" to "ender_3neo", "Ender 3 S1" to "ender_3s1",
+        "Ender 3 S1 Plus" to "ender_3s1plus", "Ender 3 S1 Pro" to "ender_3s1pro", "Ender 3 V2" to "ender_3v2",
+        "Ender 3 V3" to "ender_3v3", "Ender 3 V3 KE" to "ender_3v3ke", "Ender 3 V3 Plus" to "ender_3v3plus",
+        "Ender 3 V3 SE" to "ender_3v3se", "Ender 4" to "ender_4", "Ender 5 Max" to "ender_5max",
+        "Ender 5 Plus" to "ender_5plus", "Ender 5 S1" to "ender_5s1", "GS-01" to "gs_01",
+        "GS-02" to "gs_02", "GS-03" to "gs_03", "GS-04" to "gs_04", "HI" to "hi",
+        "K1" to "k1", "K1C" to "k1c", "K1 Max" to "k1max", "K1 SE" to "k1se",
+        "K2" to "k2", "K2 Plus" to "k2plus", "K2 Pro" to "k2pro", "K2 SE" to "k2se",
+        "Sermoon D3" to "sermoond3", "Sermoon D3 Pro" to "sermoond3pro", "Sermoon M300" to "sermoonm300",
+        "Sermoon V1 Pro" to "sermoonv1pro", "Sonic Pad (Ender 3 S1)" to "sonic_ender_3s1",
+        "Sonic Pad (Ender 5 S1)" to "sonic_ender_5s1", "Spark Xi7" to "sparkxi7"
     )
 
     private fun isAndroidTV(): Boolean {
@@ -127,7 +121,6 @@ class MainActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
 
-        // Klick auf Android TV "Watch Next" Kachel abfangen & auswerten
         intent?.data?.let { uri ->
             if (uri.scheme == "klippshell" && uri.host == "open.printer") {
                 val printerArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (_: Exception) { JSONArray() }
@@ -215,43 +208,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // ---- STRUKTURELLE PLATTFORM-TRENNUNG FÜR DIE MODELLAUSWAHL ----
         val models = printerMap.keys.toTypedArray()
 
         if (isAndroidTV()) {
-            // Android TV Setup
-            actvMainPrinterModel.showSoftInputOnFocus = false
+            actvMainPrinterModel.isFocusable = true
+            actvMainPrinterModel.isFocusableInTouchMode = false
             actvMainPrinterModel.inputType = InputType.TYPE_NULL
 
-            // Klick/Center-Taste öffnet sofort den Suchdialog
             actvMainPrinterModel.setOnClickListener {
                 showModelSelectionSearchDialog(getString(R.string.printer_model_hint), models) { selectedModel ->
                     actvMainPrinterModel.setText(selectedModel, false)
-                    val idx = tvTopModels.indexOf(selectedModel)
-                    if (idx != -1) currentTvModelIndex = idx
                 }
             }
-
-            // D-Pad Links/Rechts-Navigation für das Karussell abfangen
-            actvMainPrinterModel.setOnKeyListener { _, keyCode, event ->
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    when (keyCode) {
-                        KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                            currentTvModelIndex = (currentTvModelIndex + 1) % tvTopModels.size
-                            actvMainPrinterModel.setText(tvTopModels[currentTvModelIndex], false)
-                            return@setOnKeyListener true
-                        }
-                        KeyEvent.KEYCODE_DPAD_LEFT -> {
-                            currentTvModelIndex = if (currentTvModelIndex - 1 < 0) tvTopModels.size - 1 else currentTvModelIndex - 1
-                            actvMainPrinterModel.setText(tvTopModels[currentTvModelIndex], false)
-                            return@setOnKeyListener true
-                        }
-                    }
-                }
-                false
-            }
+            actvMainPrinterModel.setOnKeyListener(null)
         } else {
-            // Smartphone Setup
             actvMainPrinterModel.showSoftInputOnFocus = true
             actvMainPrinterModel.inputType = InputType.TYPE_CLASS_TEXT
 
@@ -273,9 +243,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        actvMainPrinterModel.setText("Custom Printer", false)
+        actvMainPrinterModel.setText("", false)
 
-        findViewById<View>(R.id.btnSettings).setOnClickListener {
+        findViewById<View>(R.id.btnSettings)?.setOnClickListener {
             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
         }
 
@@ -286,10 +256,10 @@ class MainActivity : AppCompatActivity() {
             if (!isVisible) etMainPrinterName.requestFocus()
         }
 
-        findViewById<Button>(R.id.btnSearchNetwork).setOnClickListener { searchNetworkForPrinters() }
-        findViewById<Button>(R.id.btnExitApp).setOnClickListener { finishAffinity() }
+        findViewById<Button>(R.id.btnSearchNetwork)?.setOnClickListener { searchNetworkForPrinters() }
+        findViewById<Button>(R.id.btnExitApp)?.setOnClickListener { finishAffinity() }
 
-        findViewById<Button>(R.id.btnAddMainPrinter).setOnClickListener {
+        findViewById<Button>(R.id.btnAddMainPrinter)?.setOnClickListener {
             val name = etMainPrinterName.text.toString().trim()
             val ip = etMainPrinterIP.text.toString().trim()
             val port = when (selectedSystemIndex) {
@@ -301,13 +271,13 @@ class MainActivity : AppCompatActivity() {
             if (name.isNotEmpty() && ip.isNotEmpty()) {
                 val viewOptions = arrayOf(getString(R.string.menu_change_camera_type), getString(R.string.choose_default_view))
                 showPillDialog(getString(R.string.choose_default_view_title), viewOptions) { which ->
-                    savePrinter(name, ip, port, actvMainPrinterModel.text.toString().trim(), if (which == 0) "camera" else "interface")
+                    val modelText = actvMainPrinterModel.text.toString().trim().ifEmpty { "Standard Drucker" }
+                    savePrinter(name, ip, port, modelText, if (which == 0) "camera" else "interface")
 
                     etMainPrinterName.text.clear()
                     etMainPrinterIP.text.clear()
                     etMainPrinterPort.text.clear()
-                    actvMainPrinterModel.setText("Custom Printer", false)
-                    currentTvModelIndex = 0
+                    actvMainPrinterModel.setText("", false)
 
                     selectedSystemIndex = 0
                     btnSystemSelect.text = "4408"
@@ -340,21 +310,20 @@ class MainActivity : AppCompatActivity() {
             btn?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
                 if (v is MaterialButton) {
-                    v.strokeWidth = if (hasFocus) 6 else 0
-                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+                    v.strokeWidth = if (hasFocus) 8 else 0
+                    val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
                 }
             }
         }
 
         applyLanguageAndRefreshUI()
 
-        // Automatische OTA-Prüfung im Hintergrund beim App-Start (wenn aktiv)
         val isAutoCheckEnabled = prefs.getBoolean("update_auto_check", true)
         if (isAutoCheckEnabled) {
             checkUpdatesSilentlyInBackground()
         }
 
-        // Android TV Hintergrund-Dienst (Watch Next) starten, wenn Drucker vorhanden sind
         if (printerArray.length() > 0 && isAndroidTV()) {
             startTvBackgroundWorker()
         }
@@ -368,11 +337,8 @@ class MainActivity : AppCompatActivity() {
     @Suppress("UNCHECKED_CAST")
     private fun startTvBackgroundWorker() {
         try {
-            // FIX: Verwende Java-Reflection-Klasse, um Compiler-Indizierungsfehler vollständig auszuschließen
             val workerClass = Class.forName("com.shipofagony.klippshell4creality.KlipperTvWorker") as Class<out ListenableWorker>
-
             val tvWorkRequest = PeriodicWorkRequest.Builder(workerClass, 15, TimeUnit.MINUTES).build()
-
             WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
                 "KlipperTvKachelWorker",
                 ExistingPeriodicWorkPolicy.KEEP,
@@ -428,6 +394,7 @@ class MainActivity : AppCompatActivity() {
         }
         val container = FrameLayout(this).apply { addView(pillView) }
         rootLayout.addView(container)
+
         mainHandler.postDelayed({
             if (!isFinishing && !isDestroyed) {
                 rootLayout.removeView(container)
@@ -469,25 +436,26 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val ipPrefix = getLocalIpAddress()?.substringBeforeLast(".") ?: return@launch
             val foundPrinters = java.util.Collections.synchronizedList(mutableListOf<String>())
-
             val semaphore = Semaphore(20)
+            val portsToCheck = arrayOf(4408, 7125)
 
-            val jobs = (1..254).map { i ->
-                launch {
-                    semaphore.withPermit {
-                        var socket: Socket? = null
-                        try {
-                            socket = Socket()
-                            socket.connect(InetSocketAddress("$ipPrefix.$i", 4408), 350)
-                            foundPrinters.add("$ipPrefix.$i")
-                        } catch (_: Exception) {
-                        } finally {
-                            try { socket?.close() } catch (_: Exception) {}
+            val jobs = (1..254).flatMap { i ->
+                portsToCheck.map { port ->
+                    launch {
+                        semaphore.withPermit {
+                            var socket: Socket? = null
+                            try {
+                                socket = Socket()
+                                socket.connect(InetSocketAddress("$ipPrefix.$i", port), 350)
+                                foundPrinters.add("$ipPrefix.$i")
+                            } catch (_: Exception) {
+                            } finally {
+                                try { socket?.close() } catch (_: Exception) {}
+                            }
                         }
                     }
                 }
             }
-
             jobs.joinAll()
 
             withContext(Dispatchers.Main) {
@@ -576,8 +544,8 @@ class MainActivity : AppCompatActivity() {
 
                     onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                         v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).translationZ(if (hasFocus) 6f else 0f).setDuration(100).start()
-                        strokeWidth = if (hasFocus) 6 else 0
-                        strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+                        strokeWidth = if (hasFocus) 8 else 0
+                        strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
                     }
 
                     setOnClickListener {
@@ -591,6 +559,7 @@ class MainActivity : AppCompatActivity() {
 
         populateList("")
 
+        // GEFIXT: Keine Re-Zuweisung mehr auf etSearch Konstante
         etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -600,7 +569,6 @@ class MainActivity : AppCompatActivity() {
         })
 
         dialog.show()
-
         etSearch.requestFocus()
         dialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
@@ -608,11 +576,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun savePrinter(name: String, ip: String, port: String, model: String, defaultView: String) {
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        val list = try {
-            JSONArray(prefs.getString("printers_list", "[]"))
-        } catch (e: Exception) {
-            JSONArray()
-        }
+        val list = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
 
         try {
             list.put(JSONObject().put("name", name).put("ip", ip).put("port", port).put("model", model).put("defaultView", defaultView))
@@ -644,7 +608,6 @@ class MainActivity : AppCompatActivity() {
         if (list.length() == 0) {
             containerAddPrinterForm.isVisible = true
             tvAddPrinterTitle.text = getString(R.string.add_printer_up)
-
             if (isAndroidTV()) {
                 WorkManager.getInstance(applicationContext).cancelUniqueWork("KlipperTvKachelWorker")
             }
@@ -686,18 +649,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             itemView.setOnLongClickListener {
-                val actionOptions = arrayOf(
-                    getString(R.string.choose_default_view_title),
-                    getString(R.string.yes_delete)
-                )
+                val actionOptions = arrayOf(getString(R.string.choose_default_view_title), getString(R.string.yes_delete))
                 val actionColors = arrayOf<String?>(null, "#E53935")
 
                 showPillDialog(printer.optString("name", "Drucker"), actionOptions, actionColors) { whichAction ->
                     if (whichAction == 0) {
-                        val viewOptions = arrayOf(
-                            getString(R.string.menu_change_camera_type),
-                            getString(R.string.choose_default_view)
-                        )
+                        val viewOptions = arrayOf(getString(R.string.menu_change_camera_type), getString(R.string.choose_default_view))
                         showPillDialog(getString(R.string.choose_default_view_title), viewOptions) { whichView ->
                             val newView = if (whichView == 0) "camera" else "interface"
                             val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
@@ -707,9 +664,7 @@ class MainActivity : AppCompatActivity() {
                                     prefs.edit().putString("printers_list", currentArray.toString()).apply()
                                     applyLanguageAndRefreshUI()
                                     showCenteredPillToast(getString(R.string.choose_default_view_title) + " ✓")
-                                } catch (e: Exception) {
-                                    Log.e("KlippShell", "Fehler beim Ändern der Standardansicht", e)
-                                }
+                                } catch (e: Exception) { Log.e("KlippShell", "Fehler beim Ändern der Standardansicht", e) }
                             }
                         }
                     } else {
@@ -765,44 +720,30 @@ class MainActivity : AppCompatActivity() {
 
                         val currentVersionName = try {
                             packageManager.getPackageInfo(packageName, 0).versionName?.replace("v", "")?.trim() ?: "0.8.5"
-                        } catch (e: Exception) {
-                            "0.8.5"
-                        }
+                        } catch (e: Exception) { "0.8.5" }
 
                         val latestNumeric = latestVersionTag.replace(".", "").toIntOrNull() ?: 0
-                        val currentNumeric = currentVersionName.replace(".", "").toIntOrNull() ?: 0
+                        val currentVersionNameNumeric = currentVersionName.replace(".", "").toIntOrNull() ?: 0
 
-                        if (latestNumeric > currentNumeric && downloadUrl.isNotEmpty()) {
+                        if (latestNumeric > currentVersionNameNumeric && downloadUrl.isNotEmpty()) {
                             withContext(Dispatchers.Main) {
                                 showUpdateAvailableDialog(latestVersionTag, downloadUrl)
                             }
                         }
                     }
                 }
-            } catch (e: Exception) {
-                Log.e("KlippShell", "Lautloser Update-Check fehlgeschlagen", e)
-            } finally {
-                connection?.disconnect()
-            }
+            } catch (e: Exception) { Log.e("KlippShell", "Lautloser Update-Check fehlgeschlagen", e) } finally { connection?.disconnect() }
         }
     }
 
     private fun showUpdateAvailableDialog(newVersion: String, downloadUrl: String) {
         val options = arrayOf(getString(R.string.btn_download_now), getString(R.string.btn_later))
-        showPillDialog(
-            title = getString(R.string.update_available_title, newVersion),
-            items = options,
-            hexColors = arrayOf("#4CAF50", null)
-        ) { index ->
+        showPillDialog(title = getString(R.string.update_available_title, newVersion), items = options, hexColors = arrayOf("#4CAF50", null)) { index ->
             if (index == 0 && downloadUrl.isNotEmpty()) {
                 try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
                     startActivity(intent)
-                } catch (e: Exception) {
-                    showCenteredPillToast(getString(R.string.toast_update_browser_error))
-                }
+                } catch (e: Exception) { showCenteredPillToast(getString(R.string.toast_update_browser_error)) }
             }
         }
     }
@@ -843,40 +784,25 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 isFocusable = true
-
-                layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    setMargins(0, 10, 0, 10)
-                }
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
 
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
-                        strokeWidth = 6
-                        strokeColor = ColorStateList.valueOf(Color.WHITE)
+                        (v as MaterialButton).strokeWidth = 8
+                        v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
-                        strokeWidth = 0
+                        (v as MaterialButton).strokeWidth = 0
                     }
                 }
-
-                setOnClickListener {
-                    onSelected(index)
-                    dialog.dismiss()
-                }
+                setOnClickListener { onSelected(index); dialog.dismiss() }
             }
             container?.addView(btn)
         }
         dialog.show()
     }
 
-    /**
-     * Zeigt beim ersten Start den technischen Netzwerk- und Datenschutzhinweis an.
-     * Enthält einen grünen Bestätigungsbutton sowie einen roten Ablehnen-Button,
-     * welcher die App bei Nichtzustimmung sofort komplett beendet.
-     */
     private fun showPermissionRationaleDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
@@ -888,7 +814,6 @@ class MainActivity : AppCompatActivity() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textColor = if (isNight) Color.WHITE else Color.BLACK
 
-        // Ausführlicher Informationstext
         val msgView = TextView(this).apply {
             text = getString(R.string.perm_dialog_msg)
             textSize = 15f
@@ -898,80 +823,58 @@ class MainActivity : AppCompatActivity() {
         }
         mainContainer?.addView(msgView, 0)
 
-        // 1. GRÜNER BESTÄTIGUNGS-BUTTON
         val btnAccept = MaterialButton(this).apply {
             text = getString(R.string.perm_dialog_btn)
             isAllCaps = false
             textSize = 16f
             cornerRadius = 100
             setPadding(0, 35, 0, 35)
-            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")) // Sauberes Android-Grün
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
             setTextColor(Color.WHITE)
             isFocusable = true
-
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(0, 0, 0, 16)
-            }
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, 16) }
 
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).translationZ(if (hasFocus) 6f else 0f).setDuration(100).start()
-                strokeWidth = if (hasFocus) 6 else 0
-                strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+                if (v is MaterialButton) {
+                    v.strokeWidth = if (hasFocus) 8 else 0
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
+                }
             }
 
             setOnClickListener {
-                getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-                    .edit().putBoolean("has_shown_permissions", true).apply()
+                getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).edit().putBoolean("has_shown_permissions", true).apply()
                 dialog.dismiss()
 
-                val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-                val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (_: Exception) { JSONArray() }
-                if (currentArray.length() == 0) {
-                    etMainPrinterName.requestFocus()
-                } else {
-                    findViewById<View>(R.id.btnSettings)?.requestFocus()
-                }
-
-                if (currentArray.length() > 0 && isAndroidTV()) {
-                    startTvBackgroundWorker()
-                }
+                val currentArray = try { JSONArray(getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).getString("printers_list", "[]")) } catch (_: Exception) { JSONArray() }
+                if (currentArray.length() == 0) { etMainPrinterName.requestFocus() } else { findViewById<View>(R.id.btnSettings)?.requestFocus() }
+                if (currentArray.length() > 0 && isAndroidTV()) { startTvBackgroundWorker() }
             }
         }
 
-        // 2. ROTER ABLEHNEN-BUTTON (Darunter platziert)
         val btnDecline = MaterialButton(this).apply {
             text = getString(R.string.perm_dialog_btn_decline)
             isAllCaps = false
             textSize = 16f
             cornerRadius = 100
             setPadding(0, 35, 0, 35)
-            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")) // Warn-Rot
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
             setTextColor(Color.WHITE)
             isFocusable = true
-
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).translationZ(if (hasFocus) 6f else 0f).setDuration(100).start()
-                strokeWidth = if (hasFocus) 6 else 0
-                strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+                if (v is MaterialButton) {
+                    v.strokeWidth = if (hasFocus) 8 else 0
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
+                }
             }
-
-            setOnClickListener {
-                dialog.dismiss()
-                finishAffinity()
-            }
+            setOnClickListener { dialog.dismiss(); finishAffinity() }
         }
 
         mainContainer?.addView(btnAccept)
         mainContainer?.addView(btnDecline)
-
         dialog.show()
         btnAccept.requestFocus()
     }
@@ -981,4 +884,6 @@ class MainActivity : AppCompatActivity() {
         currentFocus?.clearFocus()
         super.onDestroy()
     }
+
+    private fun toPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 }
