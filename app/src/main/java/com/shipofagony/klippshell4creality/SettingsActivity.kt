@@ -27,6 +27,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.ShapeAppearanceModel
@@ -61,8 +63,12 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private var easterEggClickCount = 0
 
-    // NEU: Erkennt vollautomatisch, ob das Side-by-Side TV-/Tablet-Layout geladen wurde
+    // Erkennt vollautomatisch, ob das Side-by-Side TV-/Tablet-Layout geladen wurde
     private var isDualScreenMode = false
+
+    // Referenzen für die dynamischen Advanced-Views im Layout
+    private var advancedHeaderView: TextView? = null
+    private var advancedTvButton: MaterialButton? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -121,8 +127,8 @@ class SettingsActivity : AppCompatActivity() {
         val btnPillThemeDark = findViewById<MaterialButton>(R.id.btnPillThemeDark)
         val btnPillThemeSystem = findViewById<MaterialButton>(R.id.btnPillThemeSystem)
 
-        val btnSubMenuSounds = findViewById<MaterialButton>(R.id.btnSubMenuSounds)
-        val btnSubMenuPopups = findViewById<MaterialButton>(R.id.btnSubMenuPopups)
+        val btnPillThemeSounds = findViewById<MaterialButton>(R.id.btnSubMenuSounds)
+        val btnPillThemePopups = findViewById<MaterialButton>(R.id.btnSubMenuPopups)
 
         val btnCheckUpdates = findViewById<MaterialButton>(R.id.btnCheckUpdates)
         val ivAboutStudioLogo = findViewById<ImageView>(R.id.ivAboutStudioLogo)
@@ -139,7 +145,6 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         btnThemeSelect.setOnClickListener {
-            // GEFIXT: Verhindert das Verstecken des Hauptmenüs im TV Dual-Screen Modus
             if (!isDualScreenMode) panelSettings.visibility = View.GONE
             hideAllSubPanelsExcept(panelTheme)
 
@@ -201,14 +206,14 @@ class SettingsActivity : AppCompatActivity() {
             panelNotifySelect.visibility = View.VISIBLE
             currentMenuLayer = 1
             tvSettingsTitle.text = getString(R.string.settings_notify_title)
-            btnSubMenuSounds.requestFocus()
+            btnPillThemeSounds.requestFocus()
         }
 
-        btnSubMenuSounds.setOnClickListener {
+        btnPillThemeSounds.setOnClickListener {
             showSoundsConfigurationDialog()
         }
 
-        btnSubMenuPopups.setOnClickListener {
+        btnPillThemePopups.setOnClickListener {
             showPopupsConfigurationDialog()
         }
 
@@ -225,9 +230,12 @@ class SettingsActivity : AppCompatActivity() {
 
         btnResetApp.setOnClickListener {
             val options = arrayOf(getString(R.string.reset_app_yes), getString(R.string.reset_app_cancel))
-            showTvDialog(getString(R.string.reset_app_title), options, null) { index ->
+            val resetColors = arrayOf("#E53935", null)
+
+            showTvDialog(getString(R.string.reset_app_title), options, resetColors) { index ->
                 if (index == 0) {
                     prefs.edit().clear().apply()
+                    removeAdvancedMenuViews()
                     initPillButtonStates()
                     val intent = packageManager.getLaunchIntentForPackage(packageName)
                     intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -244,6 +252,10 @@ class SettingsActivity : AppCompatActivity() {
             if (easterEggClickCount >= 7) {
                 easterEggClickCount = 0
                 ivAboutStudioLogo.animate().rotationBy(360f).setDuration(800).start()
+
+                prefs.edit().putBoolean("is_advanced_mode", true).apply()
+                checkAndRenderAdvancedMenu()
+
                 showTvDialog(getString(R.string.studio_name), arrayOf(getString(R.string.easter_egg_success)), arrayOf("#4CAF50")) {}
             }
         }
@@ -308,7 +320,7 @@ class SettingsActivity : AppCompatActivity() {
 
         arrayOf(
             btnThemeSelect, btnChangeLanguage, btnGlobalScreensaver, btnNotificationsMenu,
-            btnAboutMenu, btnResetApp, btnSubMenuSounds, btnSubMenuPopups
+            btnAboutMenu, btnResetApp, btnPillThemeSounds, btnPillThemePopups
         ).forEach { btn ->
             btn.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
@@ -321,7 +333,9 @@ class SettingsActivity : AppCompatActivity() {
 
         initPillButtonStates()
 
-        // NEU & DIREKT IN ONCREATE: Triggert das erste Menü rechts exakt beim Starten auf Tablets/TVs
+        // Prüft direkt beim Öffnen, ob der Advanced-Modus aktiv ist und rendert das Menü
+        checkAndRenderAdvancedMenu()
+
         if (isDualScreenMode) {
             hideAllSubPanelsExcept(panelTheme)
             panelTheme.visibility = View.VISIBLE
@@ -333,6 +347,93 @@ class SettingsActivity : AppCompatActivity() {
             updateSubpagePillColor(btnPillThemeDark, currentMode == AppCompatDelegate.MODE_NIGHT_YES)
             updateSubpagePillColor(btnPillThemeSystem, currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         }
+    }
+
+    /**
+     * Programmatisches Rendering des Advanced-Bereichs über dem Reset-Button.
+     * Nutzt lokalisierte Strings aus der XML-Datei und verhindert Hardcoding.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun checkAndRenderAdvancedMenu() {
+        val isAdvancedActive = prefs.getBoolean("is_advanced_mode", false)
+        if (!isAdvancedActive) return
+
+        if (advancedHeaderView != null || advancedTvButton != null) return
+
+        val mainContainer = findViewById<LinearLayout>(R.id.panelSettings) ?: return
+        val btnResetApp = findViewById<MaterialButton>(R.id.btnResetApp) ?: return
+        val indexReset = mainContainer.indexOfChild(btnResetApp)
+
+        if (indexReset == -1) return
+
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val textLabelColor = if (isNight) Color.parseColor("#80FFFFFF") else Color.parseColor("#80000000")
+
+        // 1. Text-Trenner "Advanced" erzeugen und ZENTRIEREN
+        advancedHeaderView = TextView(this).apply {
+            text = "Advanced"
+            textSize = 14f
+            gravity = Gravity.CENTER_HORIZONTAL
+            setTextColor(textLabelColor)
+            setPadding(0, 24.toPx(this@SettingsActivity), 0, 8.toPx(this@SettingsActivity))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+
+        // 2. Neuer Pill-Button "TV-Launcher aktualisieren" erzeugen
+        advancedTvButton = MaterialButton(this).apply {
+            text = getString(R.string.btn_advanced_trigger_tv)
+            isAllCaps = false
+            textSize = 16f
+            isFocusable = true
+            shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+
+            setPadding(0, 14.toPx(this@SettingsActivity), 0, 14.toPx(this@SettingsActivity))
+
+            backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this@SettingsActivity, R.color.pill_normal_inactive))
+            setTextColor(ContextCompat.getColor(this@SettingsActivity, R.color.pill_normal_inactive_text))
+
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(0, 8.toPx(this@SettingsActivity), 0, 8.toPx(this@SettingsActivity))
+            }
+
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
+                strokeWidth = if (hasFocus) 6 else 0
+                strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+            }
+
+            setOnClickListener {
+                try {
+                    // Triggert dein internes Popup-System zur visuellen Bestätigung mit neuen XML-Einträgen
+                    NotificationManager.showLivePopup(
+                        this@SettingsActivity,
+                        "popup_advanced_sync",
+                        R.string.popup_advanced_sync_title,
+                        R.string.popup_advanced_sync_msg
+                    )
+
+                    val workClass = Class.forName("com.shipofagony.klippshell4creality.KlipperTvWorker") as Class<out androidx.work.ListenableWorker>
+                    val workRequest = OneTimeWorkRequest.Builder(workClass).build()
+                    WorkManager.getInstance(applicationContext).enqueue(workRequest)
+
+                    showCenteredPillToast(getString(R.string.btn_advanced_trigger_tv) + " ✓")
+                } catch (e: Exception) {
+                    Log.e("KlippShell", "Advanced TV-Worker Trigger failed", e)
+                }
+            }
+        }
+
+        mainContainer.addView(advancedHeaderView, indexReset)
+        mainContainer.addView(advancedTvButton, indexReset + 1)
+    }
+
+    /**
+     * Entfernt die Advanced-Views restlos aus der UI-Struktur, falls die App resettet wird.
+     */
+    private fun removeAdvancedMenuViews() {
+        val mainContainer = findViewById<LinearLayout>(R.id.panelSettings) ?: return
+        advancedHeaderView?.let { mainContainer.removeView(it); advancedHeaderView = null }
+        advancedTvButton?.let { mainContainer.removeView(it); advancedTvButton = null }
     }
 
     private fun showUpdateSubMenuDialog() {
@@ -477,7 +578,7 @@ class SettingsActivity : AppCompatActivity() {
                 textSize = 16f
                 isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-                setPadding(0, 30, 0, 30)
+                setPadding(0, 30.toPx(this@SettingsActivity), 0, 30.toPx(this@SettingsActivity))
 
                 if (isSelected) {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
@@ -488,7 +589,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(0, 8, 0, 8)
+                    setMargins(0, 8.toPx(this@SettingsActivity), 0, 8.toPx(this@SettingsActivity))
                 }
 
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
@@ -552,19 +653,16 @@ class SettingsActivity : AppCompatActivity() {
         btn.setTextColor(if (isSelected) Color.WHITE else ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
     }
 
-    // GEFIXT: Schließt im Dual-Screen Modus sowohl die inneren Panels als auch die äußeren Scroll-Kapseln!
     private fun hideAllSubPanelsExcept(activePanel: View) {
         val panels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelAbout)
         panels.forEach { panel ->
             if (panel != activePanel) {
                 panel.visibility = View.GONE
-                // Wenn wir im Tablet-/TV-Modus sind, blenden wir auch die umschließende Kapsel aus
                 if (isDualScreenMode) {
                     val parentScrollView = panel.parent as? ScrollView
                     parentScrollView?.visibility = View.GONE
                 }
             } else {
-                // Das ausgewählte Panel und seine Kapsel werden aktiv geschaltet
                 if (isDualScreenMode) {
                     val parentScrollView = panel.parent as? ScrollView
                     parentScrollView?.visibility = View.VISIBLE
@@ -573,7 +671,6 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    // GEFIXT: Schaltet die übergeordneten Scrollviews beim Zurückgehen im Dual-Screen Modus auf GONE
     private fun handleBackNavigation() {
         when (currentMenuLayer) {
             6 -> {
@@ -651,7 +748,7 @@ class SettingsActivity : AppCompatActivity() {
                 textSize = 16f
                 isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-                setPadding(0, 30, 0, 30)
+                setPadding(0, 30.toPx(this@SettingsActivity), 0, 30.toPx(this@SettingsActivity))
 
                 if (customHex != null) {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex))
@@ -662,7 +759,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(0, 10, 0, 10)
+                    setMargins(0, 10.toPx(this@SettingsActivity), 0, 10.toPx(this@SettingsActivity))
                 }
 
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
@@ -705,7 +802,7 @@ class SettingsActivity : AppCompatActivity() {
         val container = FrameLayout(this).apply {
             val params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
                 gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-                setMargins(0, 0, 0, 120)
+                setMargins(0, 0, 0, 120.toPx(this@SettingsActivity))
             }
             layoutParams = params
             addView(pillView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
@@ -892,13 +989,13 @@ class SettingsActivity : AppCompatActivity() {
             textSize = 16f
             isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-            setPadding(0, 30, 0, 30)
+            setPadding(0, 30.toPx(this@SettingsActivity), 0, 30.toPx(this@SettingsActivity))
 
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
             setTextColor(Color.WHITE)
 
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(0, 16, 0, 0)
+                setMargins(0, 16.toPx(this@SettingsActivity), 0, 0)
             }
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {

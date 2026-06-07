@@ -7,7 +7,7 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.net.Uri // ERGÄNZT: Löst den Fehler in Zeile 737
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -30,11 +30,15 @@ import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ListenableWorker
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore // ERGÄNZT: Löst den Fehler in Zeile 417
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -47,6 +51,7 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URL
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @Suppress("DEPRECATION", "Lint", "SetTextI18n", "LocalSuppress")
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
@@ -121,6 +126,27 @@ class MainActivity : AppCompatActivity() {
         AppCompatDelegate.setDefaultNightMode(savedTheme)
 
         super.onCreate(savedInstanceState)
+
+        // Klick auf Android TV "Watch Next" Kachel abfangen & auswerten
+        intent?.data?.let { uri ->
+            if (uri.scheme == "klippshell" && uri.host == "open.printer") {
+                val printerArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (_: Exception) { JSONArray() }
+                if (printerArray.length() > 0) {
+                    val primaryPrinter = printerArray.getJSONObject(0)
+                    val webViewIntent = Intent(this, WebViewActivity::class.java).apply {
+                        putExtra("PRINTER_IP", primaryPrinter.optString("ip", ""))
+                        putExtra("PRINTER_PORT", primaryPrinter.optString("port", "7125"))
+                        if (primaryPrinter.optString("defaultView", "") == "camera") {
+                            putExtra("IS_CAMERA_VIEW", true)
+                        }
+                    }
+                    startActivity(webViewIntent)
+                    finish()
+                    return
+                }
+            }
+        }
+
         setContentView(R.layout.activity_main)
 
         containerPrinters = findViewById(R.id.containerPrinters)
@@ -148,20 +174,25 @@ class MainActivity : AppCompatActivity() {
 
         val startupVeil = findViewById<LinearLayout?>(R.id.viewStartupVeil)
         startupVeil?.post {
-            startupVeil.animate()
-                .translationY(-(startupVeil.height.toFloat()))
-                .alpha(0f)
-                .setStartDelay(500)
-                .setDuration(800)
-                .withEndAction {
-                    startupVeil.visibility = View.GONE
-                    if (printerArray.length() == 0) {
-                        etMainPrinterName.requestFocus()
-                    } else {
-                        findViewById<View>(R.id.btnSettings)?.requestFocus()
+            if (!prefs.getBoolean("has_shown_permissions", false)) {
+                startupVeil.visibility = View.GONE
+                showPermissionRationaleDialog()
+            } else {
+                startupVeil.animate()
+                    .translationY(-(startupVeil.height.toFloat()))
+                    .alpha(0f)
+                    .setStartDelay(500)
+                    .setDuration(800)
+                    .withEndAction {
+                        startupVeil.visibility = View.GONE
+                        if (printerArray.length() == 0) {
+                            etMainPrinterName.requestFocus()
+                        } else {
+                            findViewById<View>(R.id.btnSettings)?.requestFocus()
+                        }
                     }
-                }
-                .start()
+                    .start()
+            }
         }
 
         val ivBackgroundWatermark = findViewById<ImageView>(R.id.ivBackgroundWatermark)
@@ -295,7 +326,7 @@ class MainActivity : AppCompatActivity() {
             findViewById(R.id.btnSettings),
             findViewById(R.id.btnSearchNetwork),
             findViewById<Button>(R.id.btnAddMainPrinter),
-            findViewById<Button>(R.id.btnExitApp),
+            findViewById(R.id.btnExitApp),
             headerAddPrinter,
             btnSystemSelect,
             etMainPrinterName,
@@ -322,11 +353,34 @@ class MainActivity : AppCompatActivity() {
         if (isAutoCheckEnabled) {
             checkUpdatesSilentlyInBackground()
         }
+
+        // Android TV Hintergrund-Dienst (Watch Next) starten, wenn Drucker vorhanden sind
+        if (printerArray.length() > 0 && isAndroidTV()) {
+            startTvBackgroundWorker()
+        }
     }
 
     override fun onResume() {
         super.onResume()
         applyLanguageAndRefreshUI()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun startTvBackgroundWorker() {
+        try {
+            // FIX: Verwende Java-Reflection-Klasse, um Compiler-Indizierungsfehler vollständig auszuschließen
+            val workerClass = Class.forName("com.shipofagony.klippshell4creality.KlipperTvWorker") as Class<out ListenableWorker>
+
+            val tvWorkRequest = PeriodicWorkRequest.Builder(workerClass, 15, TimeUnit.MINUTES).build()
+
+            WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+                "KlipperTvKachelWorker",
+                ExistingPeriodicWorkPolicy.KEEP,
+                tvWorkRequest
+            )
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Fehler beim Starten des TV-Workers via Reflection", e)
+        }
     }
 
     private fun applyLanguageAndRefreshUI() {
@@ -470,7 +524,7 @@ class MainActivity : AppCompatActivity() {
         val btnBgColor = if (isNight) "#33FFFFFF".toColorInt() else "#1A888888".toColorInt()
 
         val etSearch = EditText(this).apply {
-            hint = "Suchen... (z.B. K1)"
+            hint = getString(R.string.search_model_hint)
             background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_pill_input)
             setPadding(20, 16, 20, 16)
             textSize = 15f
@@ -564,6 +618,10 @@ class MainActivity : AppCompatActivity() {
             list.put(JSONObject().put("name", name).put("ip", ip).put("port", port).put("model", model).put("defaultView", defaultView))
             prefs.edit().putString("printers_list", list.toString()).apply()
             applyLanguageAndRefreshUI()
+
+            if (list.length() == 1 && isAndroidTV()) {
+                startTvBackgroundWorker()
+            }
         } catch (e: JSONException) {
             Log.e("KlippShell", "Fehler beim Speichern des Druckers", e)
         }
@@ -586,6 +644,10 @@ class MainActivity : AppCompatActivity() {
         if (list.length() == 0) {
             containerAddPrinterForm.isVisible = true
             tvAddPrinterTitle.text = getString(R.string.add_printer_up)
+
+            if (isAndroidTV()) {
+                WorkManager.getInstance(applicationContext).cancelUniqueWork("KlipperTvKachelWorker")
+            }
         }
 
         for (i in 0 until list.length()) {
@@ -808,6 +870,110 @@ class MainActivity : AppCompatActivity() {
             container?.addView(btn)
         }
         dialog.show()
+    }
+
+    /**
+     * Zeigt beim ersten Start den technischen Netzwerk- und Datenschutzhinweis an.
+     * Enthält einen grünen Bestätigungsbutton sowie einen roten Ablehnen-Button,
+     * welcher die App bei Nichtzustimmung sofort komplett beendet.
+     */
+    private fun showPermissionRationaleDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.perm_dialog_title)
+        val mainContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val textColor = if (isNight) Color.WHITE else Color.BLACK
+
+        // Ausführlicher Informationstext
+        val msgView = TextView(this).apply {
+            text = getString(R.string.perm_dialog_msg)
+            textSize = 15f
+            setTextColor(textColor)
+            setPadding(24, 16, 24, 32)
+            gravity = Gravity.START
+        }
+        mainContainer?.addView(msgView, 0)
+
+        // 1. GRÜNER BESTÄTIGUNGS-BUTTON
+        val btnAccept = MaterialButton(this).apply {
+            text = getString(R.string.perm_dialog_btn)
+            isAllCaps = false
+            textSize = 16f
+            cornerRadius = 100
+            setPadding(0, 35, 0, 35)
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")) // Sauberes Android-Grün
+            setTextColor(Color.WHITE)
+            isFocusable = true
+
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 0, 0, 16)
+            }
+
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).translationZ(if (hasFocus) 6f else 0f).setDuration(100).start()
+                strokeWidth = if (hasFocus) 6 else 0
+                strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+            }
+
+            setOnClickListener {
+                getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+                    .edit().putBoolean("has_shown_permissions", true).apply()
+                dialog.dismiss()
+
+                val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+                val currentArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (_: Exception) { JSONArray() }
+                if (currentArray.length() == 0) {
+                    etMainPrinterName.requestFocus()
+                } else {
+                    findViewById<View>(R.id.btnSettings)?.requestFocus()
+                }
+
+                if (currentArray.length() > 0 && isAndroidTV()) {
+                    startTvBackgroundWorker()
+                }
+            }
+        }
+
+        // 2. ROTER ABLEHNEN-BUTTON (Darunter platziert)
+        val btnDecline = MaterialButton(this).apply {
+            text = getString(R.string.perm_dialog_btn_decline)
+            isAllCaps = false
+            textSize = 16f
+            cornerRadius = 100
+            setPadding(0, 35, 0, 35)
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")) // Warn-Rot
+            setTextColor(Color.WHITE)
+            isFocusable = true
+
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).translationZ(if (hasFocus) 6f else 0f).setDuration(100).start()
+                strokeWidth = if (hasFocus) 6 else 0
+                strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+            }
+
+            setOnClickListener {
+                dialog.dismiss()
+                finishAffinity()
+            }
+        }
+
+        mainContainer?.addView(btnAccept)
+        mainContainer?.addView(btnDecline)
+
+        dialog.show()
+        btnAccept.requestFocus()
     }
 
     override fun onDestroy() {

@@ -50,4 +50,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+
+    // NEU: Android TV Launcher Kanäle & Hintergrund-Updates
+    implementation("androidx.tvprovider:tvprovider:1.0.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("io.coil-kt:coil:2.6.0")
 }

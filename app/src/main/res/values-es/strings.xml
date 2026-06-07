@@ -161,4 +161,13 @@
     <string name="btn_pip_resize">Cambiar tamaño</string>
     <string name="menu_pip_name">Imagen en imagen (PIP)</string>
     <string name="menu_light_control">Iluminación</string>
+
+    <string name="perm_dialog_title">Red y Privacidad</string>
+    <string name="perm_dialog_msg">KlippShell requiere acceso a la red para establecer una interfaz directa con la API Moonraker de tu impresora. Se requiere conexión a Internet para comprobaciones de actualizaciones OTA, proporcionar recursos de estado para el lanzador de Android TV y funciones complementarias extendidas. La seguridad de los datos es nuestra principal prioridad: la comunicación se realiza exclusivamente de forma local entre tu dispositivo y la impresora. No se transmiten datos de control o telemetría a servidores externos.</string>
+    <string name="perm_dialog_btn">Entendido</string>
+    <string name="perm_dialog_btn_decline">Rechazar y Salir</string>
+
+    <string name="btn_advanced_trigger_tv">Actualizar lanzador de TV</string>
+    <string name="popup_advanced_sync_title">Sincronización en segundo plano</string>
+    <string name="popup_advanced_sync_msg">Se está recuperando el estado de Moonraker y se está actualizando el mosaico de la pantalla de inicio de la TV.</string>
 </resources>
