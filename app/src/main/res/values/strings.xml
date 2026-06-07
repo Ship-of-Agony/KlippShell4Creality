@@ -51,7 +51,7 @@
     <string name="reset_app_cancel">Abbrechen</string>
 
     <string name="btn_about_menu">Über KlippShell</string>
-    <string name="btn_check_updates">Nach Updates suchen</string>
+    <string name="btn_check_updates">Update</string>
     <string name="license_link_text">Lizenzen &amp; Urheberrechte</string>
     <string name="about_changelog_title">Changelog</string>
     <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub-OTA-Updater hinzugefügt: Asynchrone Online-Prüfung auf neue Releases\n• Integrierter Lizenz-Viewer: Neues scrollbares Dialogfenster für Urheberrechte\n• Layout-Bereinigung: Redundante UI-Texte entfernt, Logo-Easter-Egg geschützt\n• Stabilität erhöht: Kotlin Null-Safety-Fehler behoben und Dialog-Fokus optimiert\n\nv0.8.4.300526-rc\n• TV-Suchdialog für Modell-Auswahl hinzugefügt\n• Tolerante G-Code/Modell-Suche implementiert\n• Speicher-Polling für Moonraker optimiert\n\nv0.8.3\n• D-Pad Fokus-Sicherheit für Menüebenen erhöht\n• SoundManager Audio-Kanäle stabilisiert\n• Presets-Reset gefixt</string>
