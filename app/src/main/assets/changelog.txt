@@ -1,3 +1,11 @@
+v0.8.5.070626-rc
+
+• OTA Updater Optimization: Implemented automatic, silent update checks upon application startup.
+• UI Polish: Expanded the "About" menu frame for better ergonomics on TV displays.
+• Dialog Enhancement: Increased the size of the license and changelog text boxes for improved readability.
+• Legal Clarification: Revised and refined the license and copyright information dialogs.
+
+
 v0.8.5.050626-rc
 
 • Added GitHub OTA Updater: Implemented asynchronous online checking for new app releases directly via the GitHub API

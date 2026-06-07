@@ -7,6 +7,7 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri // ERGÄNZT: Löst den Fehler in Zeile 737
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -33,14 +34,18 @@ import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.Semaphore // ERGÄNZT: Löst den Fehler in Zeile 417
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.URL
 import java.util.Locale
 
 @Suppress("DEPRECATION", "Lint", "SetTextI18n", "LocalSuppress")
@@ -191,7 +196,6 @@ class MainActivity : AppCompatActivity() {
             actvMainPrinterModel.setOnClickListener {
                 showModelSelectionSearchDialog(getString(R.string.printer_model_hint), models) { selectedModel ->
                     actvMainPrinterModel.setText(selectedModel, false)
-                    // Index synchronisieren, falls das gewählte Modell im Karussell existiert
                     val idx = tvTopModels.indexOf(selectedModel)
                     if (idx != -1) currentTvModelIndex = idx
                 }
@@ -312,6 +316,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         applyLanguageAndRefreshUI()
+
+        // Automatische OTA-Prüfung im Hintergrund beim App-Start (wenn aktiv)
+        val isAutoCheckEnabled = prefs.getBoolean("update_auto_check", true)
+        if (isAutoCheckEnabled) {
+            checkUpdatesSilentlyInBackground()
+        }
     }
 
     override fun onResume() {
@@ -658,6 +668,80 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             containerPrinters.addView(itemView)
+        }
+    }
+
+    private fun checkUpdatesSilentlyInBackground() {
+        val apiUrl = "https://api.github.com/repos/Ship-of-Agony/KlippShell4Creality/releases"
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            var connection: HttpURLConnection? = null
+            try {
+                val url = URL(apiUrl)
+                connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 4000
+                connection.readTimeout = 4000
+                connection.useCaches = false
+
+                connection.setRequestProperty("User-Agent", "KlippShell-App")
+                connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
+
+                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                    val responseText = connection.inputStream.bufferedReader().use { it.readText() }
+                    val jsonArray = JSONArray(responseText)
+
+                    if (jsonArray.length() > 0) {
+                        val jsonObject = jsonArray.getJSONObject(0)
+                        val latestVersionTag = jsonObject.optString("tag_name", "").replace("v", "").trim()
+
+                        val assetsArray = jsonObject.optJSONArray("assets")
+                        var downloadUrl = ""
+                        if (assetsArray != null && assetsArray.length() > 0) {
+                            downloadUrl = assetsArray.optJSONObject(0).optString("browser_download_url", "")
+                        }
+
+                        val currentVersionName = try {
+                            packageManager.getPackageInfo(packageName, 0).versionName?.replace("v", "")?.trim() ?: "0.8.5"
+                        } catch (e: Exception) {
+                            "0.8.5"
+                        }
+
+                        val latestNumeric = latestVersionTag.replace(".", "").toIntOrNull() ?: 0
+                        val currentNumeric = currentVersionName.replace(".", "").toIntOrNull() ?: 0
+
+                        if (latestNumeric > currentNumeric && downloadUrl.isNotEmpty()) {
+                            withContext(Dispatchers.Main) {
+                                showUpdateAvailableDialog(latestVersionTag, downloadUrl)
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("KlippShell", "Lautloser Update-Check fehlgeschlagen", e)
+            } finally {
+                connection?.disconnect()
+            }
+        }
+    }
+
+    private fun showUpdateAvailableDialog(newVersion: String, downloadUrl: String) {
+        val options = arrayOf(getString(R.string.btn_download_now), getString(R.string.btn_later))
+        showPillDialog(
+            title = getString(R.string.update_available_title, newVersion),
+            items = options,
+            hexColors = arrayOf("#4CAF50", null)
+        ) { index ->
+            if (index == 0 && downloadUrl.isNotEmpty()) {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    showCenteredPillToast(getString(R.string.toast_update_browser_error))
+                }
+            }
         }
     }
 

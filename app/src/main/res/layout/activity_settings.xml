@@ -326,13 +326,15 @@
             app:cornerRadius="100dp" />
     </LinearLayout>
 
+    <!-- MODIFIZIERT: panelAbout gestreckt für perfekten TV-Abstand -->
     <LinearLayout
         android:id="@+id/panelAbout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
         android:background="@drawable/bg_card"
         android:elevation="8dp"
         android:orientation="vertical"
@@ -341,7 +343,8 @@
         app:layout_constraintWidth_max="560dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
+        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
+        app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
 
         <TextView
             android:layout_width="match_parent"
@@ -353,10 +356,11 @@
             android:layout_marginBottom="10dp"
             android:gravity="center_horizontal" />
 
+        <!-- MODIFIZIERT: Changelog-Box massiv vergrößert (210dp statt 140dp) -->
         <ScrollView
             android:id="@+id/scrollChangelogBox"
             android:layout_width="match_parent"
-            android:layout_height="140dp"
+            android:layout_height="210dp"
             android:background="@drawable/bg_input_rounded"
             android:padding="12dp"
             android:layout_marginBottom="16dp"
@@ -373,8 +377,9 @@
         <LinearLayout
             android:id="@+id/layoutAboutInnerCredits"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal|center_vertical"
             android:layout_marginBottom="16dp"
             android:orientation="vertical">
 

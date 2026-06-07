@@ -232,9 +232,9 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        // Modifiziert: Ruft jetzt das neue Update-Untermenü auf
         btnCheckUpdates.setOnClickListener {
-            showCenteredPillToast(getString(R.string.toast_checking_updates))
-            checkForUpdatesFromGithub()
+            showUpdateSubMenuDialog()
         }
 
         tvLicensesLink.setOnClickListener {
@@ -306,6 +306,28 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         initPillButtonStates()
+    }
+
+    // Neu implementiert: Schlichtes Untermenü "Update" via showTvDialog
+    private fun showUpdateSubMenuDialog() {
+        val isAutoCheckActive = prefs.getBoolean("update_auto_check", true)
+
+        val options = arrayOf(
+            getString(R.string.btn_manual_search),
+            if (isAutoCheckActive) getString(R.string.pill_auto_check_on) else getString(R.string.pill_auto_check_off)
+        )
+
+        val hexColors = arrayOf(null, if (isAutoCheckActive) "#4CAF50" else "#E53935")
+
+        showTvDialog(getString(R.string.submenu_update_title), options, hexColors) { index ->
+            if (index == 0) {
+                showCenteredPillToast(getString(R.string.toast_updater_checking))
+                checkForUpdatesFromGithub()
+            } else {
+                prefs.edit().putBoolean("update_auto_check", !isAutoCheckActive).apply()
+                showUpdateSubMenuDialog()
+            }
+        }
     }
 
     private fun showSoundsConfigurationDialog() {
@@ -699,8 +721,9 @@ class SettingsActivity : AppCompatActivity() {
         btn.setTextColor(normalTxtColor)
     }
 
+    // Modifiziert: API-URL korrigiert (Ship-of-Agony) & Mathematischer Vergleich eingebaut
     private fun checkForUpdatesFromGithub() {
-        val apiUrl = "https://api.github.com/repos/shipofagony/KlippShell4Creality/releases"
+        val apiUrl = "https://api.github.com/repos/Ship-of-Agony/KlippShell4Creality/releases"
 
         lifecycleScope.launch(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
@@ -722,7 +745,6 @@ class SettingsActivity : AppCompatActivity() {
 
                     if (jsonArray.length() > 0) {
                         val jsonObject = jsonArray.getJSONObject(0)
-
                         val latestVersionTag = jsonObject.optString("tag_name", "").replace("v", "").trim()
 
                         val assetsArray = jsonObject.optJSONArray("assets")
@@ -737,27 +759,33 @@ class SettingsActivity : AppCompatActivity() {
                             "0.8.5"
                         }
 
+                        // MATHEMATISCHER VERGLEICH: Wandelt "0.8.5" in 85 um für einen sauberen Richtungsvergleich
+                        val latestNumeric = latestVersionTag.replace(".", "").toIntOrNull() ?: 0
+                        val currentNumeric = currentVersionName.replace(".", "").toIntOrNull() ?: 0
+
                         withContext(Dispatchers.Main) {
-                            if (latestVersionTag.isNotEmpty() && latestVersionTag != currentVersionName) {
+                            // Update wird NUR getriggert, wenn die Online-Version echt größer ist als die lokale Version
+                            if (latestNumeric > currentNumeric && downloadUrl.isNotEmpty()) {
                                 showUpdateAvailableDialog(latestVersionTag, downloadUrl)
                             } else {
-                                showCenteredPillToast(getString(R.string.btn_check_updates) + " ✓")
+                                // Fängt deinen Entwicklerzweig (Lokal >= GitHub) sauber ab
+                                showCenteredPillToast(getString(R.string.toast_updater_up_to_date))
                             }
                         }
                     } else {
                         withContext(Dispatchers.Main) {
-                            showCenteredPillToast(getString(R.string.btn_check_updates) + " ✓")
+                            showCenteredPillToast(getString(R.string.toast_updater_up_to_date))
                         }
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        showCenteredPillToast(getString(R.string.toast_update_error_code, responseCode))
+                        showCenteredPillToast(getString(R.string.toast_updater_error_code, responseCode))
                     }
                 }
             } catch (e: Exception) {
                 Log.e("KlippShell", "GitHub Update-Check failed", e)
                 withContext(Dispatchers.Main) {
-                    showCenteredPillToast(getString(R.string.toast_update_server_error))
+                    showCenteredPillToast(getString(R.string.toast_updater_server_error))
                 }
             } finally {
                 connection?.disconnect()
@@ -805,8 +833,9 @@ class SettingsActivity : AppCompatActivity() {
 
         val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
+        // MODIFIZIERT: Höhe moderat von 260dp auf 330dp angehoben für optimalen Platz auf TVs & Smartphones
         val scrollView = ScrollView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 260.toPx(this@SettingsActivity))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 330.toPx(this@SettingsActivity))
             setPadding(12, 12, 12, 12)
             background = ContextCompat.getDrawable(this@SettingsActivity, R.drawable.bg_input_rounded)
         }
