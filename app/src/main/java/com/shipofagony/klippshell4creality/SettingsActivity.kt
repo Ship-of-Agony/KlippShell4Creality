@@ -63,10 +63,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private var easterEggClickCount = 0
 
-    // Erkennt vollautomatisch, ob das Side-by-Side TV-/Tablet-Layout geladen wurde
     private var isDualScreenMode = false
 
-    // Referenzen für die dynamischen Advanced-Views im Layout
     private var advancedHeaderView: TextView? = null
     private var advancedTvButton: MaterialButton? = null
 
@@ -84,7 +82,6 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        // Prüft, ob das TV-Layout aktiv ist (Guideline existiert nur im layout-sw600dp-land)
         isDualScreenMode = findViewById<View>(R.id.guidelineCenter) != null
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -133,7 +130,6 @@ class SettingsActivity : AppCompatActivity() {
         val btnCheckUpdates = findViewById<MaterialButton>(R.id.btnCheckUpdates)
         val ivAboutStudioLogo = findViewById<ImageView>(R.id.ivAboutStudioLogo)
 
-        // Standardmäßig Fokus anfordern
         btnThemeSelect.requestFocus()
 
         try {
@@ -158,9 +154,9 @@ class SettingsActivity : AppCompatActivity() {
             updateSubpagePillColor(btnPillThemeSystem, currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
             when (currentMode) {
+                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM -> btnPillThemeSystem.requestFocus()
                 AppCompatDelegate.MODE_NIGHT_NO -> btnPillThemeLight.requestFocus()
-                AppCompatDelegate.MODE_NIGHT_YES -> btnPillThemeDark.requestFocus()
-                else -> btnPillThemeSystem.requestFocus()
+                else -> btnPillThemeDark.requestFocus()
             }
         }
 
@@ -301,6 +297,7 @@ class SettingsActivity : AppCompatActivity() {
         setupSaverPagePill(R.id.btnPillSaver60, 60 * 60 * 1000L)
         setupSaverPagePill(R.id.btnPillSaver90, 90 * 60 * 1000L)
         setupSaverPagePill(R.id.btnPillSaver120, 120 * 60 * 1000L)
+        // GEFIXT (Zeile 300): Übergibt jetzt sauber 0L als Timeout-Parameter
         setupSaverPagePill(R.id.btnPillSaverOff, 0L)
 
         btnSettingsBack.setOnClickListener { handleBackNavigation() }
@@ -318,7 +315,6 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        // Stark abgrenzende Umrandungen für 3-4m Sichtbarkeit im Menü
         arrayOf(
             btnThemeSelect, btnChangeLanguage, btnGlobalScreensaver, btnNotificationsMenu,
             btnAboutMenu, btnResetApp, btnPillThemeSounds, btnPillThemePopups,
@@ -350,22 +346,6 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun adjustLayoutForTvAndMobile() {
-        val parentGroup = panelSettings.parent as? ViewGroup ?: return
-        if (parentGroup !is ScrollView) {
-            val index = parentGroup.indexOfChild(panelSettings)
-            parentGroup.removeView(panelSettings)
-            val scrollView = ScrollView(this).apply {
-                isFillViewport = true
-                clipChildren = false
-                clipToPadding = false
-            }
-            scrollView.addView(panelSettings, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-            parentGroup.addView(scrollView, index, panelSettings.layoutParams)
-        }
-    }
-
-    // Schützt den Rahmen davor, beim Ändern der Auswahlfarben gelöscht zu werden
     private fun updateSubpagePillColor(btn: MaterialButton?, isSelected: Boolean) {
         if (btn == null) return
         btn.backgroundTintList = ColorStateList.valueOf(if (isSelected) Color.parseColor("#4CAF50") else ContextCompat.getColor(this, R.color.pill_normal_inactive))
@@ -427,7 +407,6 @@ class SettingsActivity : AppCompatActivity() {
             }
             setOnClickListener {
                 try {
-                    NotificationManager.showLivePopup(this@SettingsActivity, "popup_advanced_sync", R.string.popup_advanced_sync_title, R.string.popup_advanced_sync_msg)
                     val workClass = Class.forName("com.shipofagony.klippshell4creality.KlipperTvWorker") as Class<out androidx.work.ListenableWorker>
                     WorkManager.getInstance(applicationContext).enqueue(OneTimeWorkRequest.Builder(workClass).build())
                     showCenteredPillToast(getString(R.string.btn_advanced_trigger_tv) + " ✓")
@@ -464,122 +443,216 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showSoundsConfigurationDialog() {
-        val sOffline = prefs.getBoolean("sound_offline_enabled", true)
-        val sFirst = prefs.getBoolean("sound_first_layer_enabled", false)
-        val s50 = prefs.getBoolean("sound_50_enabled", false)
-        val s75 = prefs.getBoolean("sound_75_enabled", false)
-        val s90 = prefs.getBoolean("sound_90_enabled", false)
-        val s100 = prefs.getBoolean("sound_100_enabled", true)
-
-        val soundOptions = arrayOf(
+        val soundKeys = arrayOf(
+            "sound_offline", "sound_first_layer",
+            "sound_50", "sound_75",
+            "sound_90", "sound_100"
+        )
+        val soundTitles = arrayOf(
             getString(R.string.notify_title_offline), getString(R.string.notify_title_first_layer),
             getString(R.string.notify_title_50), getString(R.string.notify_title_75),
             getString(R.string.notify_title_90), getString(R.string.notify_title_100)
         )
-        val activeStates = arrayOf(sOffline, sFirst, s50, s75, s90, s100)
-        val customColors = Array<String?>(6) { i -> if (activeStates[i]) "#4CAF50" else null }
 
-        showTvDialog(getString(R.string.submenu_sounds_title), soundOptions, customColors) { index ->
-            val newState = !activeStates[index]
-            val key = when (index) {
-                0 -> "sound_offline_enabled"
-                1 -> "sound_first_layer_enabled"
-                2 -> "sound_50_enabled"
-                3 -> "sound_75_enabled"
-                4 -> "sound_90_enabled"
-                else -> "sound_100_enabled"
-            }
-            prefs.edit().putBoolean(key, newState).apply()
+        val options = Array(soundKeys.size) { i ->
+            val isEnabled = prefs.getBoolean(soundKeys[i], true)
+            soundTitles[i] + if (isEnabled) " ✓" else ""
+        }
 
-            if (newState) {
-                val soundFile = when (index) {
-                    0 -> "sound_offline"
-                    1 -> "sound_first_layer"
-                    2 -> "sound_50"
-                    3 -> "sound_75"
-                    4 -> "sound_90"
-                    else -> "sound_100"
+        val hexColors = Array<String?>(soundKeys.size) { i ->
+            if (prefs.getBoolean(soundKeys[i], true)) "#4CAF50" else null
+        }
+
+        showTvDialog(getString(R.string.submenu_sounds_title), options, hexColors) { index ->
+            val targetKey = soundKeys[index]
+            val currentVal = prefs.getBoolean(targetKey, true)
+            val newVal = !currentVal
+            prefs.edit().putBoolean(targetKey, newVal).apply()
+
+            if (newVal) {
+                this@SettingsActivity.showCenteredPillToast("🔊 Ton aktiviert: " + soundTitles[index] + " ✓")
+                try {
+                    SoundManager.playLiveNotification(targetKey)
+                } catch (e: Exception) {
+                    Log.e("KlippShell", "Direkter SoundManager Aufruf blockiert", e)
                 }
-                SoundManager.playLiveNotification(soundFile)
             }
+
             showSoundsConfigurationDialog()
         }
     }
 
     private fun showPopupsConfigurationDialog() {
-        val pOffline = prefs.getBoolean("popup_offline_enabled", true)
-        val pFirst = prefs.getBoolean("popup_first_layer_enabled", false)
-        val p50 = prefs.getBoolean("popup_50_enabled", false)
-        val p75 = prefs.getBoolean("popup_75_enabled", false)
-        val p90 = prefs.getBoolean("popup_90_enabled", false)
-        val p100 = prefs.getBoolean("popup_100_enabled", true)
-
-        val popupOptions = arrayOf(
+        val popupKeys = arrayOf(
+            "popup_offline", "popup_first_layer",
+            "popup_50", "popup_75",
+            "popup_90", "popup_100"
+        )
+        val popupTitles = arrayOf(
             getString(R.string.notify_title_offline), getString(R.string.notify_title_first_layer),
             getString(R.string.notify_title_50), getString(R.string.notify_title_75),
             getString(R.string.notify_title_90), getString(R.string.notify_title_100)
         )
-        val activeStates = arrayOf(pOffline, pFirst, p50, p75, p90, p100)
-        val customColors = Array<String?>(6) { i -> if (activeStates[i]) "#4CAF50" else null }
 
-        showTvDialog(getString(R.string.submenu_popups_title), popupOptions, customColors) { index ->
-            val newState = !activeStates[index]
-            val key = when (index) {
-                0 -> "popup_offline_enabled"
-                1 -> "popup_first_layer_enabled"
-                2 -> "popup_50_enabled"
-                3 -> "popup_75_enabled"
-                4 -> "popup_90_enabled"
-                else -> "popup_100_enabled"
+        val popupMessages = arrayOf(
+            R.string.notify_msg_offline, R.string.notify_msg_first_layer,
+            R.string.notify_msg_50, R.string.notify_msg_75,
+            R.string.notify_msg_90, R.string.notify_msg_100
+        )
+        val popupTitleIds = arrayOf(
+            R.string.notify_title_offline, R.string.notify_title_first_layer,
+            R.string.notify_title_50, R.string.notify_title_75,
+            R.string.notify_title_90, R.string.notify_title_100
+        )
+
+        val options = Array(popupKeys.size) { i ->
+            val isEnabled = prefs.getBoolean(popupKeys[i], true)
+            popupTitles[i] + if (isEnabled) " ✓" else ""
+        }
+
+        val hexColors = Array<String?>(popupKeys.size) { i ->
+            if (prefs.getBoolean(popupKeys[i], true)) "#4CAF50" else null
+        }
+
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = getString(R.string.submenu_popups_title)
+        val oldContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+
+        val dialogScrollView = ScrollView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply {
+                setMargins(0, toPx(4), 0, toPx(4))
             }
-            prefs.edit().putBoolean(key, newState).apply()
+            isVerticalScrollBarEnabled = true
+        }
 
-            if (newState) {
-                val tag = when (index) {
-                    0 -> "popup_offline"
-                    1 -> "popup_first_layer"
-                    2 -> "popup_50"
-                    3 -> "popup_75"
-                    4 -> "popup_90"
-                    else -> "popup_100"
-                }
-                val titleRes = when (index) {
-                    0 -> R.string.notify_title_offline
-                    1 -> R.string.notify_title_first_layer
-                    2 -> R.string.notify_title_50
-                    3 -> R.string.notify_title_75
-                    4 -> R.string.notify_title_90
-                    else -> R.string.notify_title_100
-                }
-                val msgRes = when (index) {
-                    0 -> R.string.notify_msg_offline
-                    1 -> R.string.notify_msg_first_layer
-                    2 -> R.string.notify_msg_50
-                    3 -> R.string.notify_msg_75
-                    4 -> R.string.notify_msg_90
-                    else -> R.string.notify_msg_100
+        val scrollContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        dialogScrollView.addView(scrollContainer)
+
+        var firstBtn: MaterialButton? = null
+        val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
+        val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+        options.forEachIndexed { index, itemText ->
+            val customHex = hexColors.getOrNull(index)
+            val btn = MaterialButton(this).apply {
+                text = itemText
+                isAllCaps = false
+                textSize = 16f
+                isFocusable = true
+                shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+                setPadding(0, toPx(30), 0, toPx(30))
+
+                if (customHex != null) {
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex))
+                    setTextColor(Color.WHITE)
+                } else {
+                    backgroundTintList = ColorStateList.valueOf(defaultBgColor)
+                    setTextColor(defaultTxtColor)
                 }
 
-                Handler(Looper.getMainLooper()).postDelayed({
-                    NotificationManager.showLivePopup(this@SettingsActivity, tag, titleRes, msgRes)
-                }, 150)
-            } else {
-                showPopupsConfigurationDialog()
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    setMargins(0, toPx(8), 0, toPx(8))
+                }
+
+                onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                    if (hasFocus) {
+                        v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
+                        (v as MaterialButton).strokeWidth = 8
+                        v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                    } else {
+                        v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
+                        (v as MaterialButton).strokeWidth = 0
+                    }
+                }
+
+                setOnClickListener {
+                    val targetKey = popupKeys[index]
+                    val currentVal = prefs.getBoolean(targetKey, true)
+                    val newVal = !currentVal
+                    prefs.edit().putBoolean(targetKey, newVal).apply()
+
+                    dialog.dismiss()
+
+                    if (newVal) {
+                        // Nutzt das Trailing-Lambda des modifizierten NotificationManagers
+                        NotificationManager.showLivePopup(
+                            this@SettingsActivity,
+                            targetKey,
+                            popupTitleIds[index],
+                            popupMessages[index]
+                        ) {
+                            showPopupsConfigurationDialog()
+                        }
+                    } else {
+                        showPopupsConfigurationDialog()
+                    }
+                }
+            }
+            if (index == 0) firstBtn = btn
+            scrollContainer.addView(btn)
+        }
+
+        val closeBtn = MaterialButton(this).apply {
+            text = getString(R.string.notify_btn_default)
+            isAllCaps = false
+            textSize = 16f
+            isFocusable = true
+            shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+            setPadding(0, toPx(26), 0, toPx(26))
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
+            setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(0, toPx(16), 0, toPx(8))
+            }
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) {
+                    v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
+                    (v as MaterialButton).strokeWidth = 8
+                    v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
+                    (v as MaterialButton).strokeWidth = 0
+                }
+            }
+            setOnClickListener {
+                dialog.dismiss()
+                if (isDualScreenMode) handleBackNavigation() else initPillButtonStates()
             }
         }
+        scrollContainer.addView(closeBtn)
+
+        oldContainer?.parent?.let { parent ->
+            val group = parent as ViewGroup
+            val idx = group.indexOfChild(oldContainer)
+            if (idx != -1) {
+                group.removeViewAt(idx)
+                group.addView(dialogScrollView, idx)
+            }
+        }
+
+        dialog.setOnCancelListener {
+            if (isDualScreenMode) handleBackNavigation() else initPillButtonStates()
+        }
+
+        dialog.show()
+        firstBtn?.requestFocus()
     }
 
     private fun buildDynamicLanguageMenu() {
         containerLanguageButtons.removeAllViews()
-        val languages = arrayOf("Deutsch", "English", "Español", "Français", "Čeština", "Polski", "Русский")
-        val codes = arrayOf("de", "en", "es", "fr", "cs", "pl", "ru")
-        val activeCode = prefs.getString("app_lang", "de") ?: "de"
+        val names = resources.getStringArray(R.array.language_names)
+        val codes = resources.getStringArray(R.array.language_codes)
+        val activeCode = prefs.getString("app_lang", "system") ?: "system"
 
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
         var preFocused: MaterialButton? = null
 
-        languages.forEachIndexed { index, langName ->
+        names.forEachIndexed { index, langName ->
             val isSelected = codes[index] == activeCode
             val btn = MaterialButton(this).apply {
                 text = langName
@@ -628,15 +701,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun loadChangelogFromAssets() {
-        try {
-            val stream = assets.open("changelog.txt")
-            val reader = BufferedReader(InputStreamReader(stream))
-            val sb = java.lang.StringBuilder()
-            reader.forEachLine { sb.append(it).append("\n") }
-            tvChangelogContent.text = sb.toString().trim()
-        } catch (e: Exception) {
-            tvChangelogContent.text = "Changelog konnte nicht geladen werden."
-        }
+        tvChangelogContent.text = getString(R.string.about_changelog_text)
     }
 
     private fun setupSaverPagePill(buttonId: Int, timeoutMs: Long) {
@@ -682,7 +747,7 @@ class SettingsActivity : AppCompatActivity() {
                 if (isDualScreenMode) (panelLanguage.parent as? ScrollView)?.visibility = View.GONE
                 if (!isDualScreenMode) panelSettings.visibility = View.VISIBLE
                 currentMenuLayer = 0
-                tvSettingsTitle.text = getString(R.string.change_language)
+                tvSettingsTitle.text = getString(R.string.settings_title)
                 val targetBtn = findViewById<MaterialButton>(R.id.btnChangeLanguage)
                 targetBtn?.post { targetBtn.requestFocus() }
             }
@@ -709,7 +774,7 @@ class SettingsActivity : AppCompatActivity() {
                 if (isDualScreenMode) (panelAbout.parent as? ScrollView)?.visibility = View.GONE
                 if (!isDualScreenMode) panelSettings.visibility = View.VISIBLE
                 currentMenuLayer = 0
-                tvSettingsTitle.text = getString(R.string.btn_about_menu)
+                tvSettingsTitle.text = getString(R.string.settings_title)
                 val targetBtn = findViewById<MaterialButton>(R.id.btnAboutMenu)
                 targetBtn?.post { targetBtn.requestFocus() }
             }
@@ -737,11 +802,29 @@ class SettingsActivity : AppCompatActivity() {
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = title
-        val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+        val oldContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+
+        val dialogScrollView = ScrollView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply {
+                setMargins(0, toPx(4), 0, toPx(4))
+            }
+            isVerticalScrollBarEnabled = true
+            clipToPadding = false
+            clipChildren = false
+        }
+
+        val scrollContainer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            clipToPadding = false
+            clipChildren = false
+        }
+        dialogScrollView.addView(scrollContainer)
 
         var firstBtn: MaterialButton? = null
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
         items.forEachIndexed { index, itemText ->
             val customHex = hexColors?.getOrNull(index)
@@ -763,25 +846,75 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(0, toPx(10), 0, toPx(10))
+                    setMargins(0, toPx(8), 0, toPx(8))
                 }
 
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 8
-                        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                         v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 0
                     }
                 }
-                setOnClickListener { onItemSelected(index); dialog.dismiss() }
+                setOnClickListener { dialog.dismiss(); onItemSelected(index) }
             }
             if (index == 0) firstBtn = btn
-            container.addView(btn)
+            scrollContainer.addView(btn)
         }
+
+        val closeBtn = MaterialButton(this).apply {
+            text = getString(R.string.notify_btn_default)
+            isAllCaps = false
+            textSize = 16f
+            isFocusable = true
+            shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+            setPadding(0, toPx(26), 0, toPx(26))
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
+            setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(0, toPx(16), 0, toPx(8))
+            }
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) {
+                    v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
+                    (v as MaterialButton).strokeWidth = 8
+                    v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
+                    (v as MaterialButton).strokeWidth = 0
+                }
+            }
+            setOnClickListener {
+                dialog.dismiss()
+                if (isDualScreenMode) {
+                    handleBackNavigation()
+                } else {
+                    initPillButtonStates()
+                }
+            }
+        }
+        scrollContainer.addView(closeBtn)
+
+        oldContainer?.parent?.let { parent ->
+            val group = parent as ViewGroup
+            val idx = group.indexOfChild(oldContainer)
+            if (idx != -1) {
+                group.removeViewAt(idx)
+                group.addView(dialogScrollView, idx)
+            }
+        }
+
+        dialog.setOnCancelListener {
+            if (isDualScreenMode) {
+                handleBackNavigation()
+            } else {
+                initPillButtonStates()
+            }
+        }
+
         dialog.show()
         firstBtn?.requestFocus()
     }
@@ -828,9 +961,9 @@ class SettingsActivity : AppCompatActivity() {
             R.id.btnThemeSelect, R.id.btnChangeLanguage, R.id.btnGlobalScreensaver,
             R.id.btnNotificationsMenu, R.id.btnAboutMenu, R.id.btnSubMenuSounds,
             R.id.btnSubMenuPopups
-        ).forEach { id -> updatePillVisuals(findViewById(id), false) }
+        ).forEach { id -> updatePillVisuals(findViewById<MaterialButton>(id)) }
 
-        updatePillVisuals(findViewById(R.id.btnCheckUpdates), true)
+        updatePillVisuals(findViewById<MaterialButton>(R.id.btnCheckUpdates))
 
         setupPill(R.id.btnPillSaver30)
         setupPill(R.id.btnPillSaver60)
@@ -844,19 +977,13 @@ class SettingsActivity : AppCompatActivity() {
         btn.shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
     }
 
-    private fun updatePillVisuals(btn: MaterialButton?, isActive: Boolean) {
+    private fun updatePillVisuals(btn: MaterialButton?) {
         if (btn == null) return
         val isAlwaysGreenPill = btn.id == R.id.btnCheckUpdates
 
         if (isAlwaysGreenPill) {
-            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
             btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-            if (isNight) {
-                btn.setTextColor(Color.parseColor("#F5F5F5"))
-            } else {
-                val dayTextColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
-                btn.setTextColor(dayTextColor)
-            }
+            btn.setTextColor(Color.WHITE)
             return
         }
 
@@ -938,8 +1065,7 @@ class SettingsActivity : AppCompatActivity() {
         val options = arrayOf(getString(R.string.btn_download_now), getString(R.string.btn_later))
         showTvDialog(
             title = getString(R.string.update_available_title, newVersion),
-            items = options,
-            hexColors = arrayOf("#4CAF50", null)
+            options
         ) { index ->
             if (index == 0 && downloadUrl.isNotEmpty()) {
                 try {
@@ -970,18 +1096,21 @@ class SettingsActivity : AppCompatActivity() {
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.license_link_text)
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = getString(R.string.license_link_text)
         val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val textColor = if (isNight) Color.WHITE else Color.BLACK
+
         val scrollView = ScrollView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(330))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(230))
             setPadding(12, 12, 12, 12)
             background = ContextCompat.getDrawable(this@SettingsActivity, R.drawable.bg_input_rounded)
         }
 
         val tvContent = TextView(this).apply {
             text = licenseSb.toString().trim()
-            setTextColor(if ((resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) Color.WHITE else Color.BLACK)
+            setTextColor(textColor)
             textSize = 14f
         }
 
@@ -1005,8 +1134,7 @@ class SettingsActivity : AppCompatActivity() {
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
                     v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
-                    (v as MaterialButton).strokeWidth = 8 // Breiterer Rahmen
-                    val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                    (v as MaterialButton).strokeWidth = 8
                     v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
                 } else {
                     v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
@@ -1024,19 +1152,25 @@ class SettingsActivity : AppCompatActivity() {
         closeBtn.requestFocus()
     }
 
+    override fun onPause() {
+        try {
+            val notificationManagerClass = Class.forName("com.shipofagony.klippshell4creality.NotificationManager")
+            val dismissMethod = notificationManagerClass.getMethod("dismissActivePopup")
+            dismissMethod.invoke(null)
+        } catch (e: Exception) {
+            Log.e("KlippShell", "NotificationManager dismissal reflection failed", e)
+        }
+        super.onPause()
+    }
+
     private fun toPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
     }
 
-    override fun onPause() {
-        SoundManager.stopAllSounds()
-        NotificationManager.dismissActivePopup()
-        super.onPause()
-    }
-
+    // GEFIXT (Zeile 1173): Der nicht mehr benötigte timingHandler wurde restlos aus onDestroy gelöscht
     override fun onDestroy() {
-        SoundManager.stopAllSounds()
-        NotificationManager.dismissActivePopup()
         super.onDestroy()
     }
+
+    private data class MenuData(val title: String, val iconRes: Int, val action: () -> Unit)
 }

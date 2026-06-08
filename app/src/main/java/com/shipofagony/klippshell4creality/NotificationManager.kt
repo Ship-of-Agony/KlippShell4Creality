@@ -22,18 +22,19 @@ object NotificationManager {
     private var activePopupViewRef: WeakReference<View>? = null
     private var activeContainerRef: WeakReference<ViewGroup>? = null
 
+    // Speicher für die Rückkehr-Aktion in die Einstellungen
+    private var currentDismissCallback: (() -> Unit)? = null
+
     /**
      * Schiebt eine unübersehbare Kachel in den Bildschirm (Erzwungen über das native Layout).
+     * Unterstützt jetzt ein optionales Lambda-Callback beim Schließen.
      */
-    fun showLivePopup(context: Context, prefKey: String, titleResId: Int, messageResId: Int) {
+    fun showLivePopup(context: Context, prefKey: String, titleResId: Int, messageResId: Int, onDismiss: (() -> Unit)? = null) {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
             return
         }
 
         val prefs = context.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-
-        // GEFIXT: Standardmäßig sind ALLE Popups aktiv (true).
-        // Das sorgt dafür, dass offline, first_layer, 50, 75, 90 etc. ab Werk durchkommen!
         val isDefaultEnabled = true
 
         val isSettingsContext = context is SettingsActivity
@@ -41,13 +42,16 @@ object NotificationManager {
 
         if (!isPopupAllowed) return
 
+        // Schließt ein eventuell altes Popup und löscht dessen Callback, ohne es abzufeuern
         dismissActivePopup()
+
+        // Sichert das neue Callback für den Schließen-Button
+        this.currentDismissCallback = onDismiss
 
         try {
             val inflater = LayoutInflater.from(context)
 
             if (context is WebViewActivity) {
-                // Greift auf den fest definierten XML-Container aus der activity_webview.xml zu
                 val webContainer = context.findViewById<ViewGroup>(R.id.containerWebNotification)
 
                 if (webContainer != null) {
@@ -60,7 +64,6 @@ object NotificationManager {
                     webContainer.removeAllViews()
                     webContainer.addView(notifyView)
 
-                    // Maximale Hardware-Ebenen-Priorität erzwingen
                     notifyView.bringToFront()
                     notifyView.elevation = 50.toPx(context).toFloat()
                     notifyView.translationZ = 50.toPx(context).toFloat()
@@ -77,14 +80,13 @@ object NotificationManager {
                 }
             }
 
-            // Fallback für MainActivity / SettingsActivity (Injektion in den DecorView des Fensters)
             val activity = context as? Activity
             val rootLayout = activity?.window?.decorView?.findViewById<ViewGroup>(android.R.id.content)
 
             if (rootLayout != null) {
                 val notifyView = inflater.inflate(R.layout.dialog_notification, rootLayout, false)
                 activePopupViewRef = WeakReference(notifyView)
-                activeContainerRef = null // Da kein statischer XML-Container genutzt wird
+                activeContainerRef = null
 
                 setupPopupContent(context, notifyView, prefKey, titleResId, messageResId)
 
@@ -115,9 +117,6 @@ object NotificationManager {
         }
     }
 
-    /**
-     * Bereitet den Inhalt, Farben und Buttons der Kachel vor.
-     */
     private fun setupPopupContent(context: Context, view: View, prefKey: String, titleResId: Int, messageResId: Int) {
         val container = view.findViewById<LinearLayout>(R.id.containerNotification)
         val ivIcon = view.findViewById<ImageView>(R.id.ivNotifyIcon)
@@ -155,12 +154,14 @@ object NotificationManager {
         btnDismiss.setTextColor(Color.WHITE)
         btnDismiss.cornerRadius = 100
 
-        btnDismiss.setOnClickListener { dismissActivePopup() }
+        // TIMING-INVERSION: Sichert die Aktion, räumt die View ab und triggert erst dann die Rückkehr!
+        btnDismiss.setOnClickListener {
+            val callback = currentDismissCallback
+            dismissActivePopup()
+            callback?.invoke()
+        }
     }
 
-    /**
-     * Entfernt die Kachel oder schließt den Container sauber ab.
-     */
     fun dismissActivePopup() {
         try {
             val webContainer = activeContainerRef?.get()
@@ -179,6 +180,7 @@ object NotificationManager {
         } finally {
             activePopupViewRef = null
             activeContainerRef = null
+            currentDismissCallback = null // Setzt den Schalter verlässlich zurück
         }
     }
 

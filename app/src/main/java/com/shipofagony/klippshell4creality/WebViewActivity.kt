@@ -127,10 +127,8 @@ class WebViewActivity : AppCompatActivity() {
     private val hideUiRunnable = Runnable { hideButtons() }
     private val immersiveTimeout = 5000L
 
-    // PiP Skalierungs-Tracker (True = 16:9 Breitbild, False = 1:1 Quadrat)
     private var isPipWideRatio = true
 
-    // PiP Actions Konstanten & Receiver
     private val PIP_REQUEST_CODE_MAXIMIZE = 101
     private val PIP_REQUEST_CODE_RESIZE = 102
     private val PIP_ACTION_MAXIMIZE = "com.shipofagony.klippshell4creality.PIP_ACTION_MAXIMIZE"
@@ -155,9 +153,6 @@ class WebViewActivity : AppCompatActivity() {
         initFullScreenBinding()
     }
 
-    /**
-     * Initialisiert das komplette Layout und bindet alle Views der regulären Vollbildansicht.
-     */
     private fun initFullScreenBinding() {
         setContentView(R.layout.activity_webview)
 
@@ -386,7 +381,6 @@ class WebViewActivity : AppCompatActivity() {
                     getString(R.string.osd_pos_top_right),
                     getString(R.string.osd_pos_bottom_center)
                 )
-                // GEFIXT: String-Auflösung von R.string.osd_position_title statt view id
                 showPillDialog(getString(R.string.osd_position_title), positionOptions) { index ->
                     val uri = Uri.parse(currentActiveUrl)
                     val hostIpAddress = uri.host ?: printerIp
@@ -423,7 +417,6 @@ class WebViewActivity : AppCompatActivity() {
                 val savedRatio = try { prefs.getFloat("camera_ratio_$hostIpAddress", 56.25f) } catch(e: Exception) { 56.25f }
                 val fallbackUrl = if (lastCameraUrl.isNotEmpty()) lastCameraUrl else "http://$hostIpAddress:$savedDashboardPort/camera.html"
                 loadStreamOrUrl(fallbackUrl, savedRatio)
-                // GEFIXT: Zeigt nun synchron den passenden Toast an beim Laden des Video-Streams
                 showCenteredPillToast(getString(R.string.toast_loading_livestream))
             }
         }
@@ -446,17 +439,10 @@ class WebViewActivity : AppCompatActivity() {
         btnClose.setOnClickListener { finish() }
     }
 
-    // --- NATIVE PICTURE-IN-PICTURE LOGIK ---
-
-    /**
-     * Erstellt die nativen Symbole für das Android-System-Overlay im PiP-Modus.
-     * Schützt vor dem Blockieren durch die Glasscheibe auf Smartphones.
-     */
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updatePipActions() {
         val actions = ArrayList<RemoteAction>()
 
-        // 1. Native Action: Vollbild (App reaktivieren)
         val maxIntent = Intent(PIP_ACTION_MAXIMIZE).setPackage(packageName)
         val maxPendingIntent = PendingIntent.getBroadcast(
             this, PIP_REQUEST_CODE_MAXIMIZE, maxIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -465,7 +451,6 @@ class WebViewActivity : AppCompatActivity() {
         val maxAction = RemoteAction(maxIcon, getString(R.string.menu_pip_name), getString(R.string.menu_pip_name), maxPendingIntent)
         actions.add(maxAction)
 
-        // 2. Native Action: Formatgröße ändern (Skalieren)
         val resizeIntent = Intent(PIP_ACTION_RESIZE).setPackage(packageName)
         val resizePendingIntent = PendingIntent.getBroadcast(
             this, PIP_REQUEST_CODE_RESIZE, resizeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -482,9 +467,6 @@ class WebViewActivity : AppCompatActivity() {
         setPictureInPictureParams(pipParams)
     }
 
-    /**
-     * Startet den PiP-Modus manuell aus dem Video-Optionsmenü heraus.
-     */
     private fun enterPipMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val aspectRatio = Rational(16, 9)
@@ -497,9 +479,6 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Ändert das Seitenverhältnis des PiP-Fensters flüssig zur Laufzeit.
-     */
     private fun togglePipWindowSize() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             isPipWideRatio = !isPipWideRatio
@@ -507,10 +486,6 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Android Lifecycle-Callback: Wechselt das Layout beim Verkleinern/Maximieren des Fensters.
-     * GEFIXT: Lagert Steuerelemente in native System-Aktionen aus, um Touch-Blockaden zu umgehen.
-     */
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
 
@@ -540,12 +515,10 @@ class WebViewActivity : AppCompatActivity() {
                 tvPipProgress?.text = "--%"
             }
 
-            // Native Overlays zur Laufzeit einspeisen
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 updatePipActions()
             }
 
-            // BroadcastReceiver initialisieren, um die Klicks der System-Icons zu verarbeiten
             pipReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
                     if (intent == null) return
@@ -585,7 +558,6 @@ class WebViewActivity : AppCompatActivity() {
             startActivity(homeIntent)
 
         } else {
-            // Beim Verlassen des PiP-Modus den Receiver ruinieren
             try {
                 pipReceiver?.let { unregisterReceiver(it) }
             } catch (_: Exception) {}
@@ -936,6 +908,7 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+    // ÜBERARBEITET: Die Prozent-Trigger wurden in sichere, nicht-überlappende Korridore gesperrt!
     private fun handleMoonrakerResponse(responseText: String) {
         if (responseText.isEmpty()) {
             if (!isInPictureInPictureMode) {
@@ -951,6 +924,7 @@ class WebViewActivity : AppCompatActivity() {
                 }
             }
 
+            // Sicherer Schutz gegen Flackern: Trigger löst nur EINMAL aus beim Verbindungsabbruch
             if (!hasTrigOffline) {
                 hasTrigOffline = true
                 SoundManager.playLiveNotification("sound_offline")
@@ -1076,6 +1050,7 @@ class WebViewActivity : AppCompatActivity() {
                 }
             }
 
+            // Setzt alle Trigger-Schalter zurück, sobald kein Druck mehr läuft
             if (currentState != "printing") {
                 hasTrigFirstLayer = false
                 hasTrig50 = false
@@ -1084,26 +1059,39 @@ class WebViewActivity : AppCompatActivity() {
                 hasTrig100 = false
             }
 
+            // CRITICAL STRATEGIC FIX: Saubere, abgegrenzte Stufenkorridore verhindern das Multi-Firing-Chaos!
             if (currentState == "printing") {
-                if (progress >= 0.01 && !hasTrigFirstLayer) {
-                    hasTrigFirstLayer = true
-                    SoundManager.playLiveNotification("sound_first_layer")
-                    NotificationManager.showLivePopup(this, "popup_first_layer", R.string.notify_title_first_layer, R.string.notify_msg_first_layer)
+                // 1. Stufe: First Layer (1% bis 49%)
+                if (progress in 0.01..0.49) {
+                    if (!hasTrigFirstLayer) {
+                        hasTrigFirstLayer = true
+                        SoundManager.playLiveNotification("sound_first_layer")
+                        NotificationManager.showLivePopup(this, "popup_first_layer", R.string.notify_title_first_layer, R.string.notify_msg_first_layer)
+                    }
                 }
-                if (progress >= 0.50 && !hasTrig50) {
-                    hasTrig50 = true
-                    SoundManager.playLiveNotification("sound_50")
-                    NotificationManager.showLivePopup(this, "popup_50", R.string.notify_title_50, R.string.notify_msg_50)
+                // 2. Stufe: 50% Meilenstein (50% bis 74%)
+                else if (progress in 0.50..0.74) {
+                    if (!hasTrig50) {
+                        hasTrig50 = true
+                        SoundManager.playLiveNotification("sound_50")
+                        NotificationManager.showLivePopup(this, "popup_50", R.string.notify_title_50, R.string.notify_msg_50)
+                    }
                 }
-                if (progress >= 0.75 && !hasTrig75) {
-                    hasTrig75 = true
-                    SoundManager.playLiveNotification("sound_75")
-                    NotificationManager.showLivePopup(this, "popup_75", R.string.notify_title_75, R.string.notify_msg_75)
+                // 3. Stufe: 75% Meilenstein (75% bis 89%)
+                else if (progress in 0.75..0.89) {
+                    if (!hasTrig75) {
+                        hasTrig75 = true
+                        SoundManager.playLiveNotification("sound_75")
+                        NotificationManager.showLivePopup(this, "popup_75", R.string.notify_title_75, R.string.notify_msg_75)
+                    }
                 }
-                if (progress >= 0.90 && !hasTrig90) {
-                    hasTrig90 = true
-                    SoundManager.playLiveNotification("sound_90")
-                    NotificationManager.showLivePopup(this, "popup_90", R.string.notify_title_90, R.string.notify_msg_90)
+                // 4. Stufe: 90% Meilenstein (90% bis 99%)
+                else if (progress in 0.90..0.99) {
+                    if (!hasTrig90) {
+                        hasTrig90 = true
+                        SoundManager.playLiveNotification("sound_90")
+                        NotificationManager.showLivePopup(this, "popup_90", R.string.notify_title_90, R.string.notify_msg_90)
+                    }
                 }
             }
 
