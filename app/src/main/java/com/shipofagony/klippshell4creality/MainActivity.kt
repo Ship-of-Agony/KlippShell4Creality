@@ -41,8 +41,6 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -51,6 +49,8 @@ import java.net.Socket
 import java.net.URL
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import org.json.JSONException
+import org.json.JSONObject
 
 @Suppress("DEPRECATION", "Lint", "SetTextI18n", "LocalSuppress")
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity() {
         tvAddPrinterTitle = findViewById(R.id.tvAddPrinterTitle)
         btnSystemSelect = findViewById(R.id.btnSystemSelect)
 
-        btnSystemSelect.text = "4408"
+        btnSystemSelect.text = "Port: 4408"
 
         etMainPrinterIP.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
         etMainPrinterIP.keyListener = android.text.method.DigitsKeyListener.getInstance("0123456789.")
@@ -179,7 +179,7 @@ class MainActivity : AppCompatActivity() {
                     .withEndAction {
                         startupVeil.visibility = View.GONE
                         if (printerArray.length() == 0) {
-                            etMainPrinterName.requestFocus()
+                            actvMainPrinterModel.requestFocus()
                         } else {
                             findViewById<View>(R.id.btnSettings)?.requestFocus()
                         }
@@ -201,8 +201,8 @@ class MainActivity : AppCompatActivity() {
             showPillDialog(getString(R.string.choose_port), systemOptions) { which ->
                 selectedSystemIndex = which
                 when (which) {
-                    0 -> { btnSystemSelect.text = "4408"; etMainPrinterPort.visibility = View.GONE }
-                    1 -> { btnSystemSelect.text = "7125"; etMainPrinterPort.visibility = View.GONE }
+                    0 -> { btnSystemSelect.text = "Port: 4408"; etMainPrinterPort.visibility = View.GONE }
+                    1 -> { btnSystemSelect.text = "Port: 7125"; etMainPrinterPort.visibility = View.GONE }
                     2 -> { btnSystemSelect.text = getString(R.string.system_manual); etMainPrinterPort.visibility = View.VISIBLE; etMainPrinterPort.requestFocus() }
                 }
             }
@@ -210,38 +210,17 @@ class MainActivity : AppCompatActivity() {
 
         val models = printerMap.keys.toTypedArray()
 
-        if (isAndroidTV()) {
-            actvMainPrinterModel.isFocusable = true
-            actvMainPrinterModel.isFocusableInTouchMode = false
-            actvMainPrinterModel.inputType = InputType.TYPE_NULL
+        actvMainPrinterModel.isFocusable = true
+        actvMainPrinterModel.isFocusableInTouchMode = false
+        actvMainPrinterModel.inputType = InputType.TYPE_NULL
 
-            actvMainPrinterModel.setOnClickListener {
-                showModelSelectionSearchDialog(getString(R.string.printer_model_hint), models) { selectedModel ->
-                    actvMainPrinterModel.setText(selectedModel, false)
-                }
-            }
-            actvMainPrinterModel.setOnKeyListener(null)
-        } else {
-            actvMainPrinterModel.showSoftInputOnFocus = true
-            actvMainPrinterModel.inputType = InputType.TYPE_CLASS_TEXT
-
-            val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, models)
-            actvMainPrinterModel.setAdapter(adapter)
-
-            actvMainPrinterModel.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    if (actvMainPrinterModel.isFocused && !s.isNullOrEmpty()) {
-                        actvMainPrinterModel.showDropDown()
-                    }
-                }
-                override fun afterTextChanged(s: Editable?) {}
-            })
-
-            actvMainPrinterModel.setOnClickListener {
-                actvMainPrinterModel.showDropDown()
+        actvMainPrinterModel.setOnClickListener {
+            showModelSelectionSearchDialog(getString(R.string.printer_model_hint), models) { selectedModel ->
+                actvMainPrinterModel.setText(selectedModel, false)
+                etMainPrinterName.setText(selectedModel)
             }
         }
+        actvMainPrinterModel.setOnKeyListener(null)
 
         actvMainPrinterModel.setText("", false)
 
@@ -253,7 +232,7 @@ class MainActivity : AppCompatActivity() {
             val isVisible = containerAddPrinterForm.visibility == View.VISIBLE
             containerAddPrinterForm.visibility = if (isVisible) View.GONE else View.VISIBLE
             tvAddPrinterTitle.text = getString(if (isVisible) R.string.add_printer_down else R.string.add_printer_up)
-            if (!isVisible) etMainPrinterName.requestFocus()
+            if (!isVisible) actvMainPrinterModel.requestFocus()
         }
 
         findViewById<Button>(R.id.btnSearchNetwork)?.setOnClickListener { searchNetworkForPrinters() }
@@ -280,7 +259,7 @@ class MainActivity : AppCompatActivity() {
                     actvMainPrinterModel.setText("", false)
 
                     selectedSystemIndex = 0
-                    btnSystemSelect.text = "4408"
+                    btnSystemSelect.text = "Port: 4408"
                     etMainPrinterPort.visibility = View.GONE
                     containerAddPrinterForm.visibility = View.GONE
                     tvAddPrinterTitle.text = getString(R.string.add_printer_down)
@@ -447,7 +426,7 @@ class MainActivity : AppCompatActivity() {
                             try {
                                 socket = Socket()
                                 socket.connect(InetSocketAddress("$ipPrefix.$i", port), 350)
-                                foundPrinters.add("$ipPrefix.$i")
+                                foundPrinters.add("$ipPrefix.$i:$port")
                             } catch (_: Exception) {
                             } finally {
                                 try { socket?.close() } catch (_: Exception) {}
@@ -463,9 +442,31 @@ class MainActivity : AppCompatActivity() {
                     try { progressDialog.dismiss() } catch (_: Exception) {}
                     val cleanList = foundPrinters.distinct()
                     if (cleanList.isNotEmpty()) {
-                        showPillDialog(getString(R.string.found_printers), cleanList.toTypedArray(), null) { which ->
-                            etMainPrinterIP.setText(cleanList[which])
-                            btnSystemSelect.text = "4408"
+                        val displayArray = cleanList.map { item ->
+                            val parts = item.split(":")
+                            val ip = parts[0]
+                            val port = parts.getOrNull(1) ?: "7125"
+                            val systemName = if (port == "4408") "Creality OS" else "Standard Klipper"
+                            "$ip ($systemName)"
+                        }.toTypedArray()
+
+                        showPillDialog(getString(R.string.found_printers), displayArray, null) { which ->
+                            val selectedItem = cleanList[which]
+                            val parts = selectedItem.split(":")
+                            val detectedIp = parts[0]
+                            val detectedPort = parts.getOrNull(1) ?: "7125"
+
+                            etMainPrinterIP.setText(detectedIp)
+
+                            if (detectedPort == "4408") {
+                                selectedSystemIndex = 0
+                                btnSystemSelect.text = "Port: 4408"
+                                etMainPrinterPort.visibility = View.GONE
+                            } else {
+                                selectedSystemIndex = 1
+                                btnSystemSelect.text = "Port: 7125"
+                                etMainPrinterPort.visibility = View.GONE
+                            }
                         }
                     } else {
                         showCenteredPillToast(getString(R.string.toast_no_connection))
@@ -488,16 +489,17 @@ class MainActivity : AppCompatActivity() {
         val mainContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val textColor = if (isNight) Color.WHITE else Color.BLACK
-        val btnBgColor = if (isNight) "#33FFFFFF".toColorInt() else "#1A888888".toColorInt()
+
+        val cardBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
+        val textColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
 
         val etSearch = EditText(this).apply {
             hint = getString(R.string.search_model_hint)
             background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_pill_input)
-            setPadding(20, 16, 20, 16)
+            setPadding(24, 16, 24, 16)
             textSize = 15f
             setTextColor(textColor)
-            setHintTextColor(if (isNight) Color.GRAY else Color.LTGRAY)
+            setHintTextColor(if (isNight) Color.GRAY else Color.parseColor("#757575"))
             isFocusable = true
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                 setMargins(0, 0, 0, 16)
@@ -506,46 +508,57 @@ class MainActivity : AppCompatActivity() {
         mainContainer.addView(etSearch)
 
         val scrollLayout = ScrollView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 350).apply {
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(320)).apply {
                 clipToPadding = false
                 clipChildren = false
             }
             isVerticalScrollBarEnabled = true
         }
 
-        val listContainer = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+        val gridLayout = GridLayout(this).apply {
+            columnCount = 2
+            alignmentMode = GridLayout.ALIGN_BOUNDS
+            isRowOrderPreserved = false
             layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                 clipToPadding = false
                 clipChildren = false
             }
         }
-        scrollLayout.addView(listContainer)
+        scrollLayout.addView(gridLayout)
         mainContainer.addView(scrollLayout)
 
         fun populateList(filterText: String) {
-            listContainer.removeAllViews()
+            gridLayout.removeAllViews()
             val filteredList = allModels.filter { it.lowercase(Locale.getDefault()).contains(filterText.lowercase(Locale.getDefault())) }
 
             filteredList.forEach { modelName ->
-                val btn = MaterialButton(this).apply {
-                    text = modelName
-                    isAllCaps = false
-                    textSize = 15f
-                    cornerRadius = 100
-                    setPadding(0, 30, 0, 30)
-                    backgroundTintList = ColorStateList.valueOf(btnBgColor)
-                    setTextColor(textColor)
+                val kachel = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    gravity = Gravity.CENTER
                     isFocusable = true
+                    isClickable = true
+                    background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_rounded)
+                    backgroundTintList = ColorStateList.valueOf(cardBgColor)
+                    setPadding(16, 20, 16, 20)
 
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                        setMargins(0, 8, 0, 8)
+                    val p = GridLayout.LayoutParams().apply {
+                        width = 0
+                        height = ViewGroup.LayoutParams.WRAP_CONTENT
+                        columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                        setMargins(8, 8, 8, 8)
                     }
+                    layoutParams = p
 
                     onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
-                        v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).translationZ(if (hasFocus) 6f else 0f).setDuration(100).start()
-                        strokeWidth = if (hasFocus) 8 else 0
-                        strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
+                        v.animate().scaleX(if (hasFocus) 1.05f else 1.0f).scaleY(if (hasFocus) 1.05f else 1.0f).setDuration(120).start()
+                        val drawable = v.background as? GradientDrawable
+                        if (drawable != null) {
+                            if (hasFocus) {
+                                drawable.setStroke(6, if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                            } else {
+                                drawable.setStroke(2, if (isNight) Color.parseColor("#4DFFFFFF") else Color.parseColor("#33000000"))
+                            }
+                        }
                     }
 
                     setOnClickListener {
@@ -553,13 +566,32 @@ class MainActivity : AppCompatActivity() {
                         dialog.dismiss()
                     }
                 }
-                listContainer.addView(btn)
+
+                val ivPreview = ImageView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(toPx(64), toPx(64)).apply {
+                        setMargins(0, 0, 0, 8)
+                    }
+                    scaleType = ImageView.ScaleType.CENTER_INSIDE
+                    setImageResource(getPrinterImageResource(modelName))
+                }
+
+                val tvName = TextView(this).apply {
+                    text = modelName
+                    textSize = 14f
+                    gravity = Gravity.CENTER
+                    setTextColor(textColor)
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    maxLines = 2
+                }
+
+                kachel.addView(ivPreview)
+                kachel.addView(tvName)
+                gridLayout.addView(kachel)
             }
         }
 
         populateList("")
 
-        // GEFIXT: Keine Re-Zuweisung mehr auf etSearch Konstante
         etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -591,6 +623,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ÜBERARBEITET: Unterstützt jetzt voll-dynamische Layout-Skalierung für Single-Drucker-Farmen
     private fun loadPrinters() {
         containerPrinters.removeAllViews()
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -613,28 +646,66 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        // DYNAMISCH: Erkennt, ob es sich um eine Single-Drucker-Farm handelt
+        val isSinglePrinter = list.length() == 1
+
         for (i in 0 until list.length()) {
             val printer = try { list.getJSONObject(i) } catch (_: Exception) { null } ?: continue
             val itemView = LayoutInflater.from(this).inflate(R.layout.printer_item, containerPrinters, false)
 
             itemView.isFocusable = true
+            itemView.isFocusableInTouchMode = true
+
+            // --- STRATEGOSCH-DYNAMISCHE UPGRADE LOGIK FÜR EINZELNE DRUCKER ---
+            if (isSinglePrinter) {
+                // Ändert die Anordnung von horizontal auf vertikal zentriert (Dashboard Widget Style!)
+                if (itemView is LinearLayout) {
+                    itemView.orientation = LinearLayout.VERTICAL
+                    itemView.gravity = Gravity.CENTER
+                    // Spendiert der Mega-Kachel ein fettes, sattes Polster (Padding)
+                    itemView.setPadding(toPx(32), toPx(48), toPx(32), toPx(48))
+                }
+            }
+
             itemView.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                val drawable = v.background as? GradientDrawable
                 if (hasFocus) {
                     v.animate().scaleX(1.02f).scaleY(1.02f).translationZ(8f).setDuration(150).start()
                     v.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#44FFFFFF"))
+                    drawable?.setStroke(8, if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
                 } else {
                     v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(150).start()
                     v.backgroundTintList = null
+                    drawable?.setStroke(2, if (isNight) Color.parseColor("#4DFFFFFF") else Color.parseColor("#33000000"))
                 }
             }
 
             val iconView = itemView.findViewById<ImageView>(R.id.ivPrinterIcon)
-            if (iconView != null) iconView.setImageResource(getPrinterImageResource(printer.optString("model", "")))
+            if (iconView != null) {
+                iconView.setImageResource(getPrinterImageResource(printer.optString("model", "")))
+
+                // Bläht das Drucker-Vorschaubild im Single-Modus auf fette 120dp auf!
+                if (isSinglePrinter) {
+                    val sizePx = toPx(120)
+                    iconView.layoutParams = LinearLayout.LayoutParams(sizePx, sizePx).apply {
+                        // Zentriert das Bild über dem Text und gibt ihm Abstand nach unten
+                        gravity = Gravity.CENTER_HORIZONTAL
+                        setMargins(0, 0, 0, toPx(24))
+                    }
+                }
+            }
 
             itemView.findViewById<TextView>(R.id.tvPrinterNameAndAddress).apply {
                 text = printer.optString("name", "Unbekannt")
-                textSize = 18f
+                textSize = if (isSinglePrinter) 24f else 18f // Macht auch den Namen markanter
                 setTypeface(null, android.graphics.Typeface.BOLD)
+
+                if (isSinglePrinter) {
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                        gravity = Gravity.CENTER_HORIZONTAL
+                    }
+                }
             }
 
             itemView.setOnClickListener {
@@ -808,6 +879,12 @@ class MainActivity : AppCompatActivity() {
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
+        dialog.setCancelable(false)
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.setOnKeyListener { _, keyCode, _ ->
+            keyCode == android.view.KeyEvent.KEYCODE_BACK
+        }
+
         dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.perm_dialog_title)
         val mainContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
@@ -847,7 +924,7 @@ class MainActivity : AppCompatActivity() {
                 dialog.dismiss()
 
                 val currentArray = try { JSONArray(getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).getString("printers_list", "[]")) } catch (_: Exception) { JSONArray() }
-                if (currentArray.length() == 0) { etMainPrinterName.requestFocus() } else { findViewById<View>(R.id.btnSettings)?.requestFocus() }
+                if (currentArray.length() == 0) { actvMainPrinterModel.requestFocus() } else { findViewById<View>(R.id.btnSettings)?.requestFocus() }
                 if (currentArray.length() > 0 && isAndroidTV()) { startTvBackgroundWorker() }
             }
         }
