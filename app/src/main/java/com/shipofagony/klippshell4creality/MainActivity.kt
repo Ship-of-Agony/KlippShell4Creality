@@ -335,18 +335,17 @@ class MainActivity : AppCompatActivity() {
         applyLanguageAndRefreshUI()
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun startTvBackgroundWorker() {
         try {
-            val workerClass = Class.forName("com.shipofagony.klippshell4creality.KlipperTvWorker") as Class<out ListenableWorker>
-            val tvWorkRequest = PeriodicWorkRequest.Builder(workerClass, 15, TimeUnit.MINUTES).build()
+            // TV Live Feature: Typsicherer nativer Aufruf ohne fehleranfällige Reflection
+            val tvWorkRequest = PeriodicWorkRequest.Builder(KlipperTvWorker::class.java, 15, TimeUnit.MINUTES).build()
             WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
                 "KlipperTvKachelWorker",
                 ExistingPeriodicWorkPolicy.KEEP,
                 tvWorkRequest
             )
         } catch (e: Exception) {
-            Log.e("KlippShell", "Fehler beim Starten des TV-Workers via Reflection", e)
+            Log.e("KlippShell", "Fehler beim Starten des TV-Workers via Jetpack WorkManager", e)
         }
     }
 

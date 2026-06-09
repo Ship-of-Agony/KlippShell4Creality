@@ -38,6 +38,17 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             tools:targetApi="26" />
 
+        <receiver
+            android:name=".TvChannelReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.android.providers.tv.permission.WRITE_EPG_DATA">
+            <intent-filter>
+                <action android:name="android.media.tv.action.INITIALIZE_PROGRAMS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
