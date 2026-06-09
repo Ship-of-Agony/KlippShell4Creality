@@ -806,9 +806,6 @@ class SettingsActivity : AppCompatActivity() {
         (preFocused ?: containerLanguageButtons.getChildAt(0) as? MaterialButton)?.requestFocus()
     }
 
-    /**
-     * DYNAMISCHER ASSET-LOADER: Holt den Changelog nun live aus der physischen changelog.txt
-     */
     private fun loadChangelogFromAssets() {
         val changelogSb = java.lang.StringBuilder()
         try {
@@ -1074,6 +1071,9 @@ class SettingsActivity : AppCompatActivity() {
         btn.setTextColor(normalTxtColor)
     }
 
+    /**
+     * GEFIXT: Robustes semantisches Versionierungs-Polling via GitHub-API
+     */
     private fun checkForUpdatesFromGithub() {
         val apiUrl = "https://api.github.com/repos/Ship-of-Agony/KlippShell4Creality/releases"
 
@@ -1111,11 +1111,30 @@ class SettingsActivity : AppCompatActivity() {
                             "0.8.6"
                         }
 
-                        val latestNumeric = latestVersionTag.replace(".", "").toIntOrNull() ?: 0
-                        val currentNumeric = currentVersionName.replace(".", "").toIntOrNull() ?: 0
+                        // FIX: Suffixes abschneiden (z. B. "-rc") und Teil für Teil numerisch vergleichen
+                        val cleanCurrent = currentVersionName.takeWhile { it.isDigit() || it == '.' }.trim('.')
+                        val cleanLatest = latestVersionTag.takeWhile { it.isDigit() || it == '.' }.trim('.')
+
+                        val currentParts = cleanCurrent.split(".").map { it.toIntOrNull() ?: 0 }
+                        val latestParts = cleanLatest.split(".").map { it.toIntOrNull() ?: 0 }
+
+                        var isNewer = false
+                        val maxLength = maxOf(currentParts.size, latestParts.size)
+                        for (i in 0 until maxLength) {
+                            val currentPart = currentParts.getOrElse(i) { 0 }
+                            val latestPart = latestParts.getOrElse(i) { 0 }
+                            if (latestPart > currentPart) {
+                                isNewer = true
+                                break
+                            }
+                            if (latestPart < currentPart) {
+                                isNewer = false
+                                break
+                            }
+                        }
 
                         withContext(Dispatchers.Main) {
-                            if (latestNumeric > currentNumeric && downloadUrl.isNotEmpty()) {
+                            if (isNewer && downloadUrl.isNotEmpty()) {
                                 showUpdateAvailableDialog(latestVersionTag, downloadUrl)
                             } else {
                                 showCenteredPillToast(getString(R.string.toast_updater_up_to_date))
