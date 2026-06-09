@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">Brak zarejestrowanych drukarek</string>
+    <string name="no_printers">Brak skonfigurowanych drukarek</string>
     <string name="saved_printers">Zapisane Drukarki</string>
     <string name="btn_search_network">Przeszukaj Sieć</string>
     <string name="search_network">Skanuj Sieć</string>
@@ -12,17 +12,17 @@
     <string name="printer_ip_hint">Adres IP</string>
     <string name="printer_port_hint">Port (Opcjonalnie)</string>
     <string name="printer_model_hint">Wybierz Model Drukarki</string>
-    <string name="search_model_hint">Szukaj... (np., CR 10)</string>
+    <string name="search_model_hint">Szukaj... (np. CR 10)</string>
     <string name="choose_port">Wybierz Port</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
-    <string name="system_manual">Wpis Ręczny</string>
+    <string name="system_manual">Ręczne Wprowadzanie</string>
     <string name="add_printer_up">Dodaj Drukarkę ▲</string>
     <string name="add_printer_down">Dodaj Drukarkę ▼</string>
 
     <string name="choose_default_view_title">Domyślny Interfejs</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Stream na Żywo przez</string>
+    <string name="menu_change_camera_type">Strumień na Żywo przez</string>
     <string name="found_printers">Znalezione Drukarki</string>
     <string name="toast_no_connection">Brak połączenia z drukarką</string>
     <string name="yes_delete">Usuń</string>
@@ -30,7 +30,7 @@
     <string name="reset_confirm_msg">Czy na pewno chcesz usunąć tę drukarkę?</string>
 
     <string name="settings_title">Ustawienia</string>
-    <string name="theme_title">Motyw Aplikacji</string>
+    <string name="theme_title">Wygląd Aplikacji</string>
     <string name="theme_light">Jasny</string>
     <string name="theme_dark">Ciemny</string>
     <string name="theme_system">Zgodnie z Systemem</string>
@@ -41,20 +41,20 @@
 
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Wyprodukowano z ❤️ w Niemczech</string>
-    <string name="easter_egg_success">Wypoziomuj stół zanim mnie zapytasz!</string>
-    <string name="about_contact_text">Projekt na GitHubie • Wsparcie przez E-Mail</string>
-    <string name="toast_email_error">Nie znaleziono aplikacji e-mail</string>
+    <string name="easter_egg_success">Wypoziomuj stół, zanim zapytasz!</string>
+    <string name="about_contact_text">Projekt na GitHub • Wsparcie przez E-mail</string>
+    <string name="toast_email_error">Nie znaleziono aplikacji pocztowej</string>
 
     <string name="reset_app">Resetuj Aplikację</string>
     <string name="reset_app_title">Usunąć wszystkie dane?</string>
     <string name="reset_app_yes">Tak, usuń wszystko</string>
     <string name="reset_app_cancel">Anuluj</string>
 
-    <string name="btn_about_menu">O aplikacji KlippShell</string>
+    <string name="btn_about_menu">O KlippShell</string>
     <string name="btn_check_updates">Aktualizuj</string>
     <string name="license_link_text">Licencje i Prawa Autorskie</string>
     <string name="about_changelog_title">Lista Zmian</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Dodano updater GitHub OTA: Asynchroniczne sprawdzanie online nowych wersji\n• Zintegrowana przeglądarka licencji: Nowe przewijane okno dialogowe dla praw autorskich\n• Czyszczenie układu: Usunięto nadmiarowe teksty interfejsu, zabezpieczono wielkanocny bonus z logo\n• Zwiększona stabilność: Naprawiono błędy bezpieczeństwa przed wartościami zerowymi w Kotlinie i zoptymalizowano skupienie dialogów\n\nv0.8.4.300526-rc\n• Dodano dialog wyszukiwania TV dla wyboru modelu\n• Zaimplementowano tolerancyjne wyszukiwanie G-kodu/modelu\n• Zoptymalizowano odpytywanie pamięci dla Moonrakera\n\nv0.8.3\n• Zwiększono bezpieczeństwo skupienia D-Pada dla poziomów menu\n• Stabilizowane kanały audio SoundManagera\n• Naprawiono reset ustawień wstępnych</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• Dodano aktualizator GitHub OTA: Asynchroniczna weryfikacja online\n• Zintegrowana przeglądarka licencji: Nowe przewijane okno dialogowe praw autorskich\n• Czyszczenie układu: Usunięto nadmiarowy tekst UI, chroniony Easter Egg logo\n• Zwiększona stabilność: Naprawiono błędy null safety i zoptymalizowano fokus okna</string>
     <string name="settings_optimized_tv">Zoptymalizowano dla Android TV</string>
 
     <string name="menu_options_title">Opcje</string>
@@ -79,17 +79,17 @@
 
     <string name="camera_type_html_new">Klipper (Strumień HTML)</string>
     <string name="camera_type_port_new">Port (Strumień 8080)</string>
-    <string name="camera_type_webcam_new">Kamera Internetowa (Strumień /webcam)</string>
-    <string name="camera_type_html">Klipper HTML Stream</string>
-    <string name="camera_type_port">Port 8080 Stream</string>
-    <string name="camera_type_webcam">Webcam Path Stream</string>
+    <string name="camera_type_webcam_new">Webcam (Strumień /webcam)</string>
+    <string name="camera_type_html">Strumień HTML Klipper</string>
+    <string name="camera_type_port">Strumień Port 8080</string>
+    <string name="camera_type_webcam">Strumień Ścieżki Webcam</string>
 
     <string name="menu_emergency_stop">ZATRZYMANIE AWARYJNE</string>
     <string name="dialog_stop_title">Zatrzymać Drukarkę?</string>
     <string name="dialog_stop_confirm">TAK - ZATRZYMAJ NATYCHMIAST</string>
     <string name="dialog_cancel">Anuluj</string>
     <string name="toast_stop_success">ZATRZYMANIE AWARYJNE wysłane!</string>
-    <string name="toast_stop_error">Błąd podczas wysyłania: </string>
+    <string name="toast_stop_error">Błąd wysyłania: </string>
     <string name="toast_loading_dashboard">Ładowanie Klipper OS...</string>
     <string name="osd_printer_offline">Drukarka Offline</string>
 
@@ -97,77 +97,81 @@
     <string name="osd_bed">Stół: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Komora: %1$.1f°C</string>
     <string name="osd_chamber_heater">Grzałka: %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_fan_model">Chłodzenie Wydruku: %1$.0f%%</string>
-    <string name="osd_fan_aux">Went. Dodatkowy: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Went. Wyciągowy: %1$.0f%%</string>
+    <string name="osd_fan_model">Wentylator Modelu: %1$.0f%%</string>
+    <string name="osd_fan_aux">Wentylator Aux: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Wentylator Komory: %1$.0f%%</string>
+    <string name="osd_progress_label">Postęp: %1$s</string>
     <string name="osd_time">Czas: %1$s / %2$s</string>
 
     <string name="event_offline">Offline</string>
     <string name="event_first_layer">Pierwsza Warstwa</string>
-    <string name="event_50">50% Osiągnięto</string>
-    <string name="event_75">75% Osiągnięto</string>
-    <string name="event_90">90% Osiągnięto</string>
+    <string name="event_50">Osiągnięto 50%</string>
+    <string name="event_75">Osiągnięto 75%</string>
+    <string name="event_90">Osiągnięto 90%</string>
     <string name="event_100">Ukończono</string>
     <string name="event_error">Błąd</string>
 
     <string name="notify_title_offline">Połączenie Przerwane</string>
-    <string name="notify_msg_offline">Drukarka już nie odpowiada.</string>
-    <string name="notify_btn_offline">Rozumiem</string>
+    <string name="notify_msg_offline">Drukarka przestała odpowiadać.</string>
+    <string name="notify_btn_offline">Odrzuć</string>
     <string name="notify_title_first_layer">Pierwsza Warstwa</string>
-    <string name="notify_msg_first_layer">Pierwsza warstwa jest drukowana.</string>
+    <string name="notify_msg_first_layer">Trwa drukowanie pierwszej warstwy.</string>
     <string name="notify_title_50">Półmetek!</string>
-    <string name="notify_msg_50">50% wydruku jest gotowe.</string>
-    <string name="notify_title_75">Już prawie</string>
+    <string name="notify_msg_50">50% wydruku zostało ukończone.</string>
+    <string name="notify_title_75">Prawie gotowe</string>
     <string name="notify_msg_75">75% wydruku jest ukończone.</string>
-    <string name="notify_title_90">Ostatnia prosta</string>
+    <string name="notify_title_90">Ostatnia Prosta</string>
     <string name="notify_msg_90">Osiągnięto 90% wydruku.</string>
     <string name="notify_title_100">Druk Ukończony!</string>
     <string name="notify_msg_100">Druk 3D został pomyślnie zakończony.</string>
     <string name="notify_title_error">Błąd Klippera</string>
-    <string name="notify_msg_error">Drukarka przerwała drukowanie z błędem.</string>
+    <string name="notify_msg_error">Drukarka przerwała drukowanie z powodu błędu.</string>
     <string name="notify_btn_error">Zamknij</string>
     <string name="notify_btn_success">Super</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Włącz Oświetlenie</string>
-    <string name="menu_light_off">Wyłącz Oświetlenie</string>
+    <string name="menu_light_on">Światło Włączone</string>
+    <string name="menu_light_off">Światło Wyłączone</string>
     <string name="toast_light_error">Wysyłanie nie powiodło się</string>
-    <string name="menu_screensaver">Wygaszacz ekranu</string>
-    <string name="screensaver_title">Automatyczne przyciemnienie po...</string>
+    <string name="menu_screensaver">Wygaszacz Ekranu</string>
+    <string name="screensaver_title">Automatyczne przyciemnianie po...</string>
     <string name="screensaver_now">Aktywuj natychmiast</string>
-    <string name="screensaver_30">30 Minut</string>
-    <string name="screensaver_60">60 Minut</string>
-    <string name="screensaver_90">90 Minut</string>
-    <string name="screensaver_120">120 Minut</string>
-    <string name="screensaver_off">Deaktywowany</string>
+    <string name="screensaver_30">30 minut</string>
+    <string name="screensaver_60">60 minut</string>
+    <string name="screensaver_90">90 minut</string>
+    <string name="screensaver_120">120 minut</string>
+    <string name="screensaver_off">Wyłączony</string>
+
+    <string name="toast_max_brightness">Zwiększono jasność</string>
+    <string name="toast_restored_brightness">Przywrócono jasność</string>
 
     <string name="toast_updater_checking">Sprawdzanie wersji…</string>
     <string name="toast_updater_up_to_date">KlippShell jest aktualny ✓</string>
-    <string name="toast_updater_server_error">Serwer aktualizacji nieosiągalny (404 / Przekroczono limit czasu)</string>
-    <string name="toast_updater_error_code">Błąd pobierania (Kod: %1$d)</string>
-    <string name="update_available_title">Aktualizacja do wersji %1$s jest dostępna!</string>
+    <string name="toast_updater_server_error">Serwer aktualizacji nieosiągalny (404 / Timeout)</string>
+    <string name="toast_updater_error_code">Nie udało się pobrać (Kod: %1$d)</string>
+    <string name="update_available_title">Dostępna aktualizacja do wersji %1$s!</string>
     <string name="btn_download_now">Pobierz Teraz</string>
     <string name="btn_later">Później</string>
     <string name="toast_update_browser_error">Nie można otworzyć przeglądarki</string>
-    <string name="submenu_update_title">Aktualizuj</string>
-    <string name="btn_manual_search">Wyszukaj Aktualizacje</string>
-    <string name="pill_auto_check_on">Automatycznie sprawdzaj przy uruchomieniu</string>
-    <string name="pill_auto_check_off">Automatycznie sprawdzaj przy uruchomieniu</string>
-    <string name="toast_loading_livestream">Ładowanie Live-Streamu...</string>
+    <string name="submenu_update_title">Aktualizacja</string>
+    <string name="btn_manual_search">Sprawdź aktualizacje</string>
+    <string name="pill_auto_check_on">Sprawdzaj automatycznie przy starcie</string>
+    <string name="pill_auto_check_off">Sprawdzaj automatycznie przy starcie</string>
+    <string name="toast_loading_livestream">Ładowanie strumienia na żywo...</string>
 
-    <string name="menu_pip_start">W tło (PiP)</string>
+    <string name="menu_pip_start">Wyślij do tła (PiP)</string>
     <string name="pip_progress_format">Postęp druku: %1$d%%</string>
     <string name="btn_pip_close">Zamknij</string>
     <string name="btn_pip_resize">Zmień rozmiar</string>
-    <string name="menu_pip_name">Obraz w obrazie (PIP)</string>
+    <string name="menu_pip_name">Obraz w Obrazie (PIP)</string>
     <string name="menu_light_control">Oświetlenie</string>
 
-    <string name="perm_dialog_title">Sieć &amp; Prywatność</string>
-    <string name="perm_dialog_msg">KlippShell wymaga dostępu do sieci, aby ustanowić bezpośredni interfejs z API Moonraker twojej drukarki. Połączenie z Internetem jest wymagane do sprawdzania aktualizacji OTA, dostarczania zasobów stanu dla launchera Android TV oraz rozszerzonych funkcji towarzyszących. Bezbezpieczeństwo danych jest naszym najwyższym priorytetem: komunikacja odbywa się wyłącznie lokalnie między urządzeniem a drukarką. Żadne dane sterujące ani telemetryczne nie są przesyłane na zewnętrzne serwery.</string>
+    <string name="perm_dialog_title">Sieć i Prywatność</string>
+    <string name="perm_dialog_msg">KlippShell wymaga dostępu do sieci w celu ustanowienia bezpośredniego interfejsu z API Moonraker drukarki. Połączenie internetowe jest niezbędne do sprawdzania aktualizacji OTA, dostarczania zasobów stanu dla Launchera Android TV oraz zaawansowanych funkcji towarzyszących. Bezpieczeństwo danych jest naszym najwyższym priorytetem: komunikacja odbywa się wyłącznie lokalnie między Twoim urządzeniem a drukarką. Żadne dane sterujące ani telemetryczne nie są przesyłane do zewnętrznych serwerów.</string>
     <string name="perm_dialog_btn">Rozumiem</string>
     <string name="perm_dialog_btn_decline">Odrzuć i Wyjdź</string>
 
-    <string name="btn_advanced_trigger_tv">Zaktualizuj Launcher TV</string>
-    <string name="popup_advanced_sync_title">Synchronizacja w tle</string>
-    <string name="popup_advanced_sync_msg">Status Moonraker jest pobierany, a kafel ekranu głównego TV jest aktualizowany.</string>
+    <string name="btn_advanced_trigger_tv">Aktualizuj Launcher TV</string>
+    <string name="popup_advanced_sync_title">Synchronizacja w Tle</string>
+    <string name="popup_advanced_sync_msg">Pobieranie stanu Moonraker i aktualizowanie kafelka ekranu głównego TV.</string>
 </resources>

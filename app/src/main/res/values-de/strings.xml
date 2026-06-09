@@ -57,7 +57,7 @@
     <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub-OTA-Updater hinzugefügt: Asynchrone Online-Prüfung auf neue Releases\n• Integrierter Lizenz-Viewer: Neues scrollbares Dialogfenster für Urheberrechte\n• Layout-Bereinigung: Redundante UI-Texte entfernt, Logo-Easter-Egg geschützt\n• Stabilität erhöht: Kotlin Null-Safety-Fehler behoben und Dialog-Fokus optimiert\n\nv0.8.4.300526-rc\n• TV-Suchdialog für Modell-Auswahl hinzugefügt\n• Tolerante G-Code/Modell-Suche implementiert\n• Speicher-Polling für Moonraker optimiert\n\nv0.8.3\n• D-Pad Fokus-Sicherheit für Menüebenen erhöht\n• SoundManager Audio-Kanäle stabilisiert\n• Presets-Reset gefixt</string>
     <string name="settings_optimized_tv">Optimiert für Android TV</string>
 
-    <string name="menu_options_title">Optionen</string>
+    <string name="menu_options_title">Opciones</string>
     <string name="menu_osd_show">OSD einblenden</string>
     <string name="menu_osd_hide">OSD ausblenden</string>
     <string name="osd_position_title">OSD Position wählen</string>
@@ -100,6 +100,7 @@
     <string name="osd_fan_model">Bauteillüfter: %1$.0f%%</string>
     <string name="osd_fan_aux">Zusatzlüfter: %1$.0f%%</string>
     <string name="osd_fan_chamber">Abluftlüfter: %1$.0f%%</string>
+    <string name="osd_progress_label">Fortschritt: %1$s</string>
     <string name="osd_time">Zeit: %1$s / %2$s</string>
 
     <string name="event_offline">Offline</string>
@@ -140,6 +141,9 @@
     <string name="screensaver_90">90 Minuten</string>
     <string name="screensaver_120">120 Minuten</string>
     <string name="screensaver_off">Deaktiviert</string>
+
+    <string name="toast_max_brightness">Helligkeit erhöht</string>
+    <string name="toast_restored_brightness">Helligkeit wiederhergestellt</string>
 
     <string name="toast_updater_checking">Prüfe Version…</string>
     <string name="toast_updater_up_to_date">KlippShell ist auf dem neuesten Stand ✓</string>

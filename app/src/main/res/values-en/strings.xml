@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">No printers registered</string>
+    <string name="no_printers">No printers configured</string>
     <string name="saved_printers">Saved Printers</string>
     <string name="btn_search_network">Search Network</string>
     <string name="search_network">Scan Network</string>
@@ -12,15 +12,15 @@
     <string name="printer_ip_hint">IP Address</string>
     <string name="printer_port_hint">Port (Optional)</string>
     <string name="printer_model_hint">Select Printer Model</string>
-    <string name="search_model_hint">Search... (e.g., CR 10)</string>
+    <string name="search_model_hint">Search... (e.g. CR 10)</string>
     <string name="choose_port">Select Port</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
-    <string name="system_manual">Manual Entry</string>
+    <string name="system_manual">Manual Input</string>
     <string name="add_printer_up">Add Printer ▲</string>
     <string name="add_printer_down">Add Printer ▼</string>
 
-    <string name="choose_default_view_title">Default UI</string>
+    <string name="choose_default_view_title">Default Interface</string>
     <string name="choose_default_view">Klipper OS</string>
     <string name="menu_change_camera_type">Live Stream via</string>
     <string name="found_printers">Found Printers</string>
@@ -30,7 +30,7 @@
     <string name="reset_confirm_msg">Do you really want to remove this printer?</string>
 
     <string name="settings_title">Settings</string>
-    <string name="theme_title">App Theme</string>
+    <string name="theme_title">App Design</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_system">Follow System</string>
@@ -42,7 +42,7 @@
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Made with ❤️ in Germany</string>
     <string name="easter_egg_success">Level your bed before asking me!</string>
-    <string name="about_contact_text">Project on GitHub • Support via E-Mail</string>
+    <string name="about_contact_text">Project on GitHub • Support via Email</string>
     <string name="toast_email_error">No email app found</string>
 
     <string name="reset_app">Reset App</string>
@@ -54,7 +54,7 @@
     <string name="btn_check_updates">Update</string>
     <string name="license_link_text">Licenses &amp; Copyrights</string>
     <string name="about_changelog_title">Changelog</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub OTA Updater added: Asynchronous online verification for new releases\n• Integrated License Viewer: New scrollable dialog window for copyrights\n• Layout cleanup: Redundant UI texts removed, logo easter egg protected\n• Stability increased: Kotlin null safety errors fixed and dialog focus optimized\n\nv0.8.4.300526-rc\n• TV search dialog for model selection added\n• Tolerant G-code/model search implemented\n• Memory polling for Moonraker optimized\n\nv0.8.3\n• D-Pad focus security for menu levels increased\n• SoundManager audio channels stabilized\n• Presets reset fixed</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub OTA Updater added: Asynchronous online verification for new releases\n• Integrated License Viewer: New scrollable dialog window for copyrights\n• Layout cleanup: Redundant UI text removed, Logo Easter Egg protected\n• Increased stability: Fixed Kotlin null safety bugs and optimized dialog focus\n\nv0.8.4.300526-rc\n• TV search dialog for model selection added\n• Tolerant G-Code/model search implemented\n• Shmem polling for Moonraker optimized\n\nv0.8.3\n• D-Pad focus safety for menu levels increased\n• SoundManager audio channels stabilized\n• Presets reset fixed</string>
     <string name="settings_optimized_tv">Optimized for Android TV</string>
 
     <string name="menu_options_title">Options</string>
@@ -66,7 +66,7 @@
     <string name="osd_pos_top_right">Top Right</string>
     <string name="osd_pos_bottom_center">Bottom Center</string>
     <string name="toast_position_saved">Position saved ✓</string>
-    <string name="toast_position_fullscreen_only">Modification only possible with active OSD</string>
+    <string name="toast_position_fullscreen_only">Change only possible with active OSD</string>
 
     <string name="menu_ratio_title">Change Aspect Ratio</string>
     <string name="ratio_16_9_new">16:9 Widescreen</string>
@@ -89,7 +89,7 @@
     <string name="dialog_stop_confirm">YES - STOP IMMEDIATELY</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="toast_stop_success">EMERGENCY STOP sent!</string>
-    <string name="toast_stop_error">Error while sending: </string>
+    <string name="toast_stop_error">Error sending: </string>
     <string name="toast_loading_dashboard">Loading Klipper OS...</string>
     <string name="osd_printer_offline">Printer Offline</string>
 
@@ -97,29 +97,30 @@
     <string name="osd_bed">Bed: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Chamber: %1$.1f°C</string>
     <string name="osd_chamber_heater">Heater: %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_fan_model">Part Fan: %1$.0f%%</string>
+    <string name="osd_fan_model">Model Fan: %1$.0f%%</string>
     <string name="osd_fan_aux">Aux Fan: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Exhaust Fan: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Chamber Fan: %1$.0f%%</string>
+    <string name="osd_progress_label">Progress: %1$s</string>
     <string name="osd_time">Time: %1$s / %2$s</string>
 
     <string name="event_offline">Offline</string>
     <string name="event_first_layer">First Layer</string>
-    <string name="event_50">50% Reached</string>
-    <string name="event_75">75% Reached</string>
-    <string name="event_90">90% Reached</string>
-    <string name="event_100">Completed</string>
+    <string name="event_50">50% reached</string>
+    <string name="event_75">75% reached</string>
+    <string name="event_90">90% reached</string>
+    <string name="event_100">Finished</string>
     <string name="event_error">Error</string>
 
     <string name="notify_title_offline">Connection Lost</string>
     <string name="notify_msg_offline">The printer is no longer responding.</string>
-    <string name="notify_btn_offline">Understood</string>
+    <string name="notify_btn_offline">Dismiss</string>
     <string name="notify_title_first_layer">First Layer</string>
     <string name="notify_msg_first_layer">The first layer is being printed.</string>
     <string name="notify_title_50">Halfway there!</string>
-    <string name="notify_msg_50">50% of the print is done.</string>
+    <string name="notify_msg_50">50% of the print is completed.</string>
     <string name="notify_title_75">Almost done</string>
-    <string name="notify_msg_75">75% of the print is completed.</string>
-    <string name="notify_title_90">Final stretch</string>
+    <string name="notify_msg_75">75% of the print is complete.</string>
+    <string name="notify_title_90">Final Stretch</string>
     <string name="notify_msg_90">90% of the print has been reached.</string>
     <string name="notify_title_100">Print Finished!</string>
     <string name="notify_msg_100">The 3D print was successfully completed.</string>
@@ -131,43 +132,46 @@
 
     <string name="menu_light_on">Light On</string>
     <string name="menu_light_off">Light Off</string>
-    <string name="toast_light_error">Sending failed</string>
+    <string name="toast_light_error">Failed to send</string>
     <string name="menu_screensaver">Screensaver</string>
     <string name="screensaver_title">Automatic dimming after...</string>
     <string name="screensaver_now">Activate immediately</string>
-    <string name="screensaver_30">30 Minutes</string>
-    <string name="screensaver_60">60 Minutes</string>
-    <string name="screensaver_90">90 Minutes</string>
-    <string name="screensaver_120">120 Minutes</string>
+    <string name="screensaver_30">30 minutes</string>
+    <string name="screensaver_60">60 minutes</string>
+    <string name="screensaver_90">90 minutes</string>
+    <string name="screensaver_120">120 minutes</string>
     <string name="screensaver_off">Disabled</string>
+
+    <string name="toast_max_brightness">Brightness increased</string>
+    <string name="toast_restored_brightness">Brightness restored</string>
 
     <string name="toast_updater_checking">Checking version…</string>
     <string name="toast_updater_up_to_date">KlippShell is up to date ✓</string>
     <string name="toast_updater_server_error">Update server unreachable (404 / Timeout)</string>
-    <string name="toast_updater_error_code">Retrieval error (Code: %1$d)</string>
+    <string name="toast_updater_error_code">Failed to retrieve (Code: %1$d)</string>
     <string name="update_available_title">Update to version %1$s available!</string>
     <string name="btn_download_now">Download Now</string>
     <string name="btn_later">Later</string>
     <string name="toast_update_browser_error">Browser could not be opened</string>
     <string name="submenu_update_title">Update</string>
-    <string name="btn_manual_search">Search for Updates</string>
-    <string name="pill_auto_check_on">Automatically check on startup</string>
-    <string name="pill_auto_check_off">Automatically check on startup</string>
-    <string name="toast_loading_livestream">Loading Live-Stream...</string>
+    <string name="btn_manual_search">Check for updates</string>
+    <string name="pill_auto_check_on">Check automatically at startup</string>
+    <string name="pill_auto_check_off">Check automatically at startup</string>
+    <string name="toast_loading_livestream">Loading Live Stream...</string>
 
-    <string name="menu_pip_start">Send to Background (PiP)</string>
-    <string name="pip_progress_format">Print Progress: %1$d%%</string>
+    <string name="menu_pip_start">Send to background (PiP)</string>
+    <string name="pip_progress_format">Print progress: %1$d%%</string>
     <string name="btn_pip_close">Close</string>
-    <string name="btn_pip_resize">Resize Window</string>
+    <string name="btn_pip_resize">Resize</string>
     <string name="menu_pip_name">Picture in Picture (PIP)</string>
-    <string name="menu_light_control">Light Control</string>
+    <string name="menu_light_control">Lighting</string>
 
     <string name="perm_dialog_title">Network &amp; Privacy</string>
-    <string name="perm_dialog_msg">KlippShell requires network access to establish a direct interface with your printer\'s Moonraker API. Internet connection is required for OTA update checks, providing status assets for the Android TV launcher, and extended companion features. Data security is our top priority: Communication occurs exclusively locally between your device and the printer. No control or telemetry data is transmitted to external servers.</string>
+    <string name="perm_dialog_msg">KlippShell requires network access to establish a direct interface with your printer\'s Moonraker API. The internet connection is necessary for OTA update checks, providing status assets for the Android TV Launcher, and advanced companion features. Data security is our highest priority: communication occurs exclusively locally between your device and the printer. No control or telemetry data is transmitted to external servers.</string>
     <string name="perm_dialog_btn">Understood</string>
     <string name="perm_dialog_btn_decline">Decline and Exit</string>
 
     <string name="btn_advanced_trigger_tv">Update TV Launcher</string>
     <string name="popup_advanced_sync_title">Background Synchronization</string>
-    <string name="popup_advanced_sync_msg">The Moonraker status is being retrieved and the TV home screen tile is being updated.</string>
+    <string name="popup_advanced_sync_msg">Retrieving Moonraker status and updating the TV home screen tile.</string>
 </resources>

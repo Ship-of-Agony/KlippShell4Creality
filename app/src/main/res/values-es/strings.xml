@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">No hay impresoras registradas</string>
+    <string name="no_printers">No hay impresoras configuradas</string>
     <string name="saved_printers">Impresoras Guardadas</string>
     <string name="btn_search_network">Buscar en la Red</string>
     <string name="search_network">Escanear Red</string>
     <string name="btn_add">Añadir</string>
     <string name="btn_exit">Salir</string>
     <string name="btn_back">Volver</string>
-    <string name="printer_name_hint">Nombre de la Impresora</string>
+    <string name="printer_name_hint">Nombre de Impresora</string>
     <string name="printer_ip_hint">Dirección IP</string>
     <string name="printer_port_hint">Puerto (Opcional)</string>
-    <string name="printer_model_hint">Seleccionar Modelo de Impresora</string>
-    <string name="search_model_hint">Buscar... (ej., CR 10)</string>
+    <string name="printer_model_hint">Seleccionar Modelo</string>
+    <string name="search_model_hint">Buscar... (ej. CR 10)</string>
     <string name="choose_port">Seleccionar Puerto</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Estándar (7125)</string>
@@ -22,15 +22,15 @@
 
     <string name="choose_default_view_title">Interfaz Predeterminada</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Transmisión en Vivo por</string>
+    <string name="menu_change_camera_type">Transmisión en Vivo vía</string>
     <string name="found_printers">Impresoras Encontradas</string>
     <string name="toast_no_connection">Sin conexión con la impresora</string>
     <string name="yes_delete">Eliminar</string>
     <string name="cancel">Cancelar</string>
-    <string name="reset_confirm_msg">¿Realmente quieres eliminar esta impresora?</string>
+    <string name="reset_confirm_msg">¿Realmente desea eliminar esta impresora?</string>
 
     <string name="settings_title">Ajustes</string>
-    <string name="theme_title">Tema de la Aplicación</string>
+    <string name="theme_title">Ajustes de la Aplicación</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Oscuro</string>
     <string name="theme_system">Seguir Sistema</string>
@@ -42,10 +42,10 @@
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Hecho con ❤️ en Alemania</string>
     <string name="easter_egg_success">¡Nivela tu cama antes de preguntarme!</string>
-    <string name="about_contact_text">Proyecto en GitHub • Soporte vía E-Mail</string>
-    <string name="toast_email_error">No se encontró ninguna aplicación de correo electrónico</string>
+    <string name="about_contact_text">Proyecto en GitHub • Soporte vía Email</string>
+    <string name="toast_email_error">No se encontró app de correo</string>
 
-    <string name="reset_app">Restablecer Aplicación</string>
+    <string name="reset_app">Restablecer App</string>
     <string name="reset_app_title">¿Eliminar todos los datos?</string>
     <string name="reset_app_yes">Sí, eliminar todo</string>
     <string name="reset_app_cancel">Cancelar</string>
@@ -54,35 +54,35 @@
     <string name="btn_check_updates">Actualizar</string>
     <string name="license_link_text">Licencias y Derechos de Autor</string>
     <string name="about_changelog_title">Historial de Cambios</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Actualizador GitHub OTA añadido: Verificación asíncrona en línea para nuevos lanzamientos\n• Visor de licencias integrado: Nueva ventana de diálogo desplazable para derechos de autor\n• Limpieza de diseño: Eliminación de textos redundantes en la interfaz, protección del huevo de pascua del logo\n• Estabilidad mejorada: Corrección de errores de seguridad nula en Kotlin y optimización del enfoque de diálogos\n\nv0.8.4.300526-rc\n• Diálogo de búsqueda en TV para selección de modelo añadido\n• Búsqueda tolerante de código G/modelo implementada\n• Polling de memoria para Moonraker optimizado\n\nv0.8.3\n• Seguridad de enfoque de D-Pad para niveles de menú aumentada\n• Canales de audio de SoundManager stabilizados\n• Restablecimiento de ajustes preestablecidos corregido</string>
+    <string name="about_changelog_text">v0.8.5.050626-rc\n• Actualizador OTA de GitHub añadido: Verificación asíncrona en línea\n• Visor de Licencias integrado: Nueva ventana desplazable para derechos de autor\n• Limpieza de diseño: Eliminado texto redundante, Huevo de Pascua protegido\n• Mayor estabilidad: Corregidos errores de seguridad nula y enfoque optimizado\n\nv0.8.4.300526-rc\n• Diálogo de búsqueda en TV para selección de modelo añadido\n• Búsqueda tolerante de G-Code/modelo implementada\n• Sondeo de memoria optimizado para Moonraker\n\nv0.8.3\n• Seguridad de enfoque D-Pad para níveis de menú aumentada\n• Canales de audio de SoundManager estabilizados\n• Restablecimiento de ajustes corregido</string>
     <string name="settings_optimized_tv">Optimizado para Android TV</string>
 
     <string name="menu_options_title">Opciones</string>
     <string name="menu_osd_show">Mostrar OSD</string>
     <string name="menu_osd_hide">Ocultar OSD</string>
-    <string name="osd_position_title">Elegir Posición del OSD</string>
-    <string name="osd_pos_top_left">Arriba a la Izquierda</string>
-    <string name="osd_pos_top_center">Arriba en el Centro</string>
-    <string name="osd_pos_top_right">Arriba a la Derecha</string>
-    <string name="osd_pos_bottom_center">Abajo en el Centro</string>
+    <string name="osd_position_title">Elegir Posición de OSD</string>
+    <string name="osd_pos_top_left">Arriba Izquierda</string>
+    <string name="osd_pos_top_center">Arriba Centro</string>
+    <string name="osd_pos_top_right">Arriba Derecha</string>
+    <string name="osd_pos_bottom_center">Abajo Centro</string>
     <string name="toast_position_saved">Posición guardada ✓</string>
-    <string name="toast_position_fullscreen_only">Modificación solo posible con OSD activo</string>
+    <string name="toast_position_fullscreen_only">Cambio solo posible con OSD activo</string>
 
     <string name="menu_ratio_title">Cambiar Relación de Aspecto</string>
-    <string name="ratio_16_9_new">16:9 Pantalla Panorámica</string>
+    <string name="ratio_16_9_new">16:9 Pantalla Ancha</string>
     <string name="ratio_4_3_new">4:3 Estándar</string>
     <string name="ratio_1_1_new">1:1 Cuadrado</string>
     <string name="menu_ratio">Cambiar Relación de Aspecto</string>
-    <string name="ratio_16_9">16:9 Pantalla Panorámica</string>
+    <string name="ratio_16_9">16:9 Pantalla Ancha</string>
     <string name="ratio_4_3">4:3 Estándar</string>
     <string name="ratio_1_1">1:1 Cuadrado</string>
 
     <string name="camera_type_html_new">Klipper (Transmisión HTML)</string>
     <string name="camera_type_port_new">Puerto (Transmisión 8080)</string>
-    <string name="camera_type_webcam_new">Cámara Web (Transmisión /webcam)</string>
-    <string name="camera_type_html">Klipper HTML Stream</string>
-    <string name="camera_type_port">Port 8080 Stream</string>
-    <string name="camera_type_webcam">Webcam Path Stream</string>
+    <string name="camera_type_webcam_new">Webcam (Transmisión /webcam)</string>
+    <string name="camera_type_html">Transmisión HTML de Klipper</string>
+    <string name="camera_type_port">Transmisión Puerto 8080</string>
+    <string name="camera_type_webcam">Transmisión Ruta Webcam</string>
 
     <string name="menu_emergency_stop">PARADA DE EMERGENCIA</string>
     <string name="dialog_stop_title">¿Detener Impresora?</string>
@@ -97,31 +97,32 @@
     <string name="osd_bed">Cama: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Cámara: %1$.1f°C</string>
     <string name="osd_chamber_heater">Calentador: %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_fan_model">Vent. Capa: %1$.0f%%</string>
-    <string name="osd_fan_aux">Vent. Aux: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Vent. Extractor: %1$.0f%%</string>
+    <string name="osd_fan_model">Ventilador Modelo: %1$.0f%%</string>
+    <string name="osd_fan_aux">Ventilador Aux: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Ventilador Cámara: %1$.0f%%</string>
+    <string name="osd_progress_label">Progreso: %1$s</string>
     <string name="osd_time">Tiempo: %1$s / %2$s</string>
 
-    <string name="event_offline">Fuera de Línea</string>
+    <string name="event_offline">Fuera de línea</string>
     <string name="event_first_layer">Primera Capa</string>
-    <string name="event_50">50% Alcanzado</string>
-    <string name="event_75">75% Alcanzado</string>
-    <string name="event_90">90% Alcanzado</string>
+    <string name="event_50">50% alcanzado</string>
+    <string name="event_75">75% alcanzado</string>
+    <string name="event_90">90% alcanzado</string>
     <string name="event_100">Completado</string>
     <string name="event_error">Error</string>
 
     <string name="notify_title_offline">Conexión Perdida</string>
     <string name="notify_msg_offline">La impresora ya no responde.</string>
-    <string name="notify_btn_offline">Entendido</string>
+    <string name="notify_btn_offline">Descartar</string>
     <string name="notify_title_first_layer">Primera Capa</string>
     <string name="notify_msg_first_layer">Se está imprimiendo la primera capa.</string>
     <string name="notify_title_50">¡A mitad de camino!</string>
-    <string name="notify_msg_50">El 50% de la impresión está hecho.</string>
+    <string name="notify_msg_50">El 50% de la impresión está completado.</string>
     <string name="notify_title_75">Casi listo</string>
-    <string name="notify_msg_75">El 75% de la impresión está completado.</string>
-    <string name="notify_title_90">Fase final</string>
+    <string name="notify_msg_75">El 75% de la impresión está completo.</string>
+    <string name="notify_title_90">Tramo Final</string>
     <string name="notify_msg_90">Se ha alcanzado el 90% de la impresión.</string>
-    <string name="notify_title_100">¡Impresión Finalizada!</string>
+    <string name="notify_title_100">¡Impresión Terminada!</string>
     <string name="notify_msg_100">La impresión 3D se completó con éxito.</string>
     <string name="notify_title_error">Error de Klipper</string>
     <string name="notify_msg_error">La impresora abortó la impresión con un error.</string>
@@ -129,45 +130,48 @@
     <string name="notify_btn_success">Excelente</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Encender Luz</string>
-    <string name="menu_light_off">Apagar Luz</string>
+    <string name="menu_light_on">Luz Encendida</string>
+    <string name="menu_light_off">Luz Apagada</string>
     <string name="toast_light_error">Error al enviar</string>
     <string name="menu_screensaver">Salvapantallas</string>
     <string name="screensaver_title">Atenuación automática después de...</string>
     <string name="screensaver_now">Activar inmediatamente</string>
-    <string name="screensaver_30">30 Minutos</string>
-    <string name="screensaver_60">60 Minutos</string>
-    <string name="screensaver_90">90 Minutos</string>
-    <string name="screensaver_120">120 Minutos</string>
+    <string name="screensaver_30">30 minutos</string>
+    <string name="screensaver_60">60 minutos</string>
+    <string name="screensaver_90">90 minutos</string>
+    <string name="screensaver_120">120 minutos</string>
     <string name="screensaver_off">Desactivado</string>
 
+    <string name="toast_max_brightness">Brillo aumentado</string>
+    <string name="toast_restored_brightness">Brillo restaurado</string>
+
     <string name="toast_updater_checking">Comprobando versión…</string>
-    <string name="toast_updater_up_to_date">KlippShell está actualizado ✓</string>
-    <string name="toast_updater_server_error">Servidor de actualizaciones inaccesible (404 / Tiempo de espera agotado)</string>
-    <string name="toast_updater_error_code">Error de recuperación (Código: %1$d)</string>
+    <string name="toast_updater_up_to_date">KlippShell está al día ✓</string>
+    <string name="toast_updater_server_error">Servidor de actualización inaccesible (404 / Timeout)</string>
+    <string name="toast_updater_error_code">Error al recuperar (Código: %1$d)</string>
     <string name="update_available_title">¡Actualización a la versión %1$s disponible!</string>
     <string name="btn_download_now">Descargar Ahora</string>
     <string name="btn_later">Más tarde</string>
     <string name="toast_update_browser_error">No se pudo abrir el navegador</string>
     <string name="submenu_update_title">Actualizar</string>
-    <string name="btn_manual_search">Buscar Actualizaciones</string>
-    <string name="pill_auto_check_on">Comprobar automáticamente al iniciar</string>
-    <string name="pill_auto_check_off">Comprobar automáticamente al iniciar</string>
-    <string name="toast_loading_livestream">Cargando Live-Stream...</string>
+    <string name="btn_manual_search">Buscar actualizaciones</string>
+    <string name="pill_auto_check_on">Verificar automáticamente al iniciar</string>
+    <string name="pill_auto_check_off">Verificar automáticamente al iniciar</string>
+    <string name="toast_loading_livestream">Cargando transmisión en vivo...</string>
 
-    <string name="menu_pip_start">Segundo plano (PiP)</string>
+    <string name="menu_pip_start">Enviar al fondo (PiP)</string>
     <string name="pip_progress_format">Progreso de impresión: %1$d%%</string>
     <string name="btn_pip_close">Cerrar</string>
     <string name="btn_pip_resize">Cambiar tamaño</string>
-    <string name="menu_pip_name">Imagen en imagen (PIP)</string>
+    <string name="menu_pip_name">Imagen en Imagen (PIP)</string>
     <string name="menu_light_control">Iluminación</string>
 
     <string name="perm_dialog_title">Red y Privacidad</string>
-    <string name="perm_dialog_msg">KlippShell requiere acceso a la red para establecer una interfaz directa con la API Moonraker de tu impresora. Se requiere conexión a Internet para comprobaciones de actualizaciones OTA, proporcionar recursos de estado para el lanzador de Android TV y funciones complementarias extendidas. La seguridad de los datos es nuestra principal prioridad: la comunicación se realiza exclusivamente de forma local entre tu dispositivo y la impresora. No se transmiten datos de control o telemetría a servidores externos.</string>
+    <string name="perm_dialog_msg">KlippShell requiere acceso a la red para establecer una interfaz directa con la API Moonraker de su impresora. La conexión a Internet es necesaria para las comprobaciones de actualización OTA, proporcionar activos de estado para el Launcher de Android TV y funciones avanzadas del companion. La seguridad de los datos es nuestra máxima prioridad: la comunicación se realiza exclusivamente de forma local entre su dispositivo y la impresora. No se transmiten datos de control o telemetría a su servidor externo.</string>
     <string name="perm_dialog_btn">Entendido</string>
     <string name="perm_dialog_btn_decline">Rechazar y Salir</string>
 
-    <string name="btn_advanced_trigger_tv">Actualizar lanzador de TV</string>
-    <string name="popup_advanced_sync_title">Sincronización en segundo plano</string>
-    <string name="popup_advanced_sync_msg">Se está recuperando el estado de Moonraker y se está actualizando el mosaico de la pantalla de inicio de la TV.</string>
+    <string name="btn_advanced_trigger_tv">Actualizar Launcher de TV</string>
+    <string name="popup_advanced_sync_title">Sincronización en Segundo Plano</string>
+    <string name="popup_advanced_sync_msg">Recuperando el estado de Moonraker y actualizando la celda de la pantalla de inicio de TV.</string>
 </resources>
