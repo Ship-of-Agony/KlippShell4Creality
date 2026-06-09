@@ -16,6 +16,7 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -65,12 +66,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var headerAddPrinter: LinearLayout
     private lateinit var containerAddPrinterForm: LinearLayout
     private lateinit var tvAddPrinterTitle: TextView
-    private lateinit var btnSystemSelect: MaterialButton
+    private lateinit var btnSystemSelect: MaterialButton // GEFIXT: Doppelpunkt sichert die MaterialButton-Typisierung
 
     private var selectedSystemIndex = 0
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    // DEIN RECREATE-SCHALTER: Verhindert Endlosschleifen beim Neu-Instanziieren des Layouts
+    // RECREATE-SCHALTER: Verhindert Endlosschleifen beim Neu-Instanziieren des Layouts
     private var shouldRecreateOnReturn = false
 
     private val printerMap = mapOf(
@@ -122,7 +123,6 @@ class MainActivity : AppCompatActivity() {
         val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedTheme)
 
-        // Stellt den Zustand des Recreate-Schalters nach einer Displaydrehung wieder her
         if (savedInstanceState != null) {
             shouldRecreateOnReturn = savedInstanceState.getBoolean("recreate_flag", false)
         }
@@ -210,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                 selectedSystemIndex = which
                 when (which) {
                     0 -> { btnSystemSelect.text = "Port: 4408"; etMainPrinterPort.visibility = View.GONE }
-                    1 -> { btnSystemSelect.text = "Port: 7125"; btnSystemSelect.text = "Port: 7125"; etMainPrinterPort.visibility = View.GONE }
+                    1 -> { btnSystemSelect.text = "Port: 7125"; etMainPrinterPort.visibility = View.GONE }
                     2 -> { btnSystemSelect.text = getString(R.string.system_manual); etMainPrinterPort.visibility = View.VISIBLE; etMainPrinterPort.requestFocus() }
                 }
             }
@@ -222,13 +222,24 @@ class MainActivity : AppCompatActivity() {
         actvMainPrinterModel.isFocusableInTouchMode = false
         actvMainPrinterModel.inputType = InputType.TYPE_NULL
 
-        actvMainPrinterModel.setOnClickListener {
+        val openModelGridMenu = {
             showModelSelectionSearchDialog(getString(R.string.printer_model_hint), models) { selectedModel ->
                 actvMainPrinterModel.setText(selectedModel, false)
                 etMainPrinterName.setText(selectedModel)
             }
         }
-        actvMainPrinterModel.setOnKeyListener(null)
+
+        actvMainPrinterModel.setOnClickListener { openModelGridMenu() }
+
+        actvMainPrinterModel.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN &&
+                (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER)) {
+                openModelGridMenu()
+                true
+            } else {
+                false
+            }
+        }
 
         actvMainPrinterModel.setText("", false)
 
@@ -321,23 +332,18 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
     }
 
-    // DEIN ANSATZ IMPLEMENTIERT: Zwingt Android zu einem radikalen Layout-Refresh beim Zurückgehen!
     override fun onResume() {
         super.onResume()
-
-        // Wenn das Flag aktiv ist, führen wir ein echtes, einmaliges recreate() durch!
         if (shouldRecreateOnReturn) {
-            shouldRecreateOnReturn = false // Verhindert Endlosschleifen verlässlich
-            recreate() // Zerstört und baut das gesamte Fenster ohne RAM-Altlasten neu!
+            shouldRecreateOnReturn = false
+            recreate()
             return
         }
-
         applyLanguageAndRefreshUI()
     }
 
     private fun startTvBackgroundWorker() {
         try {
-            // TV Live Feature: Typsicherer nativer Aufruf ohne fehleranfällige Reflection
             val tvWorkRequest = PeriodicWorkRequest.Builder(KlipperTvWorker::class.java, 15, TimeUnit.MINUTES).build()
             WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
                 "KlipperTvKachelWorker",
@@ -673,7 +679,6 @@ class MainActivity : AppCompatActivity() {
             val printer = try { list.getJSONObject(i) } catch (_: Exception) { null } ?: continue
             val itemView = LayoutInflater.from(this).inflate(R.layout.printer_item, containerPrinters, false)
 
-            // 1-KLICK INTEGRATION: Touch feuert den Intent sofort ohne Umwege ab!
             itemView.isFocusable = true
             itemView.isFocusableInTouchMode = false
 
@@ -720,7 +725,6 @@ class MainActivity : AppCompatActivity() {
                 tvName.textSize = if (isSinglePrinter) 24f else 18f
                 tvName.setTypeface(null, android.graphics.Typeface.BOLD)
 
-                // BOMBENFESTE KONTRAST-ERZWINGUNG: Steht absolut unumstößlich gegen Androids Geister-Fokus!
                 if (isNight) {
                     tvName.setTextColor(Color.WHITE)
                 } else {
@@ -735,7 +739,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             itemView.setOnClickListener {
-                // SCHARFSCHALTUNG: Sichert, dass das recreate() beim nächsten onResume() verlässlich anzieht!
                 shouldRecreateOnReturn = true
 
                 val intent = Intent(this, WebViewActivity::class.java).apply {
@@ -915,7 +918,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.perm_dialog_title)
-        val mainContainer = android.widget.LinearLayout(this)
+        val mainContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textColor = if (isNight) Color.WHITE else Color.BLACK
@@ -927,6 +930,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(24, 16, 24, 32)
             gravity = Gravity.START
         }
+        mainContainer?.addView(msgView, 0)
 
         val btnAccept = MaterialButton(this).apply {
             text = getString(R.string.perm_dialog_btn)
@@ -977,6 +981,9 @@ class MainActivity : AppCompatActivity() {
             }
             setOnClickListener { dialog.dismiss(); finishAffinity() }
         }
+
+        mainContainer?.addView(btnAccept)
+        mainContainer?.addView(btnDecline)
 
         dialog.show()
         btnAccept.requestFocus()
