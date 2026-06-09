@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var headerAddPrinter: LinearLayout
     private lateinit var containerAddPrinterForm: LinearLayout
     private lateinit var tvAddPrinterTitle: TextView
-    private lateinit var btnSystemSelect: MaterialButton // GEFIXT: Doppelpunkt sichert die MaterialButton-Typisierung
+    private lateinit var btnSystemSelect: MaterialButton
 
     private var selectedSystemIndex = 0
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -663,6 +663,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         tvNoPrinter.visibility = if (list.length() == 0) View.VISIBLE else View.GONE
+
+        // BIDIREKTIONALE LAYOUT WEICHE: Evaluiert die 3-Wege-Erzwingungs-Pille auch für das Hauptfenster!
+        val isDualScreenMode = when (prefs.getInt("layout_mode_override", 0)) {
+            1 -> false
+            2 -> true
+            else -> findViewById<View>(R.id.guidelineCenter) != null
+        }
 
         if (list.length() == 0) {
             containerAddPrinterForm.isVisible = true

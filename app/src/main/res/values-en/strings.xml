@@ -174,4 +174,8 @@
     <string name="btn_advanced_trigger_tv">Update TV Launcher</string>
     <string name="popup_advanced_sync_title">Background Synchronization</string>
     <string name="popup_advanced_sync_msg">Retrieving Moonraker status and updating the TV home screen tile.</string>
+
+    <string name="layout_mode_auto">Erzwungener Modus: AUTOMATISCH</string>
+    <string name="layout_mode_phone">Erzwungener Modus: SMARTPHONE</string>
+    <string name="layout_mode_tablet">Erzwungener Modus: TABLET</string>
 </resources>

@@ -3,6 +3,7 @@ package com.shipofagony.klippshell4creality
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ActivityInfo
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
@@ -69,6 +70,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private var advancedHeaderView: TextView? = null
     private var advancedTvButton: MaterialButton? = null
+    private var advancedTabletButton: MaterialButton? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -81,10 +83,22 @@ class SettingsActivity : AppCompatActivity() {
         config.setLocale(locale)
         baseContext.resources.configuration.updateFrom(config)
 
+        // ORIENTATION MANAGEMENT: Zwingt den Bildschirm in das passende Format zur Hardware-Präsentation
+        val overrideMode = prefs.getInt("layout_mode_override", 0) // 0=Auto, 1=Phone, 2=Tablet
+        when (overrideMode) {
+            1 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT  // Smartphone -> Hochformat sperren
+            2 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE // Tablet -> Querformat erzwingen!
+            else -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED // Auto -> System entscheiden lassen
+        }
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        isDualScreenMode = findViewById<View>(R.id.guidelineCenter) != null
+        isDualScreenMode = when (overrideMode) {
+            1 -> false
+            2 -> true
+            else -> findViewById<View>(R.id.guidelineCenter) != null
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -290,7 +304,6 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        // BINDENDE LAUNCHER-REGEL: High-Contrast TV-Grenzlinien für D-Pad Fernbedienungen
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
@@ -371,12 +384,35 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateTabletButtonVisuals(btn: MaterialButton, overrideMode: Int) {
+        btn.text = when (overrideMode) {
+            1 -> getString(R.string.layout_mode_phone)
+            2 -> getString(R.string.layout_mode_tablet)
+            else -> getString(R.string.layout_mode_auto)
+        }
+
+        when (overrideMode) {
+            1 -> {
+                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")) // Signal-Rot
+                btn.setTextColor(Color.WHITE)
+            }
+            2 -> {
+                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")) // KlippShell-Grün
+                btn.setTextColor(Color.WHITE)
+            }
+            else -> {
+                btn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.pill_normal_inactive))
+                btn.setTextColor(ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
+            }
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun checkAndRenderAdvancedMenu() {
         val isAdvancedActive = prefs.getBoolean("is_advanced_mode", false)
         if (!isAdvancedActive) return
 
-        if (advancedHeaderView != null || advancedTvButton != null) return
+        if (advancedHeaderView != null || advancedTvButton != null || advancedTabletButton != null) return
 
         val mainContainer = findViewById<LinearLayout>(R.id.panelSettings) ?: return
         val btnResetApp = findViewById<MaterialButton>(R.id.btnResetApp) ?: return
@@ -427,14 +463,53 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        mainContainer.addView(advancedHeaderView, indexReset)
-        mainContainer.addView(advancedTvButton, indexReset + 1)
+        advancedTabletButton = MaterialButton(this).apply {
+            isAllCaps = false
+            textSize = 16f
+            isFocusable = true
+            shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+            setPadding(0, toPx(14), 0, toPx(14))
+
+            val overrideMode = prefs.getInt("layout_mode_override", 0)
+            updateTabletButtonVisuals(this, overrideMode)
+
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(0, toPx(8), 0, toPx(8))
+            }
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
+                if (v is MaterialButton) {
+                    v.strokeWidth = if (hasFocus) 8 else 0
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
+                }
+            }
+            setOnClickListener {
+                val currentMode = prefs.getInt("layout_mode_override", 0)
+                val nextMode = (currentMode + 1) % 3
+
+                prefs.edit().putInt("layout_mode_override", nextMode).apply()
+                updateTabletButtonVisuals(this, nextMode)
+
+                val toastText = when (nextMode) {
+                    1 -> getString(R.string.layout_mode_phone)
+                    2 -> getString(R.string.layout_mode_tablet)
+                    else -> getString(R.string.layout_mode_auto)
+                }
+                showCenteredPillToast("$toastText ✓")
+                recreate()
+            }
+        }
+
+        mainContainer.addView(advancedHeaderView, indexReset + 1)
+        mainContainer.addView(advancedTvButton, indexReset + 2)
+        mainContainer.addView(advancedTabletButton, indexReset + 3)
     }
 
     private fun removeAdvancedMenuViews() {
         val mainContainer = findViewById<LinearLayout>(R.id.panelSettings) ?: return
         advancedHeaderView?.let { mainContainer.removeView(it); advancedHeaderView = null }
         advancedTvButton?.let { mainContainer.removeView(it); advancedTvButton = null }
+        advancedTabletButton?.let { mainContainer.removeView(it); advancedTabletButton = null }
     }
 
     private fun updateMenuButtonSelection(activeLayer: Int) {
@@ -948,7 +1023,6 @@ class SettingsActivity : AppCompatActivity() {
 
         updatePillVisuals(findViewById(R.id.btnCheckUpdates))
 
-        // ERZWUNGENE STARTUP-PILLEN: Schützt die rechten Design-Optionen verlässlich vor dynamischem Absinken
         val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeLight), currentMode == AppCompatDelegate.MODE_NIGHT_NO)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeDark), currentMode == AppCompatDelegate.MODE_NIGHT_YES)
@@ -959,6 +1033,8 @@ class SettingsActivity : AppCompatActivity() {
         setupPill(R.id.btnPillSaver90)
         setupPill(R.id.btnPillSaver120)
         setupPill(R.id.btnPillSaverOff)
+
+        checkAndRenderAdvancedMenu()
     }
 
     private fun setupPill(buttonId: Int) {
@@ -970,6 +1046,12 @@ class SettingsActivity : AppCompatActivity() {
         if (btn == null) return
         if (btn.id == R.id.btnCheckUpdates) {
             btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            btn.setTextColor(Color.WHITE)
+            return
+        }
+
+        if (btn.id == R.id.btnResetApp) {
+            btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
             btn.setTextColor(Color.WHITE)
             return
         }

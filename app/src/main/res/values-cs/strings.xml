@@ -174,4 +174,8 @@
     <string name="btn_advanced_trigger_tv">Aktualizovat TV Launcher</string>
     <string name="popup_advanced_sync_title">Synchronizace na pozadí</string>
     <string name="popup_advanced_sync_msg">Načítání stavu Moonraker a aktualizace dlaždice domovské obrazovky TV.</string>
+
+    <string name="layout_mode_auto">Zobrazení rozvržení: AUTOMATICKY</string>
+    <string name="layout_mode_phone">Zobrazení rozvržení: SMARTPHONE</string>
+    <string name="layout_mode_tablet">Zobrazení rozvržení: TABLET</string>
 </resources>

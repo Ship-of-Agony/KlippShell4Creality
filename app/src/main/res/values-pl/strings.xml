@@ -174,4 +174,8 @@
     <string name="btn_advanced_trigger_tv">Aktualizuj Launcher TV</string>
     <string name="popup_advanced_sync_title">Synchronizacja w Tle</string>
     <string name="popup_advanced_sync_msg">Pobieranie stanu Moonraker i aktualizowanie kafelka ekranu głównego TV.</string>
+
+    <string name="layout_mode_auto">Widok układu: AUTOMATYCZNY</string>
+    <string name="layout_mode_phone">Widok układu: SMARTPHONE</string>
+    <string name="layout_mode_tablet">Widok układu: TABLET</string>
 </resources>

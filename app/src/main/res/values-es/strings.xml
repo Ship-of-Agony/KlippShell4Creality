@@ -174,4 +174,8 @@
     <string name="btn_advanced_trigger_tv">Actualizar Launcher de TV</string>
     <string name="popup_advanced_sync_title">Sincronización en Segundo Plano</string>
     <string name="popup_advanced_sync_msg">Recuperando el estado de Moonraker y actualizando la celda de la pantalla de inicio de TV.</string>
+
+    <string name="layout_mode_auto">Vista de diseño: AUTOMÁTICO</string>
+    <string name="layout_mode_phone">Vista de diseño: SMARTPHONE</string>
+    <string name="layout_mode_tablet">Vista de diseño: TABLET</string>
 </resources>

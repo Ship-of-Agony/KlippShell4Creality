@@ -174,4 +174,8 @@
     <string name="btn_advanced_trigger_tv">Обновить Launcher TV</string>
     <string name="popup_advanced_sync_title">Фоновая Синхронизация</string>
     <string name="popup_advanced_sync_msg">Получение статуса Moonraker и обновление плитки главного экрана TV.</string>
+
+    <string name="layout_mode_auto">Отображение макета: АВТОМАТИЧЕСКИ</string>
+    <string name="layout_mode_phone">Отображение макета: СМАРТФОН</string>
+    <string name="layout_mode_tablet">Отображение макета: ПЛАНШЕТ</string>
 </resources>

@@ -174,4 +174,8 @@
     <string name="btn_advanced_trigger_tv">TV-Launcher aktualisieren</string>
     <string name="popup_advanced_sync_title">Hintergrund-Synchronisierung</string>
     <string name="popup_advanced_sync_msg">Der Moonraker-Status wird abgerufen und die TV-Startbildschirm-Kachel aktualisiert.</string>
+
+    <string name="layout_mode_auto">Layout-Ansicht: AUTOMATISCH</string>
+    <string name="layout_mode_phone">Layout-Ansicht: SMARTPHONE</string>
+    <string name="layout_mode_tablet">Layout-Ansicht: TABLET</string>
 </resources>

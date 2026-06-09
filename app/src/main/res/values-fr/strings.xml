@@ -174,4 +174,8 @@
     <string name="btn_advanced_trigger_tv">Mettre à jour le Launcher TV</string>
     <string name="popup_advanced_sync_title">Synchronisation en Arrière-plan</string>
     <string name="popup_advanced_sync_msg">Récupération du statut Moonraker et mise à jour de la tuile de l\'écran d\'accueil TV.</string>
+
+    <string name="layout_mode_auto">Affichage de la disposition : AUTOMATIQUE</string>
+    <string name="layout_mode_phone">Affichage de la disposition : SMARTPHONE</string>
+    <string name="layout_mode_tablet">Affichage de la disposition : TABLETTE</string>
 </resources>
