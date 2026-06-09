@@ -70,6 +70,9 @@ class MainActivity : AppCompatActivity() {
     private var selectedSystemIndex = 0
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    // DEIN RECREATE-SCHALTER: Verhindert Endlosschleifen beim Neu-Instanziieren des Layouts
+    private var shouldRecreateOnReturn = false
+
     private val printerMap = mapOf(
         "CR-10" to "cr_10", "CR-10 SE" to "cr_10se", "CR-10 Smart" to "cr_10smart",
         "CR-10 Smart Pro" to "cr_10smartpro", "CR-10S Pro V2" to "cr_10sprov2",
@@ -118,6 +121,11 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedTheme)
+
+        // Stellt den Zustand des Recreate-Schalters nach einer Displaydrehung wieder her
+        if (savedInstanceState != null) {
+            shouldRecreateOnReturn = savedInstanceState.getBoolean("recreate_flag", false)
+        }
 
         super.onCreate(savedInstanceState)
 
@@ -202,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                 selectedSystemIndex = which
                 when (which) {
                     0 -> { btnSystemSelect.text = "Port: 4408"; etMainPrinterPort.visibility = View.GONE }
-                    1 -> { btnSystemSelect.text = "Port: 7125"; etMainPrinterPort.visibility = View.GONE }
+                    1 -> { btnSystemSelect.text = "Port: 7125"; btnSystemSelect.text = "Port: 7125"; etMainPrinterPort.visibility = View.GONE }
                     2 -> { btnSystemSelect.text = getString(R.string.system_manual); etMainPrinterPort.visibility = View.VISIBLE; etMainPrinterPort.requestFocus() }
                 }
             }
@@ -308,8 +316,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("recreate_flag", shouldRecreateOnReturn)
+        super.onSaveInstanceState(outState)
+    }
+
+    // DEIN ANSATZ IMPLEMENTIERT: Zwingt Android zu einem radikalen Layout-Refresh beim Zurückgehen!
     override fun onResume() {
         super.onResume()
+
+        // Wenn das Flag aktiv ist, führen wir ein echtes, einmaliges recreate() durch!
+        if (shouldRecreateOnReturn) {
+            shouldRecreateOnReturn = false // Verhindert Endlosschleifen verlässlich
+            recreate() // Zerstört und baut das gesamte Fenster ohne RAM-Altlasten neu!
+            return
+        }
+
         applyLanguageAndRefreshUI()
     }
 
@@ -438,7 +460,7 @@ class MainActivity : AppCompatActivity() {
             jobs.joinAll()
 
             withContext(Dispatchers.Main) {
-                if (!isFinishing && !isDestroyed) {
+                if (!this@MainActivity.isFinishing && !this@MainActivity.isDestroyed) {
                     try { progressDialog.dismiss() } catch (_: Exception) {}
                     val cleanList = foundPrinters.distinct()
                     if (cleanList.isNotEmpty()) {
@@ -623,7 +645,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ÜBERARBEITET: Unterstützt jetzt voll-dynamische Layout-Skalierung für Single-Drucker-Farmen
     private fun loadPrinters() {
         containerPrinters.removeAllViews()
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -647,26 +668,25 @@ class MainActivity : AppCompatActivity() {
         }
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        // DYNAMISCH: Erkennt, ob es sich um eine Single-Drucker-Farm handelt
         val isSinglePrinter = list.length() == 1
 
         for (i in 0 until list.length()) {
             val printer = try { list.getJSONObject(i) } catch (_: Exception) { null } ?: continue
             val itemView = LayoutInflater.from(this).inflate(R.layout.printer_item, containerPrinters, false)
 
+            // 1-KLICK INTEGRATION: Touch feuert den Intent sofort ohne Umwege ab!
             itemView.isFocusable = true
-            itemView.isFocusableInTouchMode = true
+            itemView.isFocusableInTouchMode = false
 
-            // --- STRATEGOSCH-DYNAMISCHE UPGRADE LOGIK FÜR EINZELNE DRUCKER ---
             if (isSinglePrinter) {
-                // Ändert die Anordnung von horizontal auf vertikal zentriert (Dashboard Widget Style!)
                 if (itemView is LinearLayout) {
                     itemView.orientation = LinearLayout.VERTICAL
                     itemView.gravity = Gravity.CENTER
-                    // Spendiert der Mega-Kachel ein fettes, sattes Polster (Padding)
                     itemView.setPadding(toPx(32), toPx(48), toPx(32), toPx(48))
                 }
             }
+
+            val tvName = itemView.findViewById<TextView>(R.id.tvPrinterNameAndAddress)
 
             itemView.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 val drawable = v.background as? GradientDrawable
@@ -674,10 +694,12 @@ class MainActivity : AppCompatActivity() {
                     v.animate().scaleX(1.02f).scaleY(1.02f).translationZ(8f).setDuration(150).start()
                     v.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#44FFFFFF"))
                     drawable?.setStroke(8, if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                    if (isNight) tvName?.setTextColor(Color.WHITE)
                 } else {
                     v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(150).start()
                     v.backgroundTintList = null
                     drawable?.setStroke(2, if (isNight) Color.parseColor("#4DFFFFFF") else Color.parseColor("#33000000"))
+                    if (isNight) tvName?.setTextColor(Color.parseColor("#FFFFFF")) else tvName?.setTextColor(Color.BLACK)
                 }
             }
 
@@ -685,30 +707,38 @@ class MainActivity : AppCompatActivity() {
             if (iconView != null) {
                 iconView.setImageResource(getPrinterImageResource(printer.optString("model", "")))
 
-                // Bläht das Drucker-Vorschaubild im Single-Modus auf fette 120dp auf!
                 if (isSinglePrinter) {
                     val sizePx = toPx(120)
                     iconView.layoutParams = LinearLayout.LayoutParams(sizePx, sizePx).apply {
-                        // Zentriert das Bild über dem Text und gibt ihm Abstand nach unten
                         gravity = Gravity.CENTER_HORIZONTAL
                         setMargins(0, 0, 0, toPx(24))
                     }
                 }
             }
 
-            itemView.findViewById<TextView>(R.id.tvPrinterNameAndAddress).apply {
-                text = printer.optString("name", "Unbekannt")
-                textSize = if (isSinglePrinter) 24f else 18f // Macht auch den Namen markanter
-                setTypeface(null, android.graphics.Typeface.BOLD)
+            if (tvName != null) {
+                tvName.text = printer.optString("name", "Unbekannt")
+                tvName.textSize = if (isSinglePrinter) 24f else 18f
+                tvName.setTypeface(null, android.graphics.Typeface.BOLD)
+
+                // BOMBENFESTE KONTRAST-ERZWINGUNG: Steht absolut unumstößlich gegen Androids Geister-Fokus!
+                if (isNight) {
+                    tvName.setTextColor(Color.WHITE)
+                } else {
+                    tvName.setTextColor(Color.BLACK)
+                }
 
                 if (isSinglePrinter) {
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    tvName.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                         gravity = Gravity.CENTER_HORIZONTAL
                     }
                 }
             }
 
             itemView.setOnClickListener {
+                // SCHARFSCHALTUNG: Sichert, dass das recreate() beim nächsten onResume() verlässlich anzieht!
+                shouldRecreateOnReturn = true
+
                 val intent = Intent(this, WebViewActivity::class.java).apply {
                     putExtra("PRINTER_IP", printer.optString("ip", ""))
                     putExtra("PRINTER_PORT", printer.optString("port", "7125"))
@@ -886,7 +916,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.perm_dialog_title)
-        val mainContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+        val mainContainer = android.widget.LinearLayout(this)
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textColor = if (isNight) Color.WHITE else Color.BLACK
@@ -898,7 +928,6 @@ class MainActivity : AppCompatActivity() {
             setPadding(24, 16, 24, 32)
             gravity = Gravity.START
         }
-        mainContainer?.addView(msgView, 0)
 
         val btnAccept = MaterialButton(this).apply {
             text = getString(R.string.perm_dialog_btn)
@@ -950,8 +979,6 @@ class MainActivity : AppCompatActivity() {
             setOnClickListener { dialog.dismiss(); finishAffinity() }
         }
 
-        mainContainer?.addView(btnAccept)
-        mainContainer?.addView(btnDecline)
         dialog.show()
         btnAccept.requestFocus()
     }
