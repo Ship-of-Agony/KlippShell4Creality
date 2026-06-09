@@ -58,6 +58,7 @@ class WebViewActivity : AppCompatActivity() {
     private var webView: WebView? = null
     private lateinit var layoutOsd: View
     private lateinit var layoutWebButtons: LinearLayout
+    private var containerWebNotification: View? = null
 
     private lateinit var btnMenu: MaterialButton
     private lateinit var btnToggle: MaterialButton
@@ -77,6 +78,7 @@ class WebViewActivity : AppCompatActivity() {
     private var lastCameraUrl: String = ""
     private var isCameraMode: Boolean = false
     private var isOsdEnabled: Boolean = false
+    private var currentAspectRatioPercent: Float = 56.25f
 
     private var isLightOn: Boolean = false
 
@@ -169,6 +171,7 @@ class WebViewActivity : AppCompatActivity() {
         webView = findViewById(R.id.webView)
         layoutOsd = findViewById(R.id.layoutOsd)
         layoutWebButtons = findViewById(R.id.layoutWebButtons)
+        containerWebNotification = findViewById(R.id.containerWebNotification)
 
         btnMenu = findViewById(R.id.btnWebMenu)
         btnToggle = findViewById(R.id.btnWebToggle)
@@ -212,8 +215,8 @@ class WebViewActivity : AppCompatActivity() {
                 showButtons()
                 view.animate().scaleX(1.1f).scaleY(1.1f).alpha(1.0f).translationZ(8f).setDuration(150).start()
                 if (view is MaterialButton) {
-                    view.strokeWidth = 6
-                    view.strokeColor = ColorStateList.valueOf(Color.WHITE)
+                    view.strokeWidth = 8
+                    view.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
                 }
             } else {
                 view.animate().scaleX(1.0f).scaleY(1.0f).alpha(0.8f).translationZ(0f).setDuration(150).start()
@@ -479,11 +482,34 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun enterPipMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val aspectRatio = Rational(16, 9)
-            val pipParams = PictureInPictureParams.Builder()
-                .setAspectRatio(aspectRatio)
-                .build()
-            enterPictureInPictureMode(pipParams)
+            if (packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+                val aspectRatio = Rational(16, 9)
+                val pipParams = PictureInPictureParams.Builder()
+                    .setAspectRatio(aspectRatio)
+                    .build()
+                try {
+                    val entered = enterPictureInPictureMode(pipParams)
+                    if (entered) {
+                        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as android.app.UiModeManager
+                        val isTV = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+
+                        // DUAL-SCREEN RESPONSIVE WEICHE: Löst das Relaunch-Problem verlässlich auf Tablets auf
+                        if (!isTV) {
+                            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                                addCategory(Intent.CATEGORY_HOME)
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            }
+                            startActivity(homeIntent)
+                        } else {
+                            moveTaskToBack(true)
+                        }
+                    }
+                } catch (e: Exception) {
+                    showCenteredPillToast("PiP konnte nicht gestartet werden")
+                }
+            } else {
+                showCenteredPillToast("PiP wird von diesem TV-Gerät nicht unterstützt")
+            }
         } else {
             showCenteredPillToast("PiP wird von diesem Gerät nicht unterstützt")
         }
@@ -503,26 +529,18 @@ class WebViewActivity : AppCompatActivity() {
             uiHandler.removeCallbacks(hideUiRunnable)
             screensaverHandler.removeCallbacks(startScreensaverRunnable)
 
-            webView?.let { viewRef ->
-                (viewRef.parent as? ViewGroup)?.removeView(viewRef)
-            }
+            layoutWebButtons.visibility = View.GONE
+            layoutOsd.visibility = View.GONE
+            containerWebNotification?.visibility = View.GONE
+            layoutScreensaver.visibility = View.GONE
 
-            setContentView(R.layout.activity_pip_status)
-
-            val videoContainer = findViewById<FrameLayout>(R.id.pipVideoContainer)
-            webView?.let { viewRef ->
-                videoContainer?.addView(viewRef, FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT
-                ))
-            }
-
-            val tvPipProgress = findViewById<TextView>(R.id.tvPipProgress)
-            if (lastProgressPercent >= 0.0) {
-                val progressText = String.format(Locale.getDefault(), "%.1f%%", lastProgressPercent * 100)
-                tvPipProgress?.text = progressText
-            } else {
-                tvPipProgress?.text = "--%"
+            webView?.layoutParams?.let { lp ->
+                if (lp is ConstraintLayout.LayoutParams) {
+                    lp.dimensionRatio = null
+                    lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT
+                    lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT
+                    webView?.layoutParams = lp
+                }
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -557,15 +575,10 @@ class WebViewActivity : AppCompatActivity() {
             }
 
             if (pollingJob == null || !pollingJob!!.isActive) {
-                isOsdEnabled = true
-                startOsdPolling()
+                if (isOsdEnabled) {
+                    startOsdPolling()
+                }
             }
-
-            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_HOME)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            startActivity(homeIntent)
 
         } else {
             try {
@@ -573,26 +586,36 @@ class WebViewActivity : AppCompatActivity() {
             } catch (_: Exception) {}
             pipReceiver = null
 
-            webView?.let { viewRef ->
-                (viewRef.parent as? ViewGroup)?.removeView(viewRef)
+            layoutWebButtons.visibility = View.VISIBLE
+            containerWebNotification?.visibility = View.VISIBLE
+            if (isOsdEnabled && isCameraMode) {
+                layoutOsd.visibility = View.VISIBLE
+                startOsdPolling()
+            } else {
+                layoutOsd.visibility = View.GONE
             }
 
-            initFullScreenBinding()
-
-            val staticWebViewPlaceholder = findViewById<WebView>(R.id.webView)
-            val rootWebViewContainer = staticWebViewPlaceholder?.parent as? ViewGroup
-            if (staticWebViewPlaceholder != null && webView != null) {
-                val index = rootWebViewContainer?.indexOfChild(staticWebViewPlaceholder) ?: -1
-                if (index != -1) {
-                    val lp = staticWebViewPlaceholder.layoutParams
-                    rootWebViewContainer?.removeViewAt(index)
-                    rootWebViewContainer?.addView(webView, index, lp)
+            webView?.layoutParams?.let { lp ->
+                if (lp is ConstraintLayout.LayoutParams) {
+                    if (isCameraMode) {
+                        when (currentAspectRatioPercent) {
+                            75.0f -> { lp.dimensionRatio = "H,4:3" }
+                            100.0f -> { lp.dimensionRatio = "H,1:1" }
+                            else -> { lp.dimensionRatio = "H,16:9" }
+                        }
+                        lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT
+                        lp.height = 0
+                    } else {
+                        lp.dimensionRatio = null
+                        lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT
+                        lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT
+                    }
+                    webView?.layoutParams = lp
                 }
             }
 
-            if (isOsdEnabled && isCameraMode) {
-                startOsdPolling()
-            }
+            showButtons()
+            resetInactivityTimer()
         }
     }
 
@@ -857,6 +880,7 @@ class WebViewActivity : AppCompatActivity() {
     private fun loadStreamOrUrl(url: String, paddingTopPercent: Float) {
         resetPrintTriggers()
         currentActiveUrl = url
+        currentAspectRatioPercent = paddingTopPercent
         isCameraMode = url.contains("action=stream") || url.contains("camera.html")
 
         if (isCameraMode) {
@@ -968,6 +992,14 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+    private fun runChamberAutoSearch(status: JSONObject) {
+        for (sensor in chamberSensorsToTry) { if (status.has(sensor)) { knownChamberSensor = sensor; break } }
+        for (heater in chamberHeatersToTry) { if (status.has(heater)) { knownChamberHeater = heater; break } }
+        cachedChamberQueryString = "&${Uri.encode(knownChamberSensor)}&${Uri.encode(knownChamberHeater)}"
+        val uri = Uri.parse(currentActiveUrl)
+        updateMoonrakerUrl(uri.host ?: return)
+    }
+
     private suspend fun fetchMoonrakerData() {
         val targetUrl = cachedMoonrakerUrl ?: return
         var conn: HttpURLConnection? = null
@@ -1003,6 +1035,10 @@ class WebViewActivity : AppCompatActivity() {
         try {
             val json = JSONObject(responseText)
             val status = json.optJSONObject("result")?.optJSONObject("status") ?: return
+
+            if (heartbeatTick == 1 && (knownChamberSensor == "temperature_sensor chamber_temp" || knownChamberHeater == "heater_generic chamber_heater")) {
+                runChamberAutoSearch(status)
+            }
 
             val ledPinObj = status.optJSONObject("output_pin LED")
             if (ledPinObj != null) isLightOn = ledPinObj.optDouble("value", 0.0) > 0.0
@@ -1111,14 +1147,6 @@ class WebViewActivity : AppCompatActivity() {
         } catch (_: Exception) {}
     }
 
-    private fun runChamberAutoSearch(status: JSONObject) {
-        for (sensor in chamberSensorsToTry) { if (status.has(sensor)) { knownChamberSensor = sensor; break } }
-        for (heater in chamberHeatersToTry) { if (status.has(heater)) { knownChamberHeater = heater; break } }
-        cachedChamberQueryString = "&${Uri.encode(knownChamberSensor)}&${Uri.encode(knownChamberHeater)}"
-        val uri = Uri.parse(currentActiveUrl)
-        updateMoonrakerUrl(uri.host ?: return)
-    }
-
     private fun applyOsdPositionAndStyle(position: String) {
         val root = findViewById<ConstraintLayout>(R.id.rootLayout) ?: return
         val container = layoutOsd as? LinearLayout ?: return
@@ -1210,8 +1238,8 @@ class WebViewActivity : AppCompatActivity() {
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
-                        strokeWidth = 6
-                        strokeColor = ColorStateList.valueOf(Color.WHITE)
+                        strokeWidth = 8
+                        strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
                         strokeWidth = 0
@@ -1255,8 +1283,8 @@ class WebViewActivity : AppCompatActivity() {
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
-                        strokeWidth = 6
-                        strokeColor = ColorStateList.valueOf(Color.WHITE)
+                        strokeWidth = 8
+                        strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
                         strokeWidth = 0
