@@ -1,3 +1,13 @@
+v0.8.7.090626-rc
+
+• Picture-in-Picture (PiP) Mode: Implemented full native PiP support for background multitasking, allowing users to monitor print progress via a floating overlay with real-time status tracking (tvPipProgress) and dedicated remote control actions (Maximize/Resize) on supported Android TV and mobile platforms.
+• Fluidd Dashboard Navigation Trap: Resolved a critical focus trapping issue where the Android WebView would swallow all D-Pad remote events inside the Fluidd interface, preventing users from navigating back down to the application overlay buttons. Implemented a hardware key event escape hatch: pressing the BACK button on the remote now instantly forces focus back to the "Close" button.
+• Fluidd Video Stream Freeze: Fixed an issue where the camera stream inside Fluidd would load as a frozen single frame. Enabled WebRTC permission requests and modified WebView configurations (loadsImagesAutomatically, allowContentAccess, and full LAYER_TYPE_HARDWARE enforcement for dashboard views) to allow continuous MJPEG and WebRTC stream decoding.
+• Navigation performance lag: Stripped out the aggressive DOM mutation observer from the JavaScript injection layer that previously caused UI stuttering and scroll lag when navigating massive web layouts like Fluidd on low-resource TV boxes.
+• Left Sidebar Polish: Added a CSS override to hide the heavy 18px blue TV scrollbar inside Fluidd's left navigation drawer (.v-navigation-drawer), keeping the UI clean and preserving space while maintaining the prominent scrollbar for the main dashboard content.
+• Internal: Suppressed non-critical Lint warnings and deprecated API notifications across MainActivity and WebViewActivity for a cleaner build environment.
+
+
 v0.8.6.070626-rc
 
 • Responsive Dual-Screen Layout: Implemented an automatic side-by-side dashboard for tablets and Android TV devices for improved navigation.

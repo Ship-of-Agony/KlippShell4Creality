@@ -150,7 +150,7 @@ class SettingsActivity : AppCompatActivity() {
             val versionName = packageInfo.versionName
             findViewById<TextView>(R.id.tvAppVersion)?.text = "Version $versionName"
         } catch (e: Exception) {
-            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.6.070626-rc"
+            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.7.090626-rc"
         }
 
         btnThemeSelect.setOnClickListener {
@@ -806,8 +806,20 @@ class SettingsActivity : AppCompatActivity() {
         (preFocused ?: containerLanguageButtons.getChildAt(0) as? MaterialButton)?.requestFocus()
     }
 
+    /**
+     * DYNAMISCHER ASSET-LOADER: Holt den Changelog nun live aus der physischen changelog.txt
+     */
     private fun loadChangelogFromAssets() {
-        tvChangelogContent.text = getString(R.string.about_changelog_text)
+        val changelogSb = java.lang.StringBuilder()
+        try {
+            val stream = assets.open("changelog.txt")
+            val reader = BufferedReader(InputStreamReader(stream))
+            reader.forEachLine { changelogSb.append(it).append("\n") }
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Fehler beim Lesen der changelog.txt aus den Assets", e)
+            changelogSb.append("Changelog konnte nicht geladen werden.")
+        }
+        tvChangelogContent.text = changelogSb.toString().trim()
     }
 
     private fun setupSaverPagePill(buttonId: Int, timeoutMs: Long) {
