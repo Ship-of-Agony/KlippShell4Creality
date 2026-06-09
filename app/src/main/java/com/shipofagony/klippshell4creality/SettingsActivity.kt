@@ -16,7 +16,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button // Fixes Unresolved reference 'Button'
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -239,7 +239,8 @@ class SettingsActivity : AppCompatActivity() {
         }
         tvLicensesLink.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
             v.animate().scaleX(if (hasFocus) 1.08f else 1.0f).scaleY(if (hasFocus) 1.08f else 1.0f).setDuration(150).start()
-            (v as TextView).setTextColor(if (hasFocus) Color.WHITE else Color.parseColor("#2196F3"))
+            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            (v as TextView).setTextColor(if (hasFocus) (if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")) else Color.parseColor("#2196F3"))
         }
 
         tvAboutContactLink.setOnClickListener {
@@ -264,7 +265,8 @@ class SettingsActivity : AppCompatActivity() {
         }
         tvAboutContactLink.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
             v.animate().scaleX(if (hasFocus) 1.08f else 1.0f).scaleY(if (hasFocus) 1.08f else 1.0f).setDuration(150).start()
-            (v as TextView).setTextColor(if (hasFocus) Color.WHITE else Color.parseColor("#2196F3"))
+            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            (v as TextView).setTextColor(if (hasFocus) (if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")) else Color.parseColor("#2196F3"))
         }
 
         setupSaverPagePill(R.id.btnPillSaver30, 30 * 60 * 1000L)
@@ -279,14 +281,18 @@ class SettingsActivity : AppCompatActivity() {
             v.animate().scaleX(if (hasFocus) 1.02f else 1.0f).scaleY(if (hasFocus) 1.02f else 1.0f).setDuration(150).start()
             val bgDrawable = v.background as? GradientDrawable
             if (bgDrawable != null) {
+                val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                 if (hasFocus) {
-                    bgDrawable.setStroke(6, Color.WHITE)
+                    bgDrawable.setStroke(8, if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242"))
                 } else {
-                    val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                     bgDrawable.setStroke(3, Color.parseColor(if (isNight) "#40FFFFFF" else "#33000000"))
                 }
             }
         }
+
+        // BINDENDE LAUNCHER-REGEL: High-Contrast TV-Grenzlinien für D-Pad Fernbedienungen
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         arrayOf(
             btnThemeSelect, btnChangeLanguage, btnGlobalScreensaver, btnNotificationsMenu,
@@ -297,14 +303,12 @@ class SettingsActivity : AppCompatActivity() {
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
                 if (v is MaterialButton) {
                     v.strokeWidth = if (hasFocus) 8 else 0
-                    val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
                 }
             }
         }
 
         initPillButtonStates()
-        checkAndRenderAdvancedMenu()
 
         if (isDualScreenMode) {
             showSubPanel(panelTheme, 5, getString(R.string.theme_title))
@@ -347,16 +351,23 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun updateSubpagePillColor(btn: MaterialButton?, isSelected: Boolean) {
         if (btn == null) return
-        btn.backgroundTintList = ColorStateList.valueOf(if (isSelected) Color.parseColor("#4CAF50") else ContextCompat.getColor(this, R.color.pill_normal_inactive))
-        btn.setTextColor(if (isSelected) Color.WHITE else ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
-        if (!btn.isFocused) {
+        if (isSelected) {
+            btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            btn.setTextColor(Color.WHITE)
+        } else {
+            btn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.pill_normal_inactive))
+            btn.setTextColor(ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
+        }
+
+        if (btn.isFocused) {
+            btn.strokeWidth = 8
+            btn.strokeColor = ColorStateList.valueOf(targetBorderColor)
+        } else {
             btn.strokeWidth = 0
             btn.strokeColor = null
-        } else {
-            btn.strokeWidth = 8
-            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-            btn.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
         }
     }
 
@@ -375,6 +386,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textLabelColor = if (isNight) Color.parseColor("#80FFFFFF") else Color.parseColor("#80000000")
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         advancedHeaderView = TextView(this).apply {
             text = "Advanced"
@@ -401,7 +413,7 @@ class SettingsActivity : AppCompatActivity() {
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
                 if (v is MaterialButton) {
                     v.strokeWidth = if (hasFocus) 8 else 0
-                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
                 }
             }
             setOnClickListener {
@@ -429,6 +441,7 @@ class SettingsActivity : AppCompatActivity() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val activeBg = ColorStateList.valueOf(if (isNight) Color.parseColor("#44FFFFFF") else Color.parseColor("#1A888888"))
         val activeTxt = if (isNight) Color.WHITE else Color.BLACK
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         val normalBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val normalTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
@@ -449,6 +462,13 @@ class SettingsActivity : AppCompatActivity() {
                 } else {
                     btn.backgroundTintList = ColorStateList.valueOf(normalBgColor)
                     btn.setTextColor(normalTxtColor)
+                }
+                if (btn.isFocused) {
+                    btn.strokeWidth = 8
+                    btn.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                } else {
+                    btn.strokeWidth = 0
+                    btn.strokeColor = null
                 }
             }
         }
@@ -546,6 +566,7 @@ class SettingsActivity : AppCompatActivity() {
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         options.forEachIndexed { index, itemText ->
             val customHex = hexColors.getOrNull(index)
@@ -573,7 +594,7 @@ class SettingsActivity : AppCompatActivity() {
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 8
-                        v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                        v.strokeColor = ColorStateList.valueOf(targetBorderColor)
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 0
@@ -621,7 +642,7 @@ class SettingsActivity : AppCompatActivity() {
                 if (hasFocus) {
                     v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                     (v as MaterialButton).strokeWidth = 8
-                    v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                    v.strokeColor = ColorStateList.valueOf(targetBorderColor)
                 } else {
                     v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                     (v as MaterialButton).strokeWidth = 0
@@ -660,6 +681,8 @@ class SettingsActivity : AppCompatActivity() {
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
         var preFocused: MaterialButton? = null
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         names.forEachIndexed { index, langName ->
             val isSelected = codes[index] == activeCode
@@ -687,8 +710,7 @@ class SettingsActivity : AppCompatActivity() {
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 8
-                        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-                        v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                        v.strokeColor = ColorStateList.valueOf(targetBorderColor)
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 0
@@ -795,6 +817,7 @@ class SettingsActivity : AppCompatActivity() {
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         items.forEachIndexed { index, itemText ->
             val customHex = hexColors?.getOrNull(index)
@@ -822,7 +845,7 @@ class SettingsActivity : AppCompatActivity() {
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 8
-                        v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                        v.strokeColor = ColorStateList.valueOf(targetBorderColor)
                     } else {
                         v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 0
@@ -850,7 +873,7 @@ class SettingsActivity : AppCompatActivity() {
                 if (hasFocus) {
                     v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                     (v as MaterialButton).strokeWidth = 8
-                    v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                    v.strokeColor = ColorStateList.valueOf(targetBorderColor)
                 } else {
                     v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                     (v as MaterialButton).strokeWidth = 0
@@ -924,6 +947,12 @@ class SettingsActivity : AppCompatActivity() {
         ).forEach { id -> updatePillVisuals(findViewById(id)) }
 
         updatePillVisuals(findViewById(R.id.btnCheckUpdates))
+
+        // ERZWUNGENE STARTUP-PILLEN: Schützt die rechten Design-Optionen verlässlich vor dynamischem Absinken
+        val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        updateSubpagePillColor(findViewById(R.id.btnPillThemeLight), currentMode == AppCompatDelegate.MODE_NIGHT_NO)
+        updateSubpagePillColor(findViewById(R.id.btnPillThemeDark), currentMode == AppCompatDelegate.MODE_NIGHT_YES)
+        updateSubpagePillColor(findViewById(R.id.btnPillThemeSystem), currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
         setupPill(R.id.btnPillSaver30)
         setupPill(R.id.btnPillSaver60)
@@ -1056,12 +1085,12 @@ class SettingsActivity : AppCompatActivity() {
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textColor = if (isNight) Color.WHITE else Color.BLACK
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         val scrollView = ScrollView(this).apply {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(230))
             setPadding(12, 12, 12, 12)
             background = ContextCompat.getDrawable(this@SettingsActivity, R.drawable.bg_input_rounded)
-            isVerticalScrollBarEnabled = true
         }
 
         val tvContent = TextView(this).apply {
@@ -1091,7 +1120,7 @@ class SettingsActivity : AppCompatActivity() {
                 if (hasFocus) {
                     v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                     (v as MaterialButton).strokeWidth = 8
-                    v.strokeColor = ColorStateList.valueOf(if (isNight) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                    v.strokeColor = ColorStateList.valueOf(targetBorderColor)
                 } else {
                     v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                     (v as MaterialButton).strokeWidth = 0
