@@ -74,6 +74,8 @@
     <string name="osd_pos_banner_bottom">Unten</string>
     <string name="osd_pos_banner_left">Links</string>
     <string name="osd_pos_banner_right">Rechts</string>
+    <string name="osd_state_on">OSD: AN</string>
+    <string name="osd_state_off">OSD: AUS</string>
 
     <string name="menu_ratio_title">Bildformat ändern</string>
     <string name="ratio_16_9_new">16:9 Breitbild</string>
@@ -112,9 +114,9 @@
 
     <string name="event_offline">Offline</string>
     <string name="event_first_layer">Erste Schicht</string>
-    <string name="event_50">50% erreicht</string>
-    <string name="event_75">75% erreicht</string>
-    <string name="event_90">90% erreicht</string>
+    <string name="event_50">50% reached</string>
+    <string name="event_75">75% reached</string>
+    <string name="event_90">90% reached</string>
     <string name="event_100">Fertiggestellt</string>
     <string name="event_error">Fehler</string>
 

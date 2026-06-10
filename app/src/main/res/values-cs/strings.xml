@@ -74,6 +74,8 @@
     <string name="osd_pos_banner_bottom">Dole</string>
     <string name="osd_pos_banner_left">Vlevo</string>
     <string name="osd_pos_banner_right">Vpravo</string>
+    <string name="osd_state_on">OSD: ZAP</string>
+    <string name="osd_state_off">OSD: VYP</string>
 
     <string name="menu_ratio_title">Změnit formát obrazu</string>
     <string name="ratio_16_9_new">16:9 Širokoúhlý</string>

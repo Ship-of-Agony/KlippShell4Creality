@@ -74,6 +74,8 @@
     <string name="osd_pos_banner_bottom">Dół</string>
     <string name="osd_pos_banner_left">Lewo</string>
     <string name="osd_pos_banner_right">Prawo</string>
+    <string name="osd_state_on">OSD: WŁ.</string>
+    <string name="osd_state_off">OSD: WYŁ.</string>
 
     <string name="menu_ratio_title">Zmień Proporcje Obrazu</string>
     <string name="ratio_16_9_new">16:9 Panoramiczny</string>

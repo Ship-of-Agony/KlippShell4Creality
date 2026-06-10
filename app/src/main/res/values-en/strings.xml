@@ -74,6 +74,8 @@
     <string name="osd_pos_banner_bottom">Bottom</string>
     <string name="osd_pos_banner_left">Left</string>
     <string name="osd_pos_banner_right">Right</string>
+    <string name="osd_state_on">OSD: ON</string>
+    <string name="osd_state_off">OSD: OFF</string>
 
     <string name="menu_ratio_title">Change Aspect Ratio</string>
     <string name="ratio_16_9_new">16:9 Widescreen</string>

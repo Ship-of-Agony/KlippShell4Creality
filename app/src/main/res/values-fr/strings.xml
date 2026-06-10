@@ -74,6 +74,8 @@
     <string name="osd_pos_banner_bottom">Bas</string>
     <string name="osd_pos_banner_left">Gauche</string>
     <string name="osd_pos_banner_right">Droite</string>
+    <string name="osd_state_on">OSD: ACTIVÉ</string>
+    <string name="osd_state_off">OSD: DÉSACTIVÉ</string>
 
     <string name="menu_ratio_title">Changer le format d\'image</string>
     <string name="ratio_16_9_new">Écran large 16:9</string>

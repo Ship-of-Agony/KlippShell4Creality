@@ -74,6 +74,8 @@
     <string name="osd_pos_banner_bottom">Внизу</string>
     <string name="osd_pos_banner_left">Слева</string>
     <string name="osd_pos_banner_right">Справа</string>
+    <string name="osd_state_on">OSD: ВКЛ</string>
+    <string name="osd_state_off">OSD: ВЫКЛ</string>
 
     <string name="menu_ratio_title">Изменить Соотношение Сторон</string>
     <string name="ratio_16_9_new">16:9 Широкоэкранный</string>
