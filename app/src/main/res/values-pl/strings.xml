@@ -67,6 +67,13 @@
     <string name="osd_pos_bottom_center">Dół Środek</string>
     <string name="toast_position_saved">Pozycja zapisana ✓</string>
     <string name="toast_position_fullscreen_only">Zmiana możliwa tylko przy aktywnym OSD</string>
+    <string name="menu_osd_style_title">Styl OSD</string>
+    <string name="osd_style_box">Kompaktowe pole</string>
+    <string name="osd_style_banner">Elastyczny pasek</string>
+    <string name="osd_pos_banner_top">Góra</string>
+    <string name="osd_pos_banner_bottom">Dół</string>
+    <string name="osd_pos_banner_left">Lewo</string>
+    <string name="osd_pos_banner_right">Prawo</string>
 
     <string name="menu_ratio_title">Zmień Proporcje Obrazu</string>
     <string name="ratio_16_9_new">16:9 Panoramiczny</string>

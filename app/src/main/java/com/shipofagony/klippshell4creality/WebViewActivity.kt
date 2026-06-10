@@ -30,7 +30,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.LinearInterpolator
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.FrameLayout
@@ -57,6 +56,7 @@ class WebViewActivity : AppCompatActivity() {
 
     private var webView: WebView? = null
     private lateinit var layoutOsd: View
+    private lateinit var layoutOsdBanner: View
     private lateinit var layoutWebButtons: LinearLayout
     private var containerWebNotification: View? = null
 
@@ -64,6 +64,7 @@ class WebViewActivity : AppCompatActivity() {
     private lateinit var btnToggle: MaterialButton
     private lateinit var btnClose: MaterialButton
 
+    // Box-Modus Textviews (Original)
     private var tvOsdExtruder: TextView? = null
     private var tvOsdBed: TextView? = null
     private var tvOsdChamberSensor: TextView? = null
@@ -74,12 +75,22 @@ class WebViewActivity : AppCompatActivity() {
     private var tvOsdProgress: TextView? = null
     private var tvOsdTime: TextView? = null
 
+    // Banner-Modus Textviews (Neu)
+    private var tvOsdExtruderBanner: TextView? = null
+    private var tvOsdBedBanner: TextView? = null
+    private var tvOsdChamberSensorBanner: TextView? = null
+    private var tvOsdChamberHeaterBanner: TextView? = null
+    private var tvOsdFanModelBanner: TextView? = null
+    private var tvOsdFanAuxBanner: TextView? = null
+    private var tvOsdFanChamberBanner: TextView? = null
+    private var tvOsdProgressBanner: TextView? = null
+    private var tvOsdTimeBanner: TextView? = null
+
     private var currentActiveUrl: String = ""
     private var lastCameraUrl: String = ""
     private var isCameraMode: Boolean = false
     private var isOsdEnabled: Boolean = false
     private var currentAspectRatioPercent: Float = 56.25f
-
     private var isLightOn: Boolean = false
 
     private lateinit var layoutScreensaver: FrameLayout
@@ -105,8 +116,8 @@ class WebViewActivity : AppCompatActivity() {
 
     private var lastPrintState: String = ""
     private var pollingJob: Job? = null
-
     private var cachedMoonrakerUrl: URL? = null
+
     private var lastExtruderTemp = -1.0
     private var lastExtruderTarget = -1.0
     private var lastBedTemp = -1.0
@@ -117,28 +128,20 @@ class WebViewActivity : AppCompatActivity() {
     private var lastFanModelSpeed = -1.0
     private var lastFanAuxSpeed = -1.0
     private var lastFanChamberSpeed = -1.0
-    private var lastProgressPercent = -1.0
     private var lastDurationSeconds = -1
-
+    private var lastProgressPercent = -1.0
     private var heartbeatTick = 0
 
     private var fanModelRotationAngle = 0f
     private var fanAuxRotationAngle = 0f
     private var fanChamberRotationAngle = 0f
 
-    private val chamberSensorsToTry = listOf(
-        "temperature_sensor chamber_temp", "temperature_sensor chamber",
-        "temperature_sensor enclosure_temp", "temperature_sensor enclosure"
-    )
-    private val chamberHeatersToTry = listOf(
-        "heater_generic chamber_heater", "heater_generic chamber",
-        "heater_generic enclosure_heater", "enclosure_heater"
-    )
+    private val chamberSensorsToTry = listOf("temperature_sensor chamber_temp", "temperature_sensor chamber", "temperature_sensor enclosure_temp", "temperature_sensor enclosure")
+    private val chamberHeatersToTry = listOf("heater_generic chamber_heater", "heater_generic chamber", "heater_generic enclosure_heater", "enclosure_heater")
 
     private val uiHandler = Handler(Looper.getMainLooper())
     private val hideUiRunnable = Runnable { hideButtons() }
     private val immersiveTimeout = 5000L
-
     private var isPipWideRatio = true
 
     private val PIP_REQUEST_CODE_MAXIMIZE = 101
@@ -147,17 +150,20 @@ class WebViewActivity : AppCompatActivity() {
     private val PIP_ACTION_RESIZE = "com.shipofagony.klippshell4creality.PIP_ACTION_RESIZE"
     private var pipReceiver: BroadcastReceiver? = null
 
+    private fun getSafeString(key: String, fallback: String): String {
+        return try {
+            val id = resources.getIdentifier(key, "string", packageName)
+            if (id != 0) getString(id) else fallback
+        } catch (_: Exception) { fallback }
+    }
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedLang = prefs.getString("app_lang", "de") ?: "de"
         val locale = Locale.forLanguageTag(savedLang)
         Locale.setDefault(locale)
-
         val config = newBase.resources.configuration
         config.setLocale(locale)
-
-        val localizedContext = newBase.createConfigurationContext(config)
-        super.attachBaseContext(localizedContext)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -170,21 +176,16 @@ class WebViewActivity : AppCompatActivity() {
 
         webView = findViewById(R.id.webView)
         layoutOsd = findViewById(R.id.layoutOsd)
+        layoutOsdBanner = findViewById(R.id.layoutOsdBanner)
         layoutWebButtons = findViewById(R.id.layoutWebButtons)
         containerWebNotification = findViewById(R.id.containerWebNotification)
-
         btnMenu = findViewById(R.id.btnWebMenu)
         btnToggle = findViewById(R.id.btnWebToggle)
         btnClose = findViewById(R.id.btnWebClose)
-
         layoutScreensaver = findViewById(R.id.layoutScreensaver)
         ivScreensaverLogo = findViewById(R.id.ivScreensaverLogo)
 
-        layoutScreensaver.setOnClickListener {
-            if (layoutScreensaver.visibility == View.VISIBLE) {
-                deactivateScreensaver()
-            }
-        }
+        layoutScreensaver.setOnClickListener { if (layoutScreensaver.visibility == View.VISIBLE) deactivateScreensaver() }
 
         tvOsdExtruder = findViewById(R.id.tvOsdExtruder)
         tvOsdBed = findViewById(R.id.tvOsdBed)
@@ -196,61 +197,45 @@ class WebViewActivity : AppCompatActivity() {
         tvOsdProgress = findViewById(R.id.tvOsdProgress)
         tvOsdTime = findViewById(R.id.tvOsdTime)
 
+        tvOsdExtruderBanner = findViewById(R.id.tvOsdExtruderBanner)
+        tvOsdBedBanner = findViewById(R.id.tvOsdBedBanner)
+        tvOsdChamberSensorBanner = findViewById(R.id.tvOsdChamberSensorBanner)
+        tvOsdChamberHeaterBanner = findViewById(R.id.tvOsdChamberHeaterBanner)
+        tvOsdFanModelBanner = findViewById(R.id.tvOsdFanModelBanner)
+        tvOsdFanAuxBanner = findViewById(R.id.tvOsdFanAuxBanner)
+        tvOsdFanChamberBanner = findViewById(R.id.tvOsdFanChamberBanner)
+        tvOsdProgressBanner = findViewById(R.id.tvOsdProgressBanner)
+        tvOsdTimeBanner = findViewById(R.id.tvOsdTimeBanner)
+
         applySeichterOsdBackground()
 
         webView?.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
-                if (layoutScreensaver.visibility == View.VISIBLE) {
-                    deactivateScreensaver()
-                } else {
-                    resetInactivityTimer()
-                    showButtons()
-                }
+                if (layoutScreensaver.visibility == View.VISIBLE) deactivateScreensaver()
+                else { resetInactivityTimer(); showButtons() }
             }
             false
         }
 
-        // GEFIXT: view.strokeWidth und view.strokeColor wurden hier sauber qualifiziert (v ersetzt durch view)
         val tvFocusListener = View.OnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
                 showButtons()
                 view.animate().scaleX(1.1f).scaleY(1.1f).alpha(1.0f).translationZ(8f).setDuration(150).start()
-                if (view is MaterialButton) {
-                    view.strokeWidth = 8
-                    view.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-                }
+                if (view is MaterialButton) { view.strokeWidth = 8; view.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50")) }
             } else {
                 view.animate().scaleX(1.0f).scaleY(1.0f).alpha(0.8f).translationZ(0f).setDuration(150).start()
-                if (view is MaterialButton) {
-                    view.strokeWidth = 0
-                }
+                if (view is MaterialButton) view.strokeWidth = 0
             }
         }
 
-        arrayOf(btnMenu, btnToggle, btnClose).forEach { btn ->
-            btn.isFocusable = true
-            btn.alpha = 0.8f
-            btn.onFocusChangeListener = tvFocusListener
-        }
-
-        webView?.settings?.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-        }
+        arrayOf<MaterialButton>(btnMenu, btnToggle, btnClose).forEach { btn -> btn.isFocusable = true; btn.alpha = 0.8f; btn.onFocusChangeListener = tvFocusListener }
+        webView?.settings?.apply { javaScriptEnabled = true; domStorageEnabled = true; mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW }
 
         val printerIp = intent.getStringExtra("PRINTER_IP") ?: "127.0.0.1"
         val printerPort = intent.getStringExtra("PRINTER_PORT") ?: "7125"
         val isCameraDefault = intent.getBooleanExtra("IS_CAMERA_VIEW", false)
 
-        if (currentActiveUrl.isEmpty()) {
-            currentActiveUrl = if (isCameraDefault) {
-                "http://$printerIp:$printerPort/camera.html"
-            } else {
-                "http://$printerIp:$printerPort"
-            }
-        }
-
+        if (currentActiveUrl.isEmpty()) { currentActiveUrl = if (isCameraDefault) "http://$printerIp:$printerPort/camera.html" else "http://$printerIp:$printerPort" }
         val hostIp = Uri.parse(currentActiveUrl).host ?: printerIp
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedRatio = try { prefs.getFloat("camera_ratio_$hostIp", 56.25f) } catch(e: Exception) { 56.25f }
@@ -259,449 +244,205 @@ class WebViewActivity : AppCompatActivity() {
         loadStreamOrUrl(currentActiveUrl, savedRatio)
         showButtons()
 
-        val defaultTimeout = 120 * 60 * 1000L
-        val globalFallback = prefs.getLong("screensaver_timeout_global_fallback", defaultTimeout)
-        val savedSaverTime = prefs.getLong("screensaver_timeout_$hostIp", globalFallback)
-
-        if (savedSaverTime > 0L) {
-            screensaverTimeoutMs = savedSaverTime
-            resetInactivityTimer()
-        }
+        val globalFallback = prefs.getLong("screensaver_timeout_global_fallback", 120 * 60 * 1000L)
+        screensaverTimeoutMs = prefs.getLong("screensaver_timeout_$hostIp", globalFallback)
+        if (screensaverTimeoutMs > 0L) resetInactivityTimer()
 
         btnMenu.setOnClickListener {
             if (isCameraMode) {
-                val osdOptionText = getString(if (isOsdEnabled) R.string.menu_osd_hide else R.string.menu_osd_show)
+                val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+                val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+                dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+                dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getSafeString("menu_options_title", "Optionen")
+                val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+                val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
-                val menuOptions = arrayOf(
-                    osdOptionText,
-                    getString(R.string.menu_pip_name),
-                    getString(R.string.menu_light_control),
-                    getString(R.string.menu_screensaver),
-                    getString(R.string.menu_ratio_title),
-                    getString(R.string.menu_change_camera_type),
-                    getString(R.string.menu_emergency_stop)
-                )
-                val menuColors = arrayOf<String?>(null, null, null, null, null, null, "#E53935")
+                val btnStyleListener = View.OnFocusChangeListener { v, hF ->
+                    if (hF) { v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 8; v.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50")) }
+                    else { v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 0 }
+                }
 
-                showPillDialog(getString(R.string.menu_options_title), menuOptions, menuColors) { which ->
-                    val uri = Uri.parse(currentActiveUrl)
-                    val hostIpAddress = uri.host ?: printerIp
-                    val initialPort = uri.port.takeIf { it != -1 } ?: 7125
+                // =========================================================================
+                //  NATIVE HORIZONTALE SPLIT-PILLE (LINKS: EIN/AUS | RECHTS: STIL-WECHSEL)
+                // =========================================================================
+                val splitRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) } }
 
-                    when (which) {
-                        0 -> {
-                            isOsdEnabled = !isOsdEnabled
-                            getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-                                .edit().putBoolean("osd_enabled_$hostIpAddress", isOsdEnabled).apply()
+                val btnLeftToggle = MaterialButton(this).apply {
+                    text = "OSD: " + if (isOsdEnabled) "AN" else "AUS"
+                    isAllCaps = false; textSize = 15f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isOsdEnabled) "#4CAF50" else if (isNight) "#33FFFFFF" else "#1A888888"))
+                    setTextColor(Color.WHITE); isFocusable = true; onFocusChangeListener = btnStyleListener
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 8 }
+                    setOnClickListener {
+                        isOsdEnabled = !isOsdEnabled; prefs.edit().putBoolean("osd_enabled_$hostIp", isOsdEnabled).apply()
+                        if (isOsdEnabled) {
+                            val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+                            if (osdStyle == "banner") { layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.VISIBLE } else { layoutOsd.visibility = View.VISIBLE; layoutOsdBanner.visibility = View.GONE }
+                            startOsdPolling()
+                        } else { layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE; stopOsdPolling() }
+                        dialog.dismiss()
+                    }
+                }
 
-                            if (isOsdEnabled && isCameraMode) {
-                                layoutOsd.visibility = View.VISIBLE
-                                startOsdPolling()
-                            } else {
-                                layoutOsd.visibility = View.GONE
-                                stopOsdPolling()
-                            }
-                        }
-                        1 -> {
-                            enterPipMode()
-                        }
-                        2 -> {
-                            isLightOn = !isLightOn
-                            sendLightCommand(isLightOn)
-                        }
-                        3 -> {
-                            val timeOptions = arrayOf(
-                                getString(R.string.screensaver_now),
-                                getString(R.string.screensaver_30),
-                                getString(R.string.screensaver_60),
-                                getString(R.string.screensaver_90),
-                                getString(R.string.screensaver_120),
-                                getString(R.string.screensaver_off)
-                            )
-                            showScreensaverPillDialog(getString(R.string.screensaver_title), timeOptions) { timeIndex ->
-                                when (timeIndex) {
-                                    0 -> {
-                                        isInstantScreensaverActive = true
-                                        activateScreensaver()
-                                        return@showScreensaverPillDialog
-                                    }
-                                    1 -> { screensaverTimeoutMs = 30 * 60 * 1000L }
-                                    2 -> { screensaverTimeoutMs = 60 * 60 * 1000L }
-                                    3 -> { screensaverTimeoutMs = 90 * 60 * 1000L }
-                                    4 -> { screensaverTimeoutMs = 120 * 60 * 1000L }
-                                    5 -> { screensaverTimeoutMs = 0L }
-                                }
-                                isInstantScreensaverActive = false
-                                prefs.edit().putLong("screensaver_timeout_$hostIpAddress", screensaverTimeoutMs).apply()
-                                prefs.edit().putLong("screensaver_timeout_global_fallback", screensaverTimeoutMs).apply()
-                                resetInactivityTimer()
-                            }
-                        }
-                        4 -> {
-                            val ratioOptions = arrayOf(
-                                getString(R.string.ratio_16_9_new),
-                                getString(R.string.ratio_4_3_new),
-                                getString(R.string.ratio_1_1_new)
-                            )
-                            showPillDialog(getString(R.string.menu_ratio_title), ratioOptions) { ratioIndex ->
-                                val targetRatio = when(ratioIndex) {
-                                    0 -> 56.25f
-                                    1 -> 75.0f
-                                    else -> 100.0f
-                                }
-                                getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-                                    .edit().putFloat("camera_ratio_$hostIpAddress", targetRatio).apply()
-                                loadStreamOrUrl(currentActiveUrl, targetRatio)
-                            }
-                        }
-                        5 -> {
-                            val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIpAddress", initialPort)
-                            val camOptions = arrayOf(
-                                getString(R.string.camera_type_html_new),
-                                getString(R.string.camera_type_port_new),
-                                getString(R.string.camera_type_webcam_new)
-                            )
-                            showPillDialog(getString(R.string.menu_change_camera_type), camOptions) { camIndex ->
-                                val newUrl = when(camIndex) {
-                                    0 -> "http://$hostIpAddress:$savedDashboardPort/camera.html"
-                                    1 -> "http://$hostIpAddress:8080/?action=stream"
-                                    else -> "http://$hostIpAddress:$savedDashboardPort/webcam/?action=stream"
-                                }
-                                loadStreamOrUrl(newUrl, 56.25f)
-                            }
-                        }
-                        6 -> {
-                            val stopOptions = arrayOf(getString(R.string.dialog_stop_confirm), getString(R.string.dialog_cancel))
-                            val stopColors = arrayOf<String?>("#E53935", null)
-
-                            showPillDialog(getString(R.string.dialog_stop_title), stopOptions, stopColors) { confirm ->
-                                if (confirm == 0) sendEmergencyStop()
-                            }
+                val currentStyleName = if ((prefs.getString("osd_style_$hostIp", "box") ?: "box") == "banner") getSafeString("osd_style_banner", "Leiste") else getSafeString("osd_style_box", "Box")
+                val btnRightStyle = MaterialButton(this).apply {
+                    text = getSafeString("menu_osd_style_title", "Stil") + ": " + currentStyleName
+                    isAllCaps = false; textSize = 15f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
+                    setTextColor(if (isNight) Color.WHITE else Color.BLACK); isFocusable = true; onFocusChangeListener = btnStyleListener
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = 8 }
+                    setOnClickListener {
+                        dialog.dismiss()
+                        showPillDialog(getSafeString("menu_osd_style_title", "OSD Stil"), arrayOf(getSafeString("osd_style_box", "Kompakte Box"), getSafeString("osd_style_banner", "Flexible Leiste"))) { styleIndex ->
+                            prefs.edit().putString("osd_style_$hostIp", if (styleIndex == 0) "box" else "banner").apply()
+                            applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
                         }
                     }
                 }
-            } else {
-                val stopOptions = arrayOf(getString(R.string.dialog_stop_confirm), getString(R.string.dialog_cancel))
-                val stopColors = arrayOf<String?>("#E53935", null)
-                showPillDialog(getString(R.string.dialog_stop_title), stopOptions, stopColors) { confirm ->
-                    if (confirm == 0) sendEmergencyStop()
+
+                splitRow.addView(btnLeftToggle)
+                splitRow.addView(btnRightStyle)
+                container?.addView(splitRow)
+
+                val menuOptions = arrayOf(getSafeString("menu_pip_name", "PiP"), getSafeString("menu_light_control", "Licht"), getSafeString("menu_screensaver", "Schoner"), getSafeString("menu_ratio_title", "Format"), getSafeString("menu_change_camera_type", "Kamera-Typ"), getSafeString("menu_emergency_stop", "NOT-STOPP"))
+                menuOptions.forEachIndexed { idx, optText ->
+                    val btn = MaterialButton(this).apply {
+                        text = optText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                        backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (idx == 5) "#E53935" else if (isNight) "#33FFFFFF" else "#1A888888"))
+                        setTextColor(Color.WHITE); isFocusable = true; onFocusChangeListener = btnStyleListener
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
+                        setOnClickListener {
+                            dialog.dismiss()
+                            when (idx) {
+                                0 -> enterPipMode()
+                                1 -> { isLightOn = !isLightOn; sendLightCommand(isLightOn) }
+                                2 -> {
+                                    showScreensaverPillDialog(getSafeString("screensaver_title", "Timeout"), arrayOf(getSafeString("screensaver_now", "Jetzt"), "30 Min", "60 Min", "90 Min", "120 Min", getSafeString("screensaver_off", "Aus"))) { tIdx ->
+                                        screensaverTimeoutMs = when (tIdx) { 0 -> { isInstantScreensaverActive = true; activateScreensaver(); return@showScreensaverPillDialog }; 1 -> 30 * 60 * 1000L; 2 -> 60 * 60 * 1000L; 3 -> 90 * 60 * 1000L; 4 -> 120 * 60 * 1000L; else -> 0L }
+                                        isInstantScreensaverActive = false; prefs.edit().putLong("screensaver_timeout_$hostIp", screensaverTimeoutMs).putLong("screensaver_timeout_global_fallback", screensaverTimeoutMs).apply(); resetInactivityTimer()
+                                    }
+                                }
+                                3 -> showPillDialog(getSafeString("menu_ratio_title", "Format"), arrayOf("16:9", "4:3", "1:1")) { rIdx -> loadStreamOrUrl(currentActiveUrl, when(rIdx) { 0 -> 56.25f; 1 -> 75.0f; else -> 100.0f }) }
+                                4 -> {
+                                    val localInitialPort = Uri.parse(currentActiveUrl).port.takeIf { it != -1 } ?: 7125
+                                    val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIp", localInitialPort)
+                                    showPillDialog(getSafeString("menu_change_camera_type", "Kamera-Typ"), arrayOf("Web-Ansicht", "Stream Port 8080", "Webcam-Pfad")) { camIdx -> loadStreamOrUrl(when(camIdx) { 0 -> "http://$hostIp:$savedDashboardPort/camera.html"; 1 -> "http://$hostIp:8080/?action=stream"; else -> "http://$hostIp:$savedDashboardPort/webcam/?action=stream" }, 56.25f) }
+                                }
+                                5 -> showPillDialog(getSafeString("dialog_stop_title", "NOT-STOPP"), arrayOf(getSafeString("dialog_stop_confirm", "Ja"), getSafeString("dialog_cancel", "Nein")), arrayOf("#E53935", null)) { if (it == 0) sendEmergencyStop() }
+                            }
+                        }
+                    }
+                    container?.addView(btn)
                 }
-            }
+                dialog.show()
+            } else { showPillDialog(getSafeString("dialog_stop_title", "NOT-STOPP"), arrayOf(getSafeString("dialog_stop_confirm", "Ja"), getSafeString("dialog_cancel", "Nein")), arrayOf("#E53935", null)) { if (it == 0) sendEmergencyStop() } }
         }
 
         btnMenu.setOnLongClickListener {
             if (isCameraMode && isOsdEnabled) {
-                val positionOptions = arrayOf(
-                    getString(R.string.osd_pos_top_left),
-                    getString(R.string.osd_pos_top_center),
-                    getString(R.string.osd_pos_top_right),
-                    getString(R.string.osd_pos_bottom_center)
-                )
-                showPillDialog(getString(R.string.osd_position_title), positionOptions) { index ->
-                    val uri = Uri.parse(currentActiveUrl)
-                    val hostIpAddress = uri.host ?: printerIp
-
-                    val posStr = when(index) {
-                        0 -> "top_left"
-                        1 -> "top_center"
-                        2 -> "top_right"
-                        else -> "bottom_center"
-                    }
-                    getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-                        .edit().putString("osd_position_$hostIpAddress", posStr).apply()
-
-                    applyOsdPositionAndStyle(posStr)
-                    showCenteredPillToast(getString(R.string.toast_position_saved))
+                val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+                val positionOptions = if (osdStyle == "banner") arrayOf(getSafeString("osd_pos_banner_top", "Oben"), getSafeString("osd_pos_banner_bottom", "Unten"), getSafeString("osd_pos_banner_left", "Links"), getSafeString("osd_pos_banner_right", "Rechts")) else arrayOf("Oben Links", "Oben Mitte", "Oben Rechts", "Unten Mitte")
+                showPillDialog(getSafeString("osd_position_title", "OSD Position"), positionOptions) { index ->
+                    val posStr = if (osdStyle == "banner") when(index) { 0 -> "top"; 1 -> "bottom"; 2 -> "left"; else -> "right" } else when(index) { 0 -> "top_left"; 1 -> "top_center"; 2 -> "top_right"; else -> "bottom_center" }
+                    prefs.edit().putString("osd_position_$hostIp", posStr).apply(); applyOsdPositionAndStyle(posStr); showCenteredPillToast("Saved ✓")
                 }
                 true
-            } else {
-                showCenteredPillToast(getString(R.string.toast_position_fullscreen_only))
-                true
-            }
+            } else { showCenteredPillToast("Fullscreen only"); true }
         }
 
         btnToggle.setOnClickListener {
-            val uri = Uri.parse(currentActiveUrl)
-            val hostIpAddress = uri.host ?: printerIp
-            val initialPort = uri.port.takeIf { it != -1 } ?: 7125
-            val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIpAddress", initialPort)
-
-            if (isCameraMode) {
-                loadStreamOrUrl("http://$hostIpAddress:$savedDashboardPort", 56.25f)
-                showCenteredPillToast(getString(R.string.toast_loading_dashboard))
-            } else {
-                val savedRatio = try { prefs.getFloat("camera_ratio_$hostIpAddress", 56.25f) } catch(e: Exception) { 56.25f }
-                val fallbackUrl = if (lastCameraUrl.isNotEmpty()) lastCameraUrl else "http://$hostIpAddress:$savedDashboardPort/camera.html"
-                loadStreamOrUrl(fallbackUrl, savedRatio)
-                showCenteredPillToast(getString(R.string.toast_loading_livestream))
-            }
+            val sPort = prefs.getInt("saved_dashboard_port_$hostIp", Uri.parse(currentActiveUrl).port.takeIf { it != -1 } ?: 7125)
+            if (isCameraMode) { loadStreamOrUrl("http://$hostIp:$sPort", 56.25f); showCenteredPillToast("Dashboard...") }
+            else { loadStreamOrUrl(if (lastCameraUrl.isNotEmpty()) lastCameraUrl else "http://$hostIp:$sPort/camera.html", prefs.getFloat("camera_ratio_$hostIp", 56.25f)); showCenteredPillToast("Livestream...") }
         }
 
         btnToggle.setOnLongClickListener {
             if (isCameraMode) {
-                val dashboardOptions = arrayOf(getString(R.string.system_creality), getString(R.string.system_standard))
-                showPillDialog(getString(R.string.choose_default_view_title), dashboardOptions) { whichDash ->
-                    val uri = Uri.parse(currentActiveUrl)
-                    val hostIpAddress = uri.host ?: printerIp
-                    val targetPort = if (whichDash == 0) 4408 else 7125
-
-                    prefs.edit().putInt("saved_dashboard_port_$hostIpAddress", targetPort).apply()
-                    loadStreamOrUrl("http://$hostIpAddress:$targetPort", 56.25f)
-                }
+                showPillDialog("Standard-Port", arrayOf("Creality OS (4408)", "MainSail/Fluidd (7125)")) { whichDash -> prefs.edit().putInt("saved_dashboard_port_$hostIp", if (whichDash == 0) 4408 else 7125).apply(); loadStreamOrUrl("http://$hostIp:" + if (whichDash == 0) "4408" else "7125", 56.25f) }
                 true
             } else false
         }
-
         btnClose.setOnClickListener { finish() }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updatePipActions() {
         val actions = ArrayList<RemoteAction>()
-
-        val maxIntent = Intent(PIP_ACTION_MAXIMIZE).setPackage(packageName)
-        val maxPendingIntent = PendingIntent.getBroadcast(
-            this, PIP_REQUEST_CODE_MAXIMIZE, maxIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val maxIcon = Icon.createWithResource(this, android.R.drawable.ic_menu_revert)
-        val maxAction = RemoteAction(maxIcon, getString(R.string.menu_pip_name), getString(R.string.menu_pip_name), maxPendingIntent)
-        actions.add(maxAction)
-
-        val resizeIntent = Intent(PIP_ACTION_RESIZE).setPackage(packageName)
-        val resizePendingIntent = PendingIntent.getBroadcast(
-            this, PIP_REQUEST_CODE_RESIZE, resizeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val resizeIcon = Icon.createWithResource(this, android.R.drawable.ic_menu_crop)
-        val resizeAction = RemoteAction(resizeIcon, getString(R.string.btn_pip_resize), getString(R.string.btn_pip_resize), resizePendingIntent)
-        actions.add(resizeAction)
-
-        val pipParams = PictureInPictureParams.Builder()
-            .setActions(actions)
-            .setAspectRatio(if (isPipWideRatio) Rational(16, 9) else Rational(1, 1))
-            .build()
-
-        setPictureInPictureParams(pipParams)
+        val maxPendingIntent = PendingIntent.getBroadcast(this, PIP_REQUEST_CODE_MAXIMIZE, Intent(PIP_ACTION_MAXIMIZE).setPackage(packageName), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        actions.add(RemoteAction(Icon.createWithResource(this, android.R.drawable.ic_menu_revert), "Maximize", "Maximize", maxPendingIntent))
+        val resizePendingIntent = PendingIntent.getBroadcast(this, PIP_REQUEST_CODE_RESIZE, Intent(PIP_ACTION_RESIZE).setPackage(packageName), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        actions.add(RemoteAction(Icon.createWithResource(this, android.R.drawable.ic_menu_crop), "Resize", "Resize", resizePendingIntent))
+        setPictureInPictureParams(PictureInPictureParams.Builder().setActions(actions).setAspectRatio(if (isPipWideRatio) Rational(16, 9) else Rational(1, 1)).build())
     }
 
     private fun enterPipMode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
-                val aspectRatio = Rational(16, 9)
-                val pipParams = PictureInPictureParams.Builder()
-                    .setAspectRatio(aspectRatio)
-                    .build()
-                try {
-                    val entered = enterPictureInPictureMode(pipParams)
-                    if (entered) {
-                        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as android.app.UiModeManager
-                        val isTV = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-
-                        if (!isTV) {
-                            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-                                addCategory(Intent.CATEGORY_HOME)
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            }
-                            startActivity(homeIntent)
-                        } else {
-                            moveTaskToBack(true)
-                        }
-                    }
-                } catch (e: Exception) {
-                    showCenteredPillToast("PiP konnte nicht gestartet werden")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            try {
+                if (enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())) {
+                    if ((getSystemService(Context.UI_MODE_SERVICE) as android.app.UiModeManager).currentModeType != Configuration.UI_MODE_TYPE_TELEVISION) {
+                        startActivity(Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_HOME); flags = Intent.FLAG_ACTIVITY_NEW_TASK })
+                    } else moveTaskToBack(true)
                 }
-            } else {
-                showCenteredPillToast("PiP wird von diesem TV-Gerät nicht unterstützt")
-            }
-        } else {
-            showCenteredPillToast("PiP wird von diesem Gerät nicht unterstützt")
-        }
+            } catch (_: Exception) { showCenteredPillToast("PiP Error") }
+        } else showCenteredPillToast("Not supported")
     }
 
-    private fun togglePipWindowSize() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            isPipWideRatio = !isPipWideRatio
-            updatePipActions()
-        }
-    }
+    private fun togglePipWindowSize() { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { isPipWideRatio = !isPipWideRatio; updatePipActions() } }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-
         if (isInPictureInPictureMode) {
-            uiHandler.removeCallbacks(hideUiRunnable)
-            screensaverHandler.removeCallbacks(startScreensaverRunnable)
-
-            layoutWebButtons.visibility = View.GONE
-            layoutOsd.visibility = View.GONE
-            containerWebNotification?.visibility = View.GONE
-            layoutScreensaver.visibility = View.GONE
-
-            webView?.layoutParams?.let { lp ->
-                if (lp is ConstraintLayout.LayoutParams) {
-                    lp.dimensionRatio = null
-                    lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                    lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT
-                    webView?.layoutParams = lp
-                }
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                updatePipActions()
-            }
-
-            pipReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    if (intent == null) return
-                    when (intent.action) {
-                        PIP_ACTION_MAXIMIZE -> {
-                            val maxIntent = Intent(this@WebViewActivity, WebViewActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                            }
-                            startActivity(maxIntent)
-                        }
-                        PIP_ACTION_RESIZE -> {
-                            togglePipWindowSize()
-                        }
-                    }
-                }
-            }
-            val filter = IntentFilter().apply {
-                addAction(PIP_ACTION_MAXIMIZE)
-                addAction(PIP_ACTION_RESIZE)
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(pipReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                registerReceiver(pipReceiver, filter)
-            }
-
-            if (pollingJob == null || !pollingJob!!.isActive) {
-                if (isOsdEnabled) {
-                    startOsdPolling()
-                }
-            }
-
+            uiHandler.removeCallbacks(hideUiRunnable); screensaverHandler.removeCallbacks(startScreensaverRunnable)
+            layoutWebButtons.visibility = View.GONE; layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE; containerWebNotification?.visibility = View.GONE; layoutScreensaver.visibility = View.GONE
+            webView?.layoutParams = (webView?.layoutParams as ConstraintLayout.LayoutParams).apply { dimensionRatio = null; width = ConstraintLayout.LayoutParams.MATCH_PARENT; height = ConstraintLayout.LayoutParams.MATCH_PARENT }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) updatePipActions()
+            pipReceiver = object : BroadcastReceiver() { override fun onReceive(c: Context?, i: Intent?) { when (i?.action) { PIP_ACTION_MAXIMIZE -> startActivity(Intent(this@WebViewActivity, WebViewActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT }); PIP_ACTION_RESIZE -> togglePipWindowSize() } } }
+            registerReceiver(pipReceiver, IntentFilter().apply { addAction(PIP_ACTION_MAXIMIZE); addAction(PIP_ACTION_RESIZE) })
+            if (pollingJob == null || !pollingJob!!.isActive) if (isOsdEnabled) startOsdPolling()
         } else {
-            try {
-                pipReceiver?.let { unregisterReceiver(it) }
-            } catch (_: Exception) {}
-            pipReceiver = null
-
-            layoutWebButtons.visibility = View.VISIBLE
-            containerWebNotification?.visibility = View.VISIBLE
+            try { pipReceiver?.let { unregisterReceiver(it) } } catch (_: Exception) {}
+            pipReceiver = null; layoutWebButtons.visibility = View.VISIBLE; containerWebNotification?.visibility = View.VISIBLE
             if (isOsdEnabled && isCameraMode) {
-                layoutOsd.visibility = View.VISIBLE
+                if (getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).getString("osd_style_${Uri.parse(currentActiveUrl).host ?: ""}", "box") == "banner") layoutOsdBanner.visibility = View.VISIBLE else layoutOsd.visibility = View.VISIBLE
                 startOsdPolling()
-            } else {
-                layoutOsd.visibility = View.GONE
             }
-
-            webView?.layoutParams?.let { lp ->
-                if (lp is ConstraintLayout.LayoutParams) {
-                    if (isCameraMode) {
-                        when (currentAspectRatioPercent) {
-                            75.0f -> { lp.dimensionRatio = "H,4:3" }
-                            100.0f -> { lp.dimensionRatio = "H,1:1" }
-                            else -> { lp.dimensionRatio = "H,16:9" }
-                        }
-                        lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                        lp.height = 0
-                    } else {
-                        lp.dimensionRatio = null
-                        lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                        lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT
-                    }
-                    webView?.layoutParams = lp
-                }
-            }
-
-            showButtons()
-            resetInactivityTimer()
+            webView?.layoutParams = (webView?.layoutParams as ConstraintLayout.LayoutParams).apply { if (isCameraMode) { dimensionRatio = when (currentAspectRatioPercent) { 75.0f -> "H,4:3"; 100.0f -> "H,1:1"; else -> "H,16:9" }; width = ConstraintLayout.LayoutParams.MATCH_PARENT; height = 0 } else { dimensionRatio = null; width = ConstraintLayout.LayoutParams.MATCH_PARENT; height = ConstraintLayout.LayoutParams.MATCH_PARENT } }
+            showButtons(); resetInactivityTimer()
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (!isInPictureInPictureMode) {
-            showButtons()
-            resetInactivityTimer()
-            btnToggle.post { btnToggle.requestFocus() }
-        }
-    }
-
-    override fun onUserInteraction() {
-        super.onUserInteraction()
-        if (layoutScreensaver.visibility == View.VISIBLE) {
-            deactivateScreensaver()
-        }
-    }
-
+    override fun onResume() { super.onResume(); if (!isInPictureInPictureMode) { showButtons(); resetInactivityTimer(); btnToggle.post { btnToggle.requestFocus() } } }
+    override fun onUserInteraction() { super.onUserInteraction(); if (layoutScreensaver.visibility == View.VISIBLE) deactivateScreensaver() }
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (isInPictureInPictureMode) return super.onKeyDown(keyCode, event)
-
-        if (layoutScreensaver.visibility == View.VISIBLE) {
-            deactivateScreensaver()
-            return true
-        }
+        if (layoutScreensaver.visibility == View.VISIBLE) { deactivateScreensaver(); return true }
         resetInactivityTimer()
-        when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
-            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
-            KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER -> {
-                showButtons()
-            }
-        }
+        if (keyCode in listOf(KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER)) showButtons()
         return super.onKeyDown(keyCode, event)
     }
 
-    private fun resetInactivityTimer() {
-        screensaverHandler.removeCallbacks(startScreensaverRunnable)
-        if (isCameraMode && screensaverTimeoutMs > 0L && layoutScreensaver.visibility != View.VISIBLE && !isInPictureInPictureMode) {
-            screensaverHandler.postDelayed(startScreensaverRunnable, screensaverTimeoutMs)
-        }
-    }
-
+    private fun resetInactivityTimer() { screensaverHandler.removeCallbacks(startScreensaverRunnable); if (isCameraMode && screensaverTimeoutMs > 0L && layoutScreensaver.visibility != View.VISIBLE && !isInPictureInPictureMode) screensaverHandler.postDelayed(startScreensaverRunnable, screensaverTimeoutMs) }
     private fun activateScreensaver() {
         if (isInPictureInPictureMode) return
         screensaverHandler.removeCallbacks(startScreensaverRunnable)
-
         uiHandler.removeCallbacks(hideUiRunnable)
         layoutWebButtons.visibility = View.GONE
         layoutOsd.visibility = View.GONE
-
+        layoutOsdBanner.visibility = View.GONE
         layoutScreensaver.visibility = View.VISIBLE
         layoutScreensaver.bringToFront()
         layoutScreensaver.requestFocus()
 
         screensaverJob?.cancel()
         screensaverJob = lifecycleScope.launch(Dispatchers.Main) {
-            var posX = 150f
-            var posY = 150f
-            var speedX = 0.4f
-            var speedY = 0.3f
-
+            var posX = 150f; var posY = 150f; var speedX = 0.4f; var speedY = 0.3f
             while (isActive) {
-                val screenWidth = layoutScreensaver.width
-                val screenHeight = layoutScreensaver.height
-                val logoWidth = ivScreensaverLogo.width
-                val logoHeight = ivScreensaverLogo.height
-
-                if (screenWidth > 0 && screenHeight > 0 && logoWidth > 0 && logoHeight > 0) {
-                    posX += speedX
-                    posY += speedY
-
-                    if (posX <= 0 || posX + logoWidth >= screenWidth) {
-                        speedX *= -1
-                        posX = posX.coerceIn(0f, (screenWidth - logoWidth).toFloat())
-                    }
-                    if (posY <= 0 || posY + logoHeight >= screenHeight) {
-                        speedY *= -1
-                        posY = posY.coerceIn(0f, (screenHeight - logoHeight).toFloat())
-                    }
-
-                    ivScreensaverLogo.x = posX
-                    ivScreensaverLogo.y = posY
+                val sw = layoutScreensaver.width; val sh = layoutScreensaver.height; val lw = ivScreensaverLogo.width; val lh = ivScreensaverLogo.height
+                if (sw > 0 && sh > 0 && lw > 0 && lh > 0) {
+                    posX += speedX; posY += speedY
+                    if (posX <= 0 || posX + lw >= sw) { speedX *= -1; posX = posX.coerceIn(0f, (sw - lw).toFloat()) }
+                    if (posY <= 0 || posY + lh >= sh) { speedY *= -1; posY = posY.coerceIn(0f, (sh - lh).toFloat()) }
+                    ivScreensaverLogo.x = posX; ivScreensaverLogo.y = posY
                 }
                 delay(32)
             }
@@ -709,93 +450,42 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun deactivateScreensaver() {
-        screensaverJob?.cancel()
-        screensaverJob = null
-        layoutScreensaver.visibility = View.GONE
-
-        if (isInstantScreensaverActive) {
-            isInstantScreensaverActive = false
-            val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-            val defaultTimeout = 120 * 60 * 1000L
-            val globalFallback = prefs.getLong("screensaver_timeout_global_fallback", defaultTimeout)
-            screensaverTimeoutMs = globalFallback
-        }
-
+        screensaverJob?.cancel(); screensaverJob = null; layoutScreensaver.visibility = View.GONE
+        if (isInstantScreensaverActive) { isInstantScreensaverActive = false; screensaverTimeoutMs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).getLong("screensaver_timeout_global_fallback", 120 * 60 * 1000L) }
         resetInactivityTimer()
-
-        if (isOsdEnabled) layoutOsd.visibility = View.VISIBLE
-        showButtons()
-        btnToggle.requestFocus()
+        if (isOsdEnabled) {
+            val osdStyle = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).getString("osd_style_${Uri.parse(currentActiveUrl).host ?: ""}", "box") ?: "box"
+            if (osdStyle == "banner") layoutOsdBanner.visibility = View.VISIBLE else layoutOsd.visibility = View.VISIBLE
+        }
+        showButtons(); btnToggle.requestFocus()
     }
 
     private fun updateMoonrakerUrl(hostIp: String) {
-        try {
-            cachedMoonrakerUrl = URL("http://$hostIp:7125/printer/objects/query?extruder&heater_bed&print_stats&display_status" +
-                    "&output_pin%20fan0&output_pin%20fan2&temperature_fan%20chamber_fan&output_pin%20LED$cachedChamberQueryString")
-        } catch (e: Exception) {
-            Log.e("KlippShell", "Fehler beim Erzeugen der Polling URL", e)
-            cachedMoonrakerUrl = null
-        }
+        try { cachedMoonrakerUrl = URL("http://$hostIp:7125/printer/objects/query?extruder&heater_bed&print_stats&display_status&output_pin%20fan0&output_pin%20fan2&temperature_fan%20chamber_fan&output_pin%20LED$cachedChamberQueryString") } catch (e: Exception) { cachedMoonrakerUrl = null }
     }
 
     private fun startOsdPolling() {
-        pollingJob?.cancel()
-        val uri = Uri.parse(currentActiveUrl)
-        val hostIp = uri.host ?: return
+        val hostIp = Uri.parse(currentActiveUrl).host ?: return
         updateMoonrakerUrl(hostIp)
-
-        if (!isInPictureInPictureMode) {
-            val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-            val savedPosition = prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center"
-            applyOsdPositionAndStyle(savedPosition)
-        }
-
-        pollingJob = lifecycleScope.launch(Dispatchers.IO) {
-            while (isActive) {
-                fetchMoonrakerData()
-                delay(3000)
-            }
-        }
-    }
-
-    private fun stopOsdPolling() {
+        if (!isInPictureInPictureMode) applyOsdPositionAndStyle(getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE).getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
         pollingJob?.cancel()
-        pollingJob = null
+        pollingJob = lifecycleScope.launch(Dispatchers.IO) { while (isActive) { fetchMoonrakerData(); delay(3000) } }
     }
 
-    private fun getProgressiveStepSpeed(fanSpeedPercent: Double): Float {
-        if (fanSpeedPercent <= 0.0) return 0f
-        return when {
-            fanSpeedPercent <= 25.0 -> 3.5f
-            fanSpeedPercent <= 50.0 -> 9.5f
-            fanSpeedPercent <= 75.0 -> 22.0f
-            else -> 48.0f
-        }
-    }
+    private fun stopOsdPolling() { pollingJob?.cancel(); pollingJob = null }
+    private fun getProgressiveStepSpeed(speed: Double): Float = if (speed <= 0.0) 0f else when { speed <= 25.0 -> 3.5f; speed <= 50.0 -> 9.5f; speed <= 75.0 -> 22.0f; else -> 48.0f }
 
     private fun prepareRotatedFanIcon(context: Context, resId: Int, angle: Float, isNight: Boolean): Drawable? {
-        val baseDrawable = ContextCompat.getDrawable(context, resId)?.mutate() ?: return null
-        val color = if (isNight) Color.WHITE else Color.BLACK
-        baseDrawable.setColorFilter(color, PorterDuff.Mode.SRC_IN)
+        val base = ContextCompat.getDrawable(context, resId)?.mutate() ?: return null
+        base.setColorFilter(if (isNight) Color.WHITE else Color.BLACK, PorterDuff.Mode.SRC_IN)
         val size = (18 * context.resources.displayMetrics.density).toInt()
-        baseDrawable.setBounds(0, 0, size, size)
-
-        val rotateWrapper = RotateDrawable().apply {
-            drawable = baseDrawable
-            fromDegrees = angle
-            toDegrees = angle
-            pivotX = 0.5f
-            pivotY = 0.5f
-            level = 10000
-        }
-        rotateWrapper.setBounds(0, 0, size, size)
-        return rotateWrapper
+        base.setBounds(0, 0, size, size)
+        return RotateDrawable().apply { drawable = base; fromDegrees = angle; toDegrees = angle; pivotX = 0.5f; pivotY = 0.5f; level = 10000; setBounds(0, 0, size, size) }
     }
 
     private fun prepareOsdIcon(context: Context, resId: Int, isNight: Boolean): Drawable? {
         val drawable = ContextCompat.getDrawable(context, resId)?.mutate() ?: return null
-        val color = if (isNight) Color.WHITE else Color.BLACK
-        drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN)
+        drawable.setColorFilter(if (isNight) Color.WHITE else Color.BLACK, PorterDuff.Mode.SRC_IN)
         val size = (18 * context.resources.displayMetrics.density).toInt()
         drawable.setBounds(0, 0, size, size)
         return drawable
@@ -805,192 +495,36 @@ class WebViewActivity : AppCompatActivity() {
         val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val pillView = TextView(this).apply {
-            text = message
-            textSize = 16f
-            gravity = Gravity.CENTER
-            setTextColor(if (isNight) Color.WHITE else Color.BLACK)
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = 100f
-                setColor(if (isNight) Color.parseColor("#252B2E") else Color.WHITE)
-                setStroke(4, if (isNight) Color.WHITE else Color.parseColor("#BDBDBD"))
-            }
+            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+            background = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 100f; setColor(Color.parseColor(if (isNight) "#252B2E" else "#FFFFFF")); setStroke(4, Color.parseColor(if (isNight) "#FFFFFF" else "#BDBDBD")) }
             setPadding(50, 35, 50, 35)
-            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
-                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-                setMargins(50, 0, 50, 240)
-            }
         }
-        val container = FrameLayout(this).apply { addView(pillView) }
+        val container = FrameLayout(this).apply { addView(pillView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; setMargins(50, 0, 50, 240) }) }
         rootLayout.addView(container)
         Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
-    private fun showButtons() {
-        if (layoutScreensaver.visibility == View.VISIBLE || isInPictureInPictureMode) return
-        uiHandler.removeCallbacks(hideUiRunnable)
-        if (layoutWebButtons.visibility != View.VISIBLE) {
-            layoutWebButtons.visibility = View.VISIBLE
-        }
-        layoutWebButtons.animate().alpha(1f).setDuration(250).start()
-        uiHandler.postDelayed(hideUiRunnable, immersiveTimeout)
-    }
-
-    private fun hideButtons() {
-        layoutWebButtons.animate().alpha(0f).setDuration(500).start()
-    }
-
-    private fun applySeichterOsdBackground() {
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val seichterBg = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = 24f
-            if (isNight) {
-                setColor(Color.parseColor("#B3212529"))
-                setStroke(3, Color.parseColor("#40FFFFFF"))
-            } else {
-                setColor(Color.parseColor("#73FAFAFA"))
-                setStroke(3, Color.parseColor("#33000000"))
-            }
-        }
-        layoutOsd.background = seichterBg
-    }
-
-    private fun resetPrintTriggers() {
-        hasTrigFirstLayer = false
-        hasTrig50 = false
-        hasTrig75 = false
-        hasTrig90 = false
-        hasTrig100 = false
-        hasTrigOffline = false
-        lastPrintState = ""
-
-        lastExtruderTemp = -1.0
-        lastExtruderTarget = -1.0
-        lastBedTemp = -1.0
-        lastBedTarget = -1.0
-        lastChamberTemp = -1.0
-        lastChamberHeaterTemp = -1.0
-        lastChamberHeaterTarget = -1.0
-        lastFanModelSpeed = -1.0
-        lastFanAuxSpeed = -1.0
-        lastFanChamberSpeed = -1.0
-        lastProgressPercent = -1.0
-        lastDurationSeconds = -1
-    }
-
-    private fun loadStreamOrUrl(url: String, paddingTopPercent: Float) {
-        resetPrintTriggers()
-        currentActiveUrl = url
-        currentAspectRatioPercent = paddingTopPercent
-        isCameraMode = url.contains("action=stream") || url.contains("camera.html")
-
-        if (isCameraMode) {
-            lastCameraUrl = url
-            layoutOsd.visibility = if (isOsdEnabled) View.VISIBLE else View.GONE
-            if (isOsdEnabled) {
-                startOsdPolling()
-            }
-
-            btnMenu.text = "≡"
-            btnMenu.setTextSize(TypedValue.COMPLEX_UNIT_SP, 26f)
-            btnMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#424242"))
-            btnToggle.text = "⇄"
-
-            val viewRef = webView ?: return
-            val params = viewRef.layoutParams as ConstraintLayout.LayoutParams
-            when (paddingTopPercent) {
-                75.0f -> { params.dimensionRatio = "H,4:3" }
-                100.0f -> { params.dimensionRatio = "H,1:1" }
-                else -> { params.dimensionRatio = "H,16:9" }
-            }
-            params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-            params.height = 0
-            params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-            params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-            viewRef.layoutParams = params
-
-        } else {
-            layoutOsd.visibility = View.GONE
-            stopOsdPolling()
-
-            btnMenu.text = "⚠"
-            btnMenu.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
-            btnMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
-            btnToggle.text = "⇄"
-
-            val viewRef = webView ?: return
-            val params = viewRef.layoutParams as ConstraintLayout.LayoutParams
-            params.dimensionRatio = null
-            params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-            params.height = ConstraintLayout.LayoutParams.MATCH_PARENT
-            viewRef.layoutParams = params
-        }
-        webView?.loadUrl(url)
-    }
+    private fun showButtons() { if (layoutScreensaver.visibility == View.VISIBLE || isInPictureInPictureMode) return; uiHandler.removeCallbacks(hideUiRunnable); if (layoutWebButtons.visibility != View.VISIBLE) layoutWebButtons.visibility = View.VISIBLE; layoutWebButtons.animate().alpha(1f).setDuration(250).start(); uiHandler.postDelayed(hideUiRunnable, immersiveTimeout) }
+    private fun hideButtons() { layoutWebButtons.animate().alpha(0f).setDuration(500).start() }
+    private fun applySeichterOsdBackground() { val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES; val bg = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 24f; setColor(Color.parseColor(if (isNight) "#B3212529" else "#73FAFAFA")); setStroke(3, Color.parseColor(if (isNight) "#40FFFFFF" else "#33000000")) }; layoutOsd.background = bg; layoutOsdBanner.background = bg }
+    private fun resetPrintTriggers() { hasTrigFirstLayer = false; hasTrig50 = false; hasTrig75 = false; hasTrig90 = false; hasTrig100 = false; hasTrigOffline = false; lastPrintState = ""; lastExtruderTemp = -1.0; lastExtruderTarget = -1.0; lastBedTemp = -1.0; lastBedTarget = -1.0; lastChamberTemp = -1.0; lastChamberHeaterTemp = -1.0; lastChamberHeaterTarget = -1.0; lastFanModelSpeed = -1.0; lastFanAuxSpeed = -1.0; lastFanChamberSpeed = -1.0; lastProgressPercent = -1.0; lastDurationSeconds = -1 }
 
     private fun sendLightCommand(turnOn: Boolean) {
-        val uri = Uri.parse(currentActiveUrl)
-        val hostIp = uri.host ?: return
-        val urlStr = "http://$hostIp:7125/printer/gcode/script"
-        val value = if (turnOn) "1" else "0"
-        val gcodeScript = "SET_PIN PIN=LED VALUE=$value"
-
+        val hostIp = Uri.parse(currentActiveUrl).host ?: return
+        val gcodeScript = "SET_PIN PIN=LED VALUE=" + if (turnOn) "1" else "0"
         lifecycleScope.launch(Dispatchers.IO) {
-            var conn: HttpURLConnection? = null
-            var isSuccess = false
-            try {
-                val url = URL(urlStr)
-                conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "POST"
-                conn.connectTimeout = 2000
-                conn.readTimeout = 2000
-                conn.doOutput = true
-                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-
-                val postData = "script=" + Uri.encode(gcodeScript)
-                conn.outputStream.use { os ->
-                    os.write(postData.toByteArray(Charsets.UTF_8))
-                    os.flush()
-                }
-                if (conn.responseCode == HttpURLConnection.HTTP_OK) isSuccess = true
-            } catch (_: Exception) {} finally { conn?.disconnect() }
-
-            withContext(Dispatchers.Main) {
-                if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) {
-                    if (isSuccess) showCenteredPillToast(getString(if (turnOn) R.string.menu_light_on else R.string.menu_light_off) + " ✓")
-                    else showCenteredPillToast(getString(R.string.toast_light_error))
-                }
-            }
+            var conn: HttpURLConnection? = null; var isSuccess = false
+            try { conn = (URL("http://$hostIp:7125/printer/gcode/script").openConnection() as HttpURLConnection).apply { requestMethod = "POST"; connectTimeout = 2000; readTimeout = 2000; doOutput = true; setRequestProperty("Content-Type", "application/x-www-form-urlencoded") }; conn.outputStream.use { it.write(("script=" + Uri.encode(gcodeScript)).toByteArray(Charsets.UTF_8)); it.flush() }; if (conn.responseCode == 200) isSuccess = true } catch (_: Exception) {} finally { conn?.disconnect() }
+            withContext(Dispatchers.Main) { if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) { if (isSuccess) showCenteredPillToast(getString(if (turnOn) R.string.menu_light_on else R.string.menu_light_off) + " ✓") else showCenteredPillToast(getString(R.string.toast_light_error)) } }
         }
     }
 
     private fun sendEmergencyStop() {
-        val uri = Uri.parse(currentActiveUrl)
-        val hostIp = uri.host ?: return
-        val urlStr = "http://$hostIp:7125/printer/emergency_stop"
-
+        val hostIp = Uri.parse(currentActiveUrl).host ?: return
         lifecycleScope.launch(Dispatchers.IO) {
-            var conn: HttpURLConnection? = null
-            var isSuccess = false
-            var responseCode = -1
-            try {
-                val url = URL(urlStr)
-                conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "POST"
-                conn.connectTimeout = 1500
-                conn.readTimeout = 1500
-                conn.setRequestProperty("Content-Length", "0")
-                responseCode = conn.responseCode
-                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NO_CONTENT) isSuccess = true
-            } catch (_: Exception) {} finally { conn?.disconnect() }
-
-            withContext(Dispatchers.Main) {
-                if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) {
-                    if (isSuccess) showCenteredPillToast(getString(R.string.toast_stop_success))
-                    else showCenteredPillToast(getString(R.string.toast_stop_error) + responseCode)
-                }
-            }
+            var conn: HttpURLConnection? = null; var isSuccess = false; var code = -1
+            try { conn = (URL("http://$hostIp:7125/printer/emergency_stop").openConnection() as HttpURLConnection).apply { requestMethod = "POST"; connectTimeout = 1500; readTimeout = 1500; setRequestProperty("Content-Length", "0") }; code = conn.responseCode; if (code == 200 || code == 204) isSuccess = true } catch (_: Exception) {} finally { conn?.disconnect() }
+            withContext(Dispatchers.Main) { if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) { if (isSuccess) showCenteredPillToast(getString(R.string.toast_stop_success)) else showCenteredPillToast(getString(R.string.toast_stop_error) + code) } }
         }
     }
 
@@ -998,274 +532,231 @@ class WebViewActivity : AppCompatActivity() {
         for (sensor in chamberSensorsToTry) { if (status.has(sensor)) { knownChamberSensor = sensor; break } }
         for (heater in chamberHeatersToTry) { if (status.has(heater)) { knownChamberHeater = heater; break } }
         cachedChamberQueryString = "&${Uri.encode(knownChamberSensor)}&${Uri.encode(knownChamberHeater)}"
-        val uri = Uri.parse(currentActiveUrl)
-        updateMoonrakerUrl(uri.host ?: return)
+        updateMoonrakerUrl(Uri.parse(currentActiveUrl).host ?: return)
+    }
+
+    private fun loadStreamOrUrl(url: String, paddingTopPercent: Float) {
+        resetPrintTriggers(); currentActiveUrl = url; currentAspectRatioPercent = paddingTopPercent; isCameraMode = url.contains("action=stream") || url.contains("camera.html")
+        val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE); val hostIp = Uri.parse(url).host ?: ""
+        val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+        if (isCameraMode) {
+            lastCameraUrl = url
+            if (isOsdEnabled) { if (osdStyle == "banner") { layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.VISIBLE } else { layoutOsd.visibility = View.VISIBLE; layoutOsdBanner.visibility = View.GONE }; startOsdPolling() } else { layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE }
+            btnMenu.text = "≡"; btnMenu.setTextSize(TypedValue.COMPLEX_UNIT_SP, 26f); btnMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#424242")); btnToggle.text = "⇄"
+            webView?.layoutParams = (webView?.layoutParams as ConstraintLayout.LayoutParams).apply { dimensionRatio = when (paddingTopPercent) { 75.0f -> "H,4:3"; 100.0f -> "H,1:1"; else -> "H,16:9" }; width = ConstraintLayout.LayoutParams.MATCH_PARENT; height = 0; topToTop = ConstraintLayout.LayoutParams.PARENT_ID; bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID }
+        } else {
+            layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE; stopOsdPolling()
+            btnMenu.text = "⚠"; btnMenu.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f); btnMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")); btnToggle.text = "⇄"
+            webView?.layoutParams = (webView?.layoutParams as ConstraintLayout.LayoutParams).apply { dimensionRatio = null; width = ConstraintLayout.LayoutParams.MATCH_PARENT; height = ConstraintLayout.LayoutParams.MATCH_PARENT }
+        }
+        webView?.loadUrl(url)
     }
 
     private suspend fun fetchMoonrakerData() {
         val targetUrl = cachedMoonrakerUrl ?: return
         var conn: HttpURLConnection? = null
-        val responseText = try {
-            conn = targetUrl.openConnection() as HttpURLConnection
-            conn.connectTimeout = 2000
-            conn.readTimeout = 2000
-            if (conn.responseCode == 200) conn.inputStream.bufferedReader().use { it.readText() } else ""
-        } catch (_: Exception) { "" } finally { conn?.disconnect() }
-
-        withContext(Dispatchers.Main) {
-            if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) {
-                handleMoonrakerResponse(responseText)
-            }
-        }
+        val res = try { conn = (targetUrl.openConnection() as HttpURLConnection).apply { connectTimeout = 2000; readTimeout = 2000 }; if (conn.responseCode == 200) conn.inputStream.bufferedReader().use { it.readText() } else "" } catch (_: Exception) { "" } finally { conn?.disconnect() }
+        withContext(Dispatchers.Main) { if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) handleMoonrakerResponse(res) }
     }
 
-    // GEFIXT & ERWEITERT: Reagiert jetzt vollautomatisch auf Offline-Status und alle Druck-Meilensteine
     private fun handleMoonrakerResponse(responseText: String) {
         if (responseText.isEmpty()) {
             if (!isInPictureInPictureMode) {
                 if (tvOsdProgress?.text != getString(R.string.osd_printer_offline)) {
-                    tvOsdProgress?.text = getString(R.string.osd_printer_offline)
-                    tvOsdProgress?.setTextColor(Color.parseColor("#E53935"))
-                    tvOsdTime?.text = ""
+                    tvOsdProgress?.text = getString(R.string.osd_printer_offline); tvOsdProgress?.setTextColor(Color.parseColor("#E53935")); tvOsdTime?.text = ""
+                    tvOsdProgressBanner?.text = getString(R.string.osd_printer_offline); tvOsdProgressBanner?.setTextColor(Color.parseColor("#E53935")); tvOsdTimeBanner?.text = ""
                 }
             }
-            // OFFLINE TRIGGER: Schiebt das Popup rein und feuert die akustische Alarmschleife ab
             if (!hasTrigOffline) {
                 hasTrigOffline = true
-                NotificationManager.showLivePopup(this, "popup_offline", R.string.notify_title_offline, R.string.notify_msg_offline)
+                try { NotificationManager.showLivePopup(this, "popup_offline", R.string.notify_title_offline, R.string.notify_msg_offline) } catch(_: Exception){}
                 SoundManager.playLiveNotification("sound_offline")
             }
             return
         }
 
-        hasTrigOffline = false
-        heartbeatTick = if (heartbeatTick >= 5) 1 else heartbeatTick + 1
-
+        hasTrigOffline = false; heartbeatTick = if (heartbeatTick >= 5) 1 else heartbeatTick + 1
         try {
-            val json = JSONObject(responseText)
-            val status = json.optJSONObject("result")?.optJSONObject("status") ?: return
-
-            if (heartbeatTick == 1 && (knownChamberSensor == "temperature_sensor chamber_temp" || knownChamberHeater == "heater_generic chamber_heater")) {
-                runChamberAutoSearch(status)
-            }
+            val json = JSONObject(responseText); val status = json.optJSONObject("result")?.optJSONObject("status") ?: return
+            if (heartbeatTick == 1 && (knownChamberSensor == "temperature_sensor chamber_temp" || knownChamberHeater == "heater_generic chamber_heater")) runChamberAutoSearch(status)
 
             val ledPinObj = status.optJSONObject("output_pin LED")
-            if (ledPinObj != null) {
-                isLightOn = ledPinObj.optDouble("value", 0.0) > 0.0
-            }
+            if (ledPinObj != null) isLightOn = ledPinObj.optDouble("value", 0.0) > 0.0
 
-            val extruder = status.optJSONObject("extruder")
-            val tempExtruder = extruder?.optDouble("temperature", 0.0) ?: 0.0
-            val targetExtruder = extruder?.optDouble("target", 0.0) ?: 0.0
+            val extruder = status.optJSONObject("extruder"); val tempExtruder = extruder?.optDouble("temperature", 0.0) ?: 0.0; val targetExtruder = extruder?.optDouble("target", 0.0) ?: 0.0
+            val bed = status.optJSONObject("heater_bed"); val tempBed = bed?.optDouble("temperature", 0.0) ?: 0.0; val targetBed = bed?.optDouble("target", 0.0) ?: 0.0
+            val tempChamber = status.optJSONObject(knownChamberSensor ?: "")?.optDouble("temperature", 0.0) ?: 0.0
+            val chamberHeaterObj = status.optJSONObject(knownChamberHeater ?: ""); val tempChamberHeater = chamberHeaterObj?.optDouble("temperature", 0.0) ?: 0.0; val targetChamberHeater = chamberHeaterObj?.optDouble("target", 0.0) ?: 0.0
 
-            val bed = status.optJSONObject("heater_bed")
-            val tempBed = bed?.optDouble("temperature", 0.0) ?: 0.0
-            val targetBed = bed?.optDouble("target", 0.0) ?: 0.0
-
-            val chamberSensorObj = status.optJSONObject(knownChamberSensor ?: "")
-            val tempChamber = chamberSensorObj?.optDouble("temperature", 0.0) ?: 0.0
-
-            val chamberHeaterObj = status.optJSONObject(knownChamberHeater ?: "")
-            val tempChamberHeater = chamberHeaterObj?.optDouble("temperature", 0.0) ?: 0.0
-            val targetChamberHeater = chamberHeaterObj?.optDouble("target", 0.0) ?: 0.0
-
-            var fanModelSpeed = 0.0
-            val fan0Obj = status.optJSONObject("output_pin fan0")
-            if (fan0Obj != null) {
-                fanModelSpeed = (if (fan0Obj.has("value")) fan0Obj.optDouble("value", 0.0) else fan0Obj.optDouble("speed", 0.0)) * 100.0
-            }
-
-            var fanAuxSpeed = 0.0
-            val fan2Obj = status.optJSONObject("output_pin fan2")
-            if (fan2Obj != null) {
-                fanAuxSpeed = (if (fan2Obj.has("value")) fan2Obj.optDouble("value", 0.0) else fan2Obj.optDouble("speed", 0.0)) * 100.0
-            }
-
+            var fanModelSpeed = 0.0; val fan0Obj = status.optJSONObject("output_pin fan0"); if (fan0Obj != null) fanModelSpeed = (if (fan0Obj.has("value")) fan0Obj.optDouble("value", 0.0) else fan0Obj.optDouble("speed", 0.0)) * 100.0
+            var fanAuxSpeed = 0.0; val fan2Obj = status.optJSONObject("output_pin fan2"); if (fan2Obj != null) fanAuxSpeed = (if (fan2Obj.has("value")) fan2Obj.optDouble("value", 0.0) else fan2Obj.optDouble("speed", 0.0)) * 100.0
             var fanChamberSpeed = 0.0
-            val tempFanKey = "temperature_fan chamber_fan"
-            val heatFanKey = "heater_fan chamber_fan"
-            if (status.has(tempFanKey)) {
-                val obj = status.optJSONObject(tempFanKey)
-                if (obj != null) {
-                    fanChamberSpeed = (if (obj.has("speed")) obj.optDouble("speed", 0.0) else obj.optDouble("value", 0.0)) * 100.0
-                }
-            } else if (status.has(heatFanKey)) {
-                val obj = status.optJSONObject(heatFanKey)
-                if (obj != null) {
-                    fanChamberSpeed = (if (obj.has("value")) obj.optDouble("value", 0.0) else obj.optDouble("speed", 0.0)) * 100.0
-                }
-            }
+            if (status.has("temperature_fan chamber_fan")) { val obj = status.optJSONObject("temperature_fan chamber_fan"); if (obj != null) fanChamberSpeed = (if (obj.has("speed")) obj.optDouble("speed", 0.0) else obj.optDouble("value", 0.0)) * 100.0 }
+            else if (status.has("heater_fan chamber_fan")) { val obj = status.optJSONObject("heater_fan chamber_fan"); if (obj != null) fanChamberSpeed = (if (obj.has("value")) obj.optDouble("value", 0.0) else obj.optDouble("speed", 0.0)) * 100.0 }
 
-            val displayStatus = status.optJSONObject("display_status")
-            val progress = displayStatus?.optDouble("progress", 0.0) ?: 0.0
-
-            val printStats = status.optJSONObject("print_stats")
-            val currentState = printStats?.optString("state", "") ?: ""
-            val duration = printStats?.optInt("print_duration", 0) ?: 0
-
+            val progress = status.optJSONObject("display_status")?.optDouble("progress", 0.0) ?: 0.0
+            val printStats = status.optJSONObject("print_stats"); val currentState = printStats?.optString("state", "") ?: ""; val duration = printStats?.optInt("print_duration", 0) ?: 0
             lastProgressPercent = progress
 
-            // NEUSTART-DETEKTION: Wenn ein neuer Druck startet, setzen wir alle Meilenstein-Flags zurück
-            if (currentState == "printing" && (lastPrintState == "standby" || lastPrintState == "complete" || lastPrintState.isEmpty())) {
-                hasTrigFirstLayer = false
-                hasTrig50 = false
-                hasTrig75 = false
-                hasTrig90 = false
-                hasTrig100 = false
+            if (currentState == "printing" && (lastPrintState in listOf("standby", "complete") || lastPrintState.isEmpty())) {
+                hasTrigFirstLayer = false; hasTrig50 = false; hasTrig75 = false; hasTrig90 = false; hasTrig100 = false
             }
             lastPrintState = currentState
 
-            // =========================================================================
-            //  NATIVE TELEMETRIE MEILENSTEIN-TRIPPELSCHLEIFE (ALLE LIVE-POPUPS & TÖNE)
-            // =========================================================================
             if (currentState == "printing" || currentState == "complete") {
-                // 1. FIRST LAYER (Triggert ab 1.5% Fortschritt oder nach 90 Sekunden Druckzeit)
-                if (!hasTrigFirstLayer && (progress >= 0.015 || duration >= 90)) {
-                    hasTrigFirstLayer = true
-                    NotificationManager.showLivePopup(this, "popup_first_layer", R.string.notify_title_first_layer, R.string.notify_msg_first_layer)
-                    SoundManager.playLiveNotification("sound_first_layer")
-                }
-                // 2. HALBZEIT (50% Meilenstein)
-                if (!hasTrig50 && progress >= 0.50) {
-                    hasTrig50 = true
-                    NotificationManager.showLivePopup(this, "popup_50", R.string.notify_title_50, R.string.notify_msg_50)
-                    SoundManager.playLiveNotification("sound_50")
-                }
-                // 3. FINALE PHASE (75% Meilenstein)
-                if (!hasTrig75 && progress >= 0.75) {
-                    hasTrig75 = true
-                    NotificationManager.showLivePopup(this, "popup_75", R.string.notify_title_75, R.string.notify_msg_75)
-                    SoundManager.playLiveNotification("sound_75")
-                }
-                // 4. ENDSPURT (90% Meilenstein)
-                if (!hasTrig90 && progress >= 0.90) {
-                    hasTrig90 = true
-                    NotificationManager.showLivePopup(this, "popup_90", R.string.notify_title_90, R.string.notify_msg_90)
-                    SoundManager.playLiveNotification("sound_90")
-                }
-                // 5. ERFOLG (100% Druckauftrag erfolgreich abgeschlossen)
-                if (!hasTrig100 && (currentState == "complete" || progress >= 0.999)) {
-                    hasTrig100 = true
-                    NotificationManager.showLivePopup(this, "popup_100", R.string.notify_title_100, R.string.notify_msg_100)
-                    SoundManager.playLiveNotification("sound_100")
-                }
+                if (!hasTrigFirstLayer && (progress >= 0.015 || duration >= 90)) { hasTrigFirstLayer = true; try { NotificationManager.showLivePopup(this, "popup_first_layer", R.string.notify_title_first_layer, R.string.notify_msg_first_layer) } catch(_: Exception){}; SoundManager.playLiveNotification("sound_first_layer") }
+                if (!hasTrig50 && progress >= 0.50) { hasTrig50 = true; try { NotificationManager.showLivePopup(this, "popup_50", R.string.notify_title_50, R.string.notify_msg_50) } catch(_: Exception){}; SoundManager.playLiveNotification("sound_50") }
+                if (!hasTrig75 && progress >= 0.75) { hasTrig75 = true; try { NotificationManager.showLivePopup(this, "popup_75", R.string.notify_title_75, R.string.notify_msg_75) } catch(_: Exception){}; SoundManager.playLiveNotification("sound_75") }
+                if (!hasTrig90 && progress >= 0.90) { hasTrig90 = true; try { NotificationManager.showLivePopup(this, "popup_90", R.string.notify_title_90, R.string.notify_msg_90) } catch(_: Exception){}; SoundManager.playLiveNotification("sound_90") }
+                if (!hasTrig100 && (currentState == "complete" || progress >= 0.999)) { hasTrig100 = true; try { NotificationManager.showLivePopup(this, "popup_100", R.string.notify_title_100, R.string.notify_msg_100) } catch(_: Exception){}; SoundManager.playLiveNotification("sound_100") }
             }
 
             if (!isInPictureInPictureMode) {
-                val isHorizontal = (layoutOsd as? LinearLayout)?.orientation == LinearLayout.HORIZONTAL
-                val divider = if (isHorizontal) "  •  " else ""
+                val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE); val hostIp = Uri.parse(currentActiveUrl).host ?: ""
+                val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"; val savedPos = prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center"
+                val divider = if (osdStyle == "banner" && savedPos != "left" && savedPos != "right") "  •  " else ""
                 val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
-                val osdViews = arrayOf(
-                    tvOsdExtruder, tvOsdBed, tvOsdChamberSensor, tvOsdChamberHeater,
-                    tvOsdFanModel, tvOsdFanAux, tvOsdFanChamber, tvOsdProgress, tvOsdTime
-                )
-                osdViews.forEach { tv -> tv?.setTextColor(if (isNight) Color.WHITE else Color.BLACK) }
+                val boxViews = arrayOf(tvOsdExtruder, tvOsdBed, tvOsdChamberSensor, tvOsdChamberHeater, tvOsdFanModel, tvOsdFanAux, tvOsdFanChamber, tvOsdProgress, tvOsdTime)
+                val bannerViews = arrayOf(tvOsdExtruderBanner, tvOsdBedBanner, tvOsdChamberSensorBanner, tvOsdChamberHeaterBanner, tvOsdFanModelBanner, tvOsdFanAuxBanner, tvOsdFanChamberBanner, tvOsdProgressBanner, tvOsdTimeBanner)
+                boxViews.forEach { tv -> tv?.setTextColor(if (isNight) Color.WHITE else Color.BLACK) }; bannerViews.forEach { tv -> tv?.setTextColor(if (isNight) Color.WHITE else Color.BLACK) }
 
                 tvOsdExtruder?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.fluid_24, isNight), null, null, null)
                 tvOsdBed?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.windshield_defrost_rear_24, isNight), null, null, null)
                 tvOsdChamberSensor?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.bottom_navigation_24, isNight), null, null, null)
                 tvOsdChamberHeater?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.thermostat_24, isNight), null, null, null)
+                tvOsdExtruderBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.fluid_24, isNight), null, null, null)
+                tvOsdBedBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.windshield_defrost_rear_24, isNight), null, null, null)
+                tvOsdChamberSensorBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.bottom_navigation_24, isNight), null, null, null)
+                tvOsdChamberHeaterBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.thermostat_24, isNight), null, null, null)
 
-                if (fanModelSpeed > 0.0) { fanModelRotationAngle = (fanModelRotationAngle + getProgressiveStepSpeed(fanModelSpeed)) % 360f }
-                if (fanAuxSpeed > 0.0) { fanAuxRotationAngle = (fanAuxRotationAngle - getProgressiveStepSpeed(fanAuxSpeed)) % 360f }
-                if (fanChamberSpeed > 0.0) { fanChamberRotationAngle = (fanChamberRotationAngle + getProgressiveStepSpeed(fanChamberSpeed)) % 360f }
+                if (fanModelSpeed > 0.0) fanModelRotationAngle = (fanModelRotationAngle + getProgressiveStepSpeed(fanModelSpeed)) % 360f
+                if (fanAuxSpeed > 0.0) fanAuxRotationAngle = (fanAuxRotationAngle - getProgressiveStepSpeed(fanAuxSpeed)) % 360f
+                if (fanChamberSpeed > 0.0) fanChamberRotationAngle = (fanChamberRotationAngle + getProgressiveStepSpeed(fanChamberSpeed)) % 360f
 
                 tvOsdFanModel?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanModelRotationAngle, isNight), null, null, null)
                 tvOsdFanAux?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanAuxRotationAngle, isNight), null, null, null)
                 tvOsdFanChamber?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanChamberRotationAngle, isNight), null, null, null)
+                tvOsdFanModelBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanModelRotationAngle, isNight), null, null, null)
+                tvOsdFanAuxBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanAuxRotationAngle, isNight), null, null, null)
+                tvOsdFanChamberBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanChamberRotationAngle, isNight), null, null, null)
 
                 tvOsdProgress?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.ic_progress_clock, isNight), null, null, null)
                 tvOsdTime?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.hourglass_top_24, isNight), null, null, null)
+                tvOsdProgressBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.ic_progress_clock, isNight), null, null, null)
+                tvOsdTimeBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.hourglass_top_24, isNight), null, null, null)
 
                 val padPx = (6 * resources.displayMetrics.density).toInt()
-                osdViews.forEach { it?.compoundDrawablePadding = padPx }
+                boxViews.forEach { it?.compoundDrawablePadding = padPx }; bannerViews.forEach { it?.compoundDrawablePadding = padPx }
+                val boxDivider = if ((layoutOsd as? LinearLayout)?.orientation == LinearLayout.HORIZONTAL) "  •  " else ""
 
-                tvOsdExtruder?.text = " " + getString(R.string.osd_extruder, tempExtruder, targetExtruder) + divider
-                tvOsdBed?.text = " " + getString(R.string.osd_bed, tempBed, targetBed) + divider
+                val extStr = getString(R.string.osd_extruder)
+                val bedStr = getString(R.string.osd_bed)
+                val chSnsStr = getString(R.string.osd_chamber_sensor)
+                val chHtrStr = getString(R.string.osd_chamber_heater)
+                val fanMdlStr = getString(R.string.osd_fan_model)
+                val fanAuxStr = getString(R.string.osd_fan_aux)
+                val fanChmStr = getString(R.string.osd_fan_chamber)
+                val prgStr = getString(R.string.osd_progress_label)
+                val timeStr = getString(R.string.osd_time)
 
-                tvOsdChamberSensor?.visibility = View.VISIBLE
-                tvOsdChamberSensor?.text = " " + getString(R.string.osd_chamber_sensor, tempChamber) + divider
-
-                tvOsdChamberHeater?.visibility = View.VISIBLE
-                tvOsdChamberHeater?.text = " " + getString(R.string.osd_chamber_heater, tempChamberHeater, targetChamberHeater) + divider
-
-                tvOsdFanModel?.text = " " + getString(R.string.osd_fan_model, fanModelSpeed) + divider
-                tvOsdFanAux?.text = " " + getString(R.string.osd_fan_aux, fanAuxSpeed) + divider
-                tvOsdFanChamber?.text = " " + getString(R.string.osd_fan_chamber, fanChamberSpeed) + divider
-
+                tvOsdExtruder?.text = " " + String.format(extStr, tempExtruder, targetExtruder) + boxDivider
+                tvOsdBed?.text = " " + String.format(bedStr, tempBed, targetBed) + boxDivider
+                tvOsdChamberSensor?.visibility = View.VISIBLE; tvOsdChamberSensor?.text = " " + String.format(chSnsStr, tempChamber) + boxDivider
+                tvOsdChamberHeater?.visibility = View.VISIBLE; tvOsdChamberHeater?.text = " " + String.format(chHtrStr, tempChamberHeater, targetChamberHeater) + boxDivider
+                tvOsdFanModel?.text = " " + String.format(fanMdlStr, fanModelSpeed) + boxDivider
+                tvOsdFanAux?.text = " " + String.format(fanAuxStr, fanAuxSpeed) + boxDivider
+                tvOsdFanChamber?.text = " " + String.format(fanChmStr, fanChamberSpeed) + boxDivider
                 val progressText = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
-                tvOsdProgress?.text = " " + getString(R.string.osd_progress_label, progressText) + divider
+                tvOsdProgress?.text = " " + String.format(prgStr, progressText) + boxDivider
+                val timeDigits = String.format(Locale.getDefault(), "%02d:%02d", duration / 60, duration % 60)
+                tvOsdTime?.text = " " + String.format(timeStr, timeDigits, "--:--") + " " + ".".repeat(heartbeatTick)
 
-                val passedMin = duration / 60
-                val passedSec = duration % 60
-                val timeDigits = String.format(Locale.getDefault(), "%02d:%02d", passedMin, passedSec)
-                tvOsdTime?.text = " " + getString(R.string.osd_time, timeDigits, "--:--") + " " + ".".repeat(heartbeatTick)
+                tvOsdExtruderBanner?.text = " " + String.format(extStr, tempExtruder, targetExtruder) + divider
+                tvOsdBedBanner?.text = " " + String.format(bedStr, tempBed, targetBed) + divider
+                tvOsdChamberSensorBanner?.visibility = View.VISIBLE; tvOsdChamberSensorBanner?.text = " " + String.format(chSnsStr, tempChamber) + divider
+                tvOsdChamberHeaterBanner?.visibility = View.VISIBLE; tvOsdChamberHeaterBanner?.text = " " + String.format(chHtrStr, tempChamberHeater, targetChamberHeater) + divider
+                tvOsdFanModelBanner?.text = " " + String.format(fanMdlStr, fanModelSpeed) + divider
+                tvOsdFanAuxBanner?.text = " " + String.format(fanAuxStr, fanAuxSpeed) + divider
+                tvOsdFanChamberBanner?.text = " " + String.format(fanChmStr, fanChamberSpeed) + divider
+                tvOsdProgressBanner?.text = " " + String.format(prgStr, progressText) + divider
+                tvOsdTimeBanner?.text = " " + String.format(timeStr, timeDigits, "--:--") + " " + ".".repeat(heartbeatTick)
 
-                layoutOsd.invalidate()
-                layoutOsd.requestLayout()
+                layoutOsd.invalidate(); layoutOsdBanner.invalidate()
             }
         } catch (_: Exception) {}
     }
 
     private fun applyOsdPositionAndStyle(position: String) {
         val root = findViewById<ConstraintLayout>(R.id.rootLayout) ?: return
-        val container = layoutOsd as? LinearLayout ?: return
+        val boxContainer = layoutOsd as? LinearLayout ?: return
+        val bannerContainer = layoutOsdBanner as? ConstraintLayout ?: return
+        val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE); val hostIp = Uri.parse(currentActiveUrl).host ?: ""
+        val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+        val osdBannerFlow = findViewById<androidx.constraintlayout.helper.widget.Flow>(R.id.osdBannerFlow)
 
-        val constraintSet = ConstraintSet()
-        constraintSet.clone(root)
+        if (isOsdEnabled && isCameraMode) {
+            if (osdStyle == "banner") { boxContainer.visibility = View.GONE; bannerContainer.visibility = View.VISIBLE }
+            else { boxContainer.visibility = View.VISIBLE; bannerContainer.visibility = View.GONE }
+        } else { boxContainer.visibility = View.GONE; bannerContainer.visibility = View.GONE }
 
-        constraintSet.clear(R.id.layoutOsd, ConstraintSet.TOP)
-        constraintSet.clear(R.id.layoutOsd, ConstraintSet.BOTTOM)
-        constraintSet.clear(R.id.layoutOsd, ConstraintSet.START)
-        constraintSet.clear(R.id.layoutOsd, ConstraintSet.END)
+        val constraintSet = ConstraintSet(); constraintSet.clone(root)
+        val targetLayoutId = if (osdStyle == "banner") R.id.layoutOsdBanner else R.id.layoutOsd
+        val hiddenLayoutId = if (osdStyle == "banner") R.id.layoutOsd else R.id.layoutOsdBanner
 
-        val marginHorizontal = 40
-        val marginTopBottom = 30
+        arrayOf(targetLayoutId, hiddenLayoutId).forEach { id -> constraintSet.clear(id, ConstraintSet.TOP); constraintSet.clear(id, ConstraintSet.BOTTOM); constraintSet.clear(id, ConstraintSet.START); constraintSet.clear(id, ConstraintSet.END) }
+        val marginHorizontal = 40; val marginTopBottom = 30
 
-        when (position) {
-            "top_left" -> {
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom)
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, marginHorizontal)
-                container.orientation = LinearLayout.VERTICAL
+        if (osdStyle == "banner") {
+            when (position) {
+                "top" -> {
+                    constraintSet.connect(targetLayoutId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, marginHorizontal)
+                    constraintSet.connect(targetLayoutId, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END, marginHorizontal)
+                    constraintSet.connect(targetLayoutId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom)
+                    constraintSet.constrainWidth(targetLayoutId, ConstraintSet.MATCH_CONSTRAINT); constraintSet.constrainHeight(targetLayoutId, ConstraintSet.WRAP_CONTENT)
+                    osdBannerFlow?.setOrientation(0)
+                }
+                "left" -> {
+                    constraintSet.connect(targetLayoutId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, marginHorizontal)
+                    constraintSet.connect(targetLayoutId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom)
+                    constraintSet.connect(targetLayoutId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140)
+                    constraintSet.constrainWidth(targetLayoutId, ConstraintSet.WRAP_CONTENT); constraintSet.constrainHeight(targetLayoutId, ConstraintSet.MATCH_CONSTRAINT)
+                    osdBannerFlow?.setOrientation(1)
+                }
+                "right" -> {
+                    constraintSet.connect(targetLayoutId, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END, marginHorizontal)
+                    constraintSet.connect(targetLayoutId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom)
+                    constraintSet.connect(targetLayoutId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140)
+                    constraintSet.constrainWidth(targetLayoutId, ConstraintSet.WRAP_CONTENT); constraintSet.constrainHeight(targetLayoutId, ConstraintSet.MATCH_CONSTRAINT)
+                    osdBannerFlow?.setOrientation(1)
+                }
+                else -> {
+                    constraintSet.connect(targetLayoutId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, marginHorizontal)
+                    constraintSet.connect(targetLayoutId, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END, marginHorizontal)
+                    constraintSet.connect(targetLayoutId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140)
+                    constraintSet.constrainWidth(targetLayoutId, ConstraintSet.MATCH_CONSTRAINT); constraintSet.constrainHeight(targetLayoutId, ConstraintSet.WRAP_CONTENT)
+                    osdBannerFlow?.setOrientation(0)
+                }
             }
-            "top_center" -> {
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom)
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
-                container.orientation = LinearLayout.HORIZONTAL
-            }
-            "top_right" -> {
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom)
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END, marginHorizontal)
-                container.orientation = LinearLayout.VERTICAL
-            }
-            else -> {
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140)
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
-                constraintSet.connect(R.id.layoutOsd, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
-                container.orientation = LinearLayout.HORIZONTAL
+        } else {
+            constraintSet.constrainWidth(targetLayoutId, ConstraintSet.WRAP_CONTENT); constraintSet.constrainHeight(targetLayoutId, ConstraintSet.WRAP_CONTENT)
+            when (position) {
+                "top_left" -> { constraintSet.connect(targetLayoutId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom); constraintSet.connect(targetLayoutId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, marginHorizontal); boxContainer.orientation = LinearLayout.VERTICAL }
+                "top_center" -> { constraintSet.connect(targetLayoutId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom); constraintSet.connect(targetLayoutId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START); constraintSet.connect(targetLayoutId, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END); boxContainer.orientation = LinearLayout.HORIZONTAL }
+                "top_right" -> { constraintSet.connect(targetLayoutId, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP, marginTopBottom); constraintSet.connect(targetLayoutId, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END, marginHorizontal); boxContainer.orientation = LinearLayout.VERTICAL }
+                else -> { constraintSet.connect(targetLayoutId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140); constraintSet.connect(targetLayoutId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START); constraintSet.connect(targetLayoutId, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END); boxContainer.orientation = LinearLayout.HORIZONTAL }
             }
         }
-        constraintSet.applyTo(root)
-        updateOsdTextForm(container.orientation == LinearLayout.HORIZONTAL)
+        constraintSet.applyTo(root); updateOsdTextForm(osdStyle == "banner" || boxContainer.orientation == LinearLayout.HORIZONTAL)
     }
 
     private fun updateOsdTextForm(isSingleLine: Boolean) {
-        val views = arrayOf(
-            tvOsdExtruder, tvOsdBed, tvOsdChamberSensor, tvOsdChamberHeater,
-            tvOsdFanModel, tvOsdFanAux, tvOsdFanChamber, tvOsdProgress, tvOsdTime
-        )
+        val views = arrayOf(tvOsdExtruder, tvOsdBed, tvOsdChamberSensor, tvOsdChamberHeater, tvOsdFanModel, tvOsdFanAux, tvOsdFanChamber, tvOsdProgress, tvOsdTime)
         views.forEach { tv ->
             tv?.let {
                 val lp = it.layoutParams as LinearLayout.LayoutParams
-                if (isSingleLine) {
-                    lp.width = LinearLayout.LayoutParams.WRAP_CONTENT
-                    lp.setMargins(16, 4, 16, 4)
-                } else {
-                    lp.width = LinearLayout.LayoutParams.MATCH_PARENT
-                    lp.setMargins(8, 2, 8, 2)
-                }
+                if (isSingleLine) { lp.width = LinearLayout.LayoutParams.WRAP_CONTENT; lp.setMargins(16, 4, 16, 4) }
+                else { lp.width = LinearLayout.LayoutParams.MATCH_PARENT; lp.setMargins(8, 2, 8, 2) }
                 it.layoutParams = lp
             }
         }
@@ -1282,29 +773,14 @@ class WebViewActivity : AppCompatActivity() {
         items.forEachIndexed { index, itemText ->
             val customHex = hexColors?.getOrNull(index)
             val btn = MaterialButton(this).apply {
-                text = itemText
-                isAllCaps = false
-                textSize = 16f
-                cornerRadius = 100
-                setPadding(0, 35, 0, 35)
-                if (customHex != null) {
-                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex))
-                    setTextColor(Color.WHITE)
-                } else {
-                    backgroundTintList = ColorStateList.valueOf(if (isNight) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888"))
-                    setTextColor(if (isNight) Color.WHITE else Color.BLACK)
-                }
+                text = itemText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                if (customHex != null) { backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex)); setTextColor(Color.WHITE) }
+                else { backgroundTintList = ColorStateList.valueOf(if (isNight) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888")); setTextColor(if (isNight) Color.WHITE else Color.BLACK) }
                 isFocusable = true
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
                 onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
-                    if (hasFocus) {
-                        view.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
-                        (view as MaterialButton).strokeWidth = 8
-                        view.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-                    } else {
-                        view.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
-                        (view as MaterialButton).strokeWidth = 0
-                    }
+                    if (hasFocus) { view.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start(); (view as MaterialButton).strokeWidth = 8; view.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50")) }
+                    else { view.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start(); (view as MaterialButton).strokeWidth = 0 }
                 }
                 setOnClickListener { onSelected(index); dialog.dismiss() }
             }
@@ -1327,29 +803,14 @@ class WebViewActivity : AppCompatActivity() {
             val targetMs = when (index) { 1 -> 30 * 60 * 1000L; 2 -> 60 * 60 * 1000L; 3 -> 90 * 60 * 1000L; 4 -> 120 * 60 * 1000L; else -> -1L }
             val isCurrentlyActive = (targetMs == activeTimeout) || (index == 5 && activeTimeout == 0L)
             val btn = MaterialButton(this).apply {
-                text = itemText
-                isAllCaps = false
-                textSize = 16f
-                cornerRadius = 100
-                setPadding(0, 35, 0, 35)
-                if (isCurrentlyActive) {
-                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-                    setTextColor(Color.WHITE)
-                } else {
-                    backgroundTintList = ColorStateList.valueOf(if (isNight) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888"))
-                    setTextColor(if (isNight) Color.WHITE else Color.BLACK)
-                }
+                text = itemText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                if (isCurrentlyActive) { backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")); setTextColor(Color.WHITE) }
+                else { backgroundTintList = ColorStateList.valueOf(if (isNight) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888")); setTextColor(if (isNight) Color.WHITE else Color.BLACK) }
                 isFocusable = true
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
                 onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
-                    if (hasFocus) {
-                        view.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
-                        (view as MaterialButton).strokeWidth = 8
-                        view.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-                    } else {
-                        view.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
-                        (view as MaterialButton).strokeWidth = 0
-                    }
+                    if (hasFocus) { view.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start(); (view as MaterialButton).strokeWidth = 8; view.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50")) }
+                    else { view.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start(); (view as MaterialButton).strokeWidth = 0 }
                 }
                 setOnClickListener { onSelected(index); dialog.dismiss() }
             }

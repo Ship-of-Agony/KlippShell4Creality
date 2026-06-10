@@ -67,6 +67,13 @@
     <string name="osd_pos_bottom_center">Bas centre</string>
     <string name="toast_position_saved">Position enregistrée ✓</string>
     <string name="toast_position_fullscreen_only">Modification possible uniquement lorsque l\'OSD est actif</string>
+    <string name="menu_osd_style_title">Style OSD</string>
+    <string name="osd_style_box">Boîte compacte</string>
+    <string name="osd_style_banner">Bandeau flexible</string>
+    <string name="osd_pos_banner_top">Haut</string>
+    <string name="osd_pos_banner_bottom">Bas</string>
+    <string name="osd_pos_banner_left">Gauche</string>
+    <string name="osd_pos_banner_right">Droite</string>
 
     <string name="menu_ratio_title">Changer le format d\'image</string>
     <string name="ratio_16_9_new">Écran large 16:9</string>

@@ -106,6 +106,43 @@
         </LinearLayout>
     </LinearLayout>
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutOsdBanner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:layout_marginTop="24dp"
+        android:visibility="gone"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/osdBannerFlow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:flow_wrapMode="chain"
+            app:flow_horizontalGap="12dp"
+            app:flow_verticalGap="4dp"
+            app:flow_horizontalStyle="packed"
+            app:constraint_referenced_ids="tvOsdExtruderBanner,tvOsdBedBanner,tvOsdChamberSensorBanner,tvOsdChamberHeaterBanner,tvOsdFanModelBanner,tvOsdFanAuxBanner,tvOsdFanChamberBanner,tvOsdProgressBanner,tvOsdTimeBanner" />
+
+        <TextView android:id="@+id/tvOsdExtruderBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdBedBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdChamberSensorBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:visibility="gone" />
+        <TextView android:id="@+id/tvOsdChamberHeaterBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:visibility="gone" />
+        <TextView android:id="@+id/tvOsdFanModelBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdFanAuxBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdFanChamberBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdProgressBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#1976D2" android:textSize="16sp" android:textStyle="bold" />
+        <TextView android:id="@+id/tvOsdTimeBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <FrameLayout
         android:id="@+id/containerWebNotification"
         android:layout_width="0dp"

@@ -67,6 +67,13 @@
     <string name="osd_pos_bottom_center">Bottom Center</string>
     <string name="toast_position_saved">Position saved ✓</string>
     <string name="toast_position_fullscreen_only">Change only possible with active OSD</string>
+    <string name="menu_osd_style_title">OSD Style</string>
+    <string name="osd_style_box">Compact Box</string>
+    <string name="osd_style_banner">Flexible Banner</string>
+    <string name="osd_pos_banner_top">Top</string>
+    <string name="osd_pos_banner_bottom">Bottom</string>
+    <string name="osd_pos_banner_left">Left</string>
+    <string name="osd_pos_banner_right">Right</string>
 
     <string name="menu_ratio_title">Change Aspect Ratio</string>
     <string name="ratio_16_9_new">16:9 Widescreen</string>
