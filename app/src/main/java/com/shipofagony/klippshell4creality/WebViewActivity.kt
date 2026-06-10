@@ -355,7 +355,11 @@ class WebViewActivity : AppCompatActivity() {
                     text = getString(if (isOsdEnabled) R.string.osd_state_on else R.string.osd_state_off)
                     isAllCaps = false; textSize = 15f; cornerRadius = 100; setPadding(0, 35, 0, 35)
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isOsdEnabled) "#4CAF50" else if (isNight) "#33FFFFFF" else "#1A888888"))
-                    setTextColor(Color.WHITE); isFocusable = true; onFocusChangeListener = btnStyleListener
+
+                    // KORREKTUR: Textfarbe wird schwarz, wenn OSD aus ist UND wir im Light-Mode sind
+                    setTextColor(if (isOsdEnabled) Color.WHITE else if (isNight) Color.WHITE else Color.BLACK)
+
+                    isFocusable = true; onFocusChangeListener = btnStyleListener
                     layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 8 }
                     setOnClickListener {
                         isOsdEnabled = !isOsdEnabled
@@ -399,7 +403,12 @@ class WebViewActivity : AppCompatActivity() {
                 menuOptions.forEachIndexed { idx, optText ->
                     val btn = MaterialButton(this).apply {
                         text = optText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
-                        backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (idx == 5) "#E53935" else if (isNight) "#33FFFFFF" else "#1A888888")); setTextColor(Color.WHITE); isFocusable = true; onFocusChangeListener = btnStyleListener
+                        backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (idx == 5) "#E53935" else if (isNight) "#33FFFFFF" else "#1A888888"))
+
+                        // KORREKTUR: Dynamische Textfarbe statt hartcodiertem Weiß (außer beim NOT-AUS-Button)
+                        setTextColor(if (idx == 5) Color.WHITE else if (isNight) Color.WHITE else Color.BLACK)
+
+                        isFocusable = true; onFocusChangeListener = btnStyleListener
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
                         setOnClickListener {
                             dialog.dismiss()
