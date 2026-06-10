@@ -114,7 +114,6 @@ class MainActivity : AppCompatActivity() {
         val config = android.content.res.Configuration(newBase.resources.configuration)
         config.setLocale(locale)
 
-        // KORREKTUR: Theme-Konfiguration direkt in den neuen Sprach-Context einbacken
         val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         when (savedTheme) {
             AppCompatDelegate.MODE_NIGHT_YES -> {
@@ -254,7 +253,6 @@ class MainActivity : AppCompatActivity() {
 
         actvMainPrinterModel.setText("", false)
 
-        // KORREKTUR: Flag setzen, damit beim Zurückkehren aus den Settings neu gezeichnet wird
         findViewById<View>(R.id.btnSettings)?.setOnClickListener {
             shouldRecreateOnReturn = true
             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
@@ -268,7 +266,31 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnSearchNetwork)?.setOnClickListener { searchNetworkForPrinters() }
-        findViewById<Button>(R.id.btnExitApp)?.setOnClickListener { finishAffinity() }
+
+        // KORREKTUR: Beenden-Button schrumpfen UND plattformübergreifend absolut zentrieren
+        val btnExit = findViewById<Button>(R.id.btnExitApp)
+        btnExit?.setOnClickListener { finishAffinity() }
+        btnExit?.layoutParams?.let { params ->
+            params.width = toPx(320) // Button-Kompaktheit erzwingen
+
+            if (params is LinearLayout.LayoutParams) {
+                params.gravity = Gravity.CENTER_HORIZONTAL
+            } else if (params is FrameLayout.LayoutParams) {
+                params.gravity = Gravity.CENTER_HORIZONTAL
+            } else {
+                // Falls es ein ConstraintLayout ist, erzwingen wir die zentrierenden Constraints dynamisch
+                try {
+                    val clazz = params.javaClass
+                    clazz.getField("startToStart").set(params, 0) // 0 steht für ConstraintLayout.LayoutParams.PARENT_ID
+                    clazz.getField("endToEnd").set(params, 0)
+                    clazz.getField("leftToLeft").set(params, 0)
+                    clazz.getField("rightToRight").set(params, 0)
+                } catch (_: Exception) {
+                    // Fallback-Sicherheit
+                }
+            }
+            btnExit.layoutParams = params
+        }
 
         findViewById<Button>(R.id.btnAddMainPrinter)?.setOnClickListener {
             val name = etMainPrinterName.text.toString().trim()
@@ -677,7 +699,6 @@ class MainActivity : AppCompatActivity() {
 
         tvNoPrinter.visibility = if (list.length() == 0) View.VISIBLE else View.GONE
 
-        // BIDIREKTIONALE LAYOUT WEICHE: Evaluiert die 3-Wege-Erzwingungs-Pille auch für das Hauptfenster!
         val isDualScreenMode = when (prefs.getInt("layout_mode_override", 0)) {
             1 -> false
             2 -> true
@@ -693,7 +714,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val isSinglePrinter = list.length() == 1
+
+        val printerCount = list.length()
+        val useHorizontalLayout = printerCount <= 2
+
+        containerPrinters.orientation = if (useHorizontalLayout) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+        containerPrinters.gravity = if (useHorizontalLayout) Gravity.CENTER else Gravity.NO_GRAVITY
 
         for (i in 0 until list.length()) {
             val printer = try { list.getJSONObject(i) } catch (_: Exception) { null } ?: continue
@@ -702,11 +728,20 @@ class MainActivity : AppCompatActivity() {
             itemView.isFocusable = true
             itemView.isFocusableInTouchMode = false
 
-            if (isSinglePrinter) {
+            val lp = LinearLayout.LayoutParams(
+                if (useHorizontalLayout) toPx(280) else ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(toPx(16), toPx(12), toPx(16), toPx(12))
+                if (useHorizontalLayout) gravity = Gravity.CENTER_VERTICAL
+            }
+            itemView.layoutParams = lp
+
+            if (useHorizontalLayout) {
                 if (itemView is LinearLayout) {
                     itemView.orientation = LinearLayout.VERTICAL
                     itemView.gravity = Gravity.CENTER
-                    itemView.setPadding(toPx(32), toPx(48), toPx(32), toPx(48))
+                    itemView.setPadding(toPx(24), toPx(32), toPx(24), toPx(32))
                 }
             }
 
@@ -731,18 +766,18 @@ class MainActivity : AppCompatActivity() {
             if (iconView != null) {
                 iconView.setImageResource(getPrinterImageResource(printer.optString("model", "")))
 
-                if (isSinglePrinter) {
-                    val sizePx = toPx(120)
+                if (useHorizontalLayout) {
+                    val sizePx = toPx(90)
                     iconView.layoutParams = LinearLayout.LayoutParams(sizePx, sizePx).apply {
                         gravity = Gravity.CENTER_HORIZONTAL
-                        setMargins(0, 0, 0, toPx(24))
+                        setMargins(0, 0, 0, toPx(16))
                     }
                 }
             }
 
             if (tvName != null) {
                 tvName.text = printer.optString("name", "Unbekannt")
-                tvName.textSize = if (isSinglePrinter) 24f else 18f
+                tvName.textSize = if (useHorizontalLayout) 20f else 18f
                 tvName.setTypeface(null, android.graphics.Typeface.BOLD)
 
                 if (isNight) {
@@ -751,7 +786,7 @@ class MainActivity : AppCompatActivity() {
                     tvName.setTextColor(Color.BLACK)
                 }
 
-                if (isSinglePrinter) {
+                if (useHorizontalLayout) {
                     tvName.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                         gravity = Gravity.CENTER_HORIZONTAL
                     }
