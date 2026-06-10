@@ -111,8 +111,19 @@ class MainActivity : AppCompatActivity() {
         val locale = Locale(savedLang)
         Locale.setDefault(locale)
 
-        val config = newBase.resources.configuration
+        val config = android.content.res.Configuration(newBase.resources.configuration)
         config.setLocale(locale)
+
+        // KORREKTUR: Theme-Konfiguration direkt in den neuen Sprach-Context einbacken
+        val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        when (savedTheme) {
+            AppCompatDelegate.MODE_NIGHT_YES -> {
+                config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or android.content.res.Configuration.UI_MODE_NIGHT_YES
+            }
+            AppCompatDelegate.MODE_NIGHT_NO -> {
+                config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or android.content.res.Configuration.UI_MODE_NIGHT_NO
+            }
+        }
 
         val localizedContext = newBase.createConfigurationContext(config)
         super.attachBaseContext(localizedContext)
@@ -243,7 +254,9 @@ class MainActivity : AppCompatActivity() {
 
         actvMainPrinterModel.setText("", false)
 
+        // KORREKTUR: Flag setzen, damit beim Zurückkehren aus den Settings neu gezeichnet wird
         findViewById<View>(R.id.btnSettings)?.setOnClickListener {
+            shouldRecreateOnReturn = true
             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
         }
 
