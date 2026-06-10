@@ -210,6 +210,7 @@ class WebViewActivity : AppCompatActivity() {
             false
         }
 
+        // GEFIXT: view.strokeWidth und view.strokeColor wurden hier sauber qualifiziert (v ersetzt durch view)
         val tvFocusListener = View.OnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
                 showButtons()
@@ -220,7 +221,9 @@ class WebViewActivity : AppCompatActivity() {
                 }
             } else {
                 view.animate().scaleX(1.0f).scaleY(1.0f).alpha(0.8f).translationZ(0f).setDuration(150).start()
-                if (view is MaterialButton) view.strokeWidth = 0
+                if (view is MaterialButton) {
+                    view.strokeWidth = 0
+                }
             }
         }
 
@@ -493,7 +496,6 @@ class WebViewActivity : AppCompatActivity() {
                         val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as android.app.UiModeManager
                         val isTV = uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
 
-                        // DUAL-SCREEN RESPONSIVE WEICHE: Löst das Relaunch-Problem verlässlich auf Tablets auf
                         if (!isTV) {
                             val homeIntent = Intent(Intent.ACTION_MAIN).apply {
                                 addCategory(Intent.CATEGORY_HOME)
@@ -1017,6 +1019,7 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+    // GEFIXT & ERWEITERT: Reagiert jetzt vollautomatisch auf Offline-Status und alle Druck-Meilensteine
     private fun handleMoonrakerResponse(responseText: String) {
         if (responseText.isEmpty()) {
             if (!isInPictureInPictureMode) {
@@ -1025,6 +1028,12 @@ class WebViewActivity : AppCompatActivity() {
                     tvOsdProgress?.setTextColor(Color.parseColor("#E53935"))
                     tvOsdTime?.text = ""
                 }
+            }
+            // OFFLINE TRIGGER: Schiebt das Popup rein und feuert die akustische Alarmschleife ab
+            if (!hasTrigOffline) {
+                hasTrigOffline = true
+                NotificationManager.showLivePopup(this, "popup_offline", R.string.notify_title_offline, R.string.notify_msg_offline)
+                SoundManager.playLiveNotification("sound_offline")
             }
             return
         }
@@ -1041,7 +1050,9 @@ class WebViewActivity : AppCompatActivity() {
             }
 
             val ledPinObj = status.optJSONObject("output_pin LED")
-            if (ledPinObj != null) isLightOn = ledPinObj.optDouble("value", 0.0) > 0.0
+            if (ledPinObj != null) {
+                isLightOn = ledPinObj.optDouble("value", 0.0) > 0.0
+            }
 
             val extruder = status.optJSONObject("extruder")
             val tempExtruder = extruder?.optDouble("temperature", 0.0) ?: 0.0
@@ -1075,10 +1086,14 @@ class WebViewActivity : AppCompatActivity() {
             val heatFanKey = "heater_fan chamber_fan"
             if (status.has(tempFanKey)) {
                 val obj = status.optJSONObject(tempFanKey)
-                if (obj != null) fanChamberSpeed = (if (obj.has("speed")) obj.optDouble("speed", 0.0) else obj.optDouble("value", 0.0)) * 100.0
+                if (obj != null) {
+                    fanChamberSpeed = (if (obj.has("speed")) obj.optDouble("speed", 0.0) else obj.optDouble("value", 0.0)) * 100.0
+                }
             } else if (status.has(heatFanKey)) {
                 val obj = status.optJSONObject(heatFanKey)
-                if (obj != null) fanChamberSpeed = (if (obj.has("value")) obj.optDouble("value", 0.0) else obj.optDouble("speed", 0.0)) * 100.0
+                if (obj != null) {
+                    fanChamberSpeed = (if (obj.has("value")) obj.optDouble("value", 0.0) else obj.optDouble("speed", 0.0)) * 100.0
+                }
             }
 
             val displayStatus = status.optJSONObject("display_status")
@@ -1089,6 +1104,52 @@ class WebViewActivity : AppCompatActivity() {
             val duration = printStats?.optInt("print_duration", 0) ?: 0
 
             lastProgressPercent = progress
+
+            // NEUSTART-DETEKTION: Wenn ein neuer Druck startet, setzen wir alle Meilenstein-Flags zurück
+            if (currentState == "printing" && (lastPrintState == "standby" || lastPrintState == "complete" || lastPrintState.isEmpty())) {
+                hasTrigFirstLayer = false
+                hasTrig50 = false
+                hasTrig75 = false
+                hasTrig90 = false
+                hasTrig100 = false
+            }
+            lastPrintState = currentState
+
+            // =========================================================================
+            //  NATIVE TELEMETRIE MEILENSTEIN-TRIPPELSCHLEIFE (ALLE LIVE-POPUPS & TÖNE)
+            // =========================================================================
+            if (currentState == "printing" || currentState == "complete") {
+                // 1. FIRST LAYER (Triggert ab 1.5% Fortschritt oder nach 90 Sekunden Druckzeit)
+                if (!hasTrigFirstLayer && (progress >= 0.015 || duration >= 90)) {
+                    hasTrigFirstLayer = true
+                    NotificationManager.showLivePopup(this, "popup_first_layer", R.string.notify_title_first_layer, R.string.notify_msg_first_layer)
+                    SoundManager.playLiveNotification("sound_first_layer")
+                }
+                // 2. HALBZEIT (50% Meilenstein)
+                if (!hasTrig50 && progress >= 0.50) {
+                    hasTrig50 = true
+                    NotificationManager.showLivePopup(this, "popup_50", R.string.notify_title_50, R.string.notify_msg_50)
+                    SoundManager.playLiveNotification("sound_50")
+                }
+                // 3. FINALE PHASE (75% Meilenstein)
+                if (!hasTrig75 && progress >= 0.75) {
+                    hasTrig75 = true
+                    NotificationManager.showLivePopup(this, "popup_75", R.string.notify_title_75, R.string.notify_msg_75)
+                    SoundManager.playLiveNotification("sound_75")
+                }
+                // 4. ENDSPURT (90% Meilenstein)
+                if (!hasTrig90 && progress >= 0.90) {
+                    hasTrig90 = true
+                    NotificationManager.showLivePopup(this, "popup_90", R.string.notify_title_90, R.string.notify_msg_90)
+                    SoundManager.playLiveNotification("sound_90")
+                }
+                // 5. ERFOLG (100% Druckauftrag erfolgreich abgeschlossen)
+                if (!hasTrig100 && (currentState == "complete" || progress >= 0.999)) {
+                    hasTrig100 = true
+                    NotificationManager.showLivePopup(this, "popup_100", R.string.notify_title_100, R.string.notify_msg_100)
+                    SoundManager.playLiveNotification("sound_100")
+                }
+            }
 
             if (!isInPictureInPictureMode) {
                 val isHorizontal = (layoutOsd as? LinearLayout)?.orientation == LinearLayout.HORIZONTAL
@@ -1235,14 +1296,14 @@ class WebViewActivity : AppCompatActivity() {
                 }
                 isFocusable = true
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
-                onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
                     if (hasFocus) {
-                        v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
-                        strokeWidth = 8
-                        strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+                        view.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
+                        (view as MaterialButton).strokeWidth = 8
+                        view.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
                     } else {
-                        v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
-                        strokeWidth = 0
+                        view.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
+                        (view as MaterialButton).strokeWidth = 0
                     }
                 }
                 setOnClickListener { onSelected(index); dialog.dismiss() }
@@ -1280,14 +1341,14 @@ class WebViewActivity : AppCompatActivity() {
                 }
                 isFocusable = true
                 layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
-                onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
                     if (hasFocus) {
-                        v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
-                        strokeWidth = 8
-                        strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+                        view.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
+                        (view as MaterialButton).strokeWidth = 8
+                        view.strokeColor = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
                     } else {
-                        v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
-                        strokeWidth = 0
+                        view.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(100).start()
+                        (view as MaterialButton).strokeWidth = 0
                     }
                 }
                 setOnClickListener { onSelected(index); dialog.dismiss() }
