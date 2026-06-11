@@ -425,7 +425,7 @@ class WebViewActivity : AppCompatActivity() {
                 splitRow.addView(btnRightStyle)
                 container.addView(splitRow)
 
-                // NEU: Split-Row 2: Video-Zoom direkt unter dem OSD-Bereich platziert (Symmetrische Pillengröße)
+                // Split-Row 2: Video-Zoom direkt unter dem OSD-Bereich platziert (Symmetrische Pillengröße)
                 val splitRowZoom = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {

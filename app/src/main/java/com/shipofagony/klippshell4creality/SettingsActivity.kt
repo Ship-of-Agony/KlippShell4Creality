@@ -72,16 +72,34 @@ class SettingsActivity : AppCompatActivity() {
     private var advancedTvButton: MaterialButton? = null
     private var advancedTabletButton: MaterialButton? = null
 
+    // KORREKTUR: attachBaseContext hinzugefügt, damit die Sprache VOR dem Laden des XML-Layouts aktiv ist
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+        val savedLang = prefs.getString("app_lang", "system") ?: "system"
+        val config = android.content.res.Configuration(newBase.resources.configuration)
+
+        if (savedLang != "system") {
+            val locale = Locale.forLanguageTag(savedLang)
+            Locale.setDefault(locale)
+            config.setLocale(locale)
+        }
+
+        val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        when (savedTheme) {
+            AppCompatDelegate.MODE_NIGHT_YES -> {
+                config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or android.content.res.Configuration.UI_MODE_NIGHT_YES
+            }
+            AppCompatDelegate.MODE_NIGHT_NO -> {
+                config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or android.content.res.Configuration.UI_MODE_NIGHT_NO
+            }
+        }
+
+        val localizedContext = newBase.createConfigurationContext(config)
+        super.attachBaseContext(localizedContext)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-
-        val savedLang = prefs.getString("app_lang", "de") ?: "de"
-        val locale = Locale.forLanguageTag(savedLang)
-        Locale.setDefault(locale)
-
-        val config = resources.configuration
-        config.setLocale(locale)
-        baseContext.resources.configuration.updateFrom(config)
 
         // ORIENTATION MANAGEMENT: Zwingt den Bildschirm in das passende Format zur Hardware-Präsentation
         val overrideMode = prefs.getInt("layout_mode_override", 0) // 0=Auto, 1=Phone, 2=Tablet
@@ -393,11 +411,11 @@ class SettingsActivity : AppCompatActivity() {
 
         when (overrideMode) {
             1 -> {
-                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")) // Signal-Rot
+                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
                 btn.setTextColor(Color.WHITE)
             }
             2 -> {
-                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")) // KlippShell-Grün
+                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
                 btn.setTextColor(Color.WHITE)
             }
             else -> {
@@ -793,9 +811,18 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 setOnClickListener {
-                    prefs.edit().putString("app_lang", codes[index]).apply()
-                    val intent = packageManager.getLaunchIntentForPackage(packageName)
-                    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    val selectedCode = codes[index]
+                    prefs.edit().putString("app_lang", selectedCode).apply()
+
+                    val locale = if (selectedCode == "system") Locale.getDefault() else Locale.forLanguageTag(selectedCode)
+                    Locale.setDefault(locale)
+                    val config = resources.configuration
+                    config.setLocale(locale)
+                    resources.updateConfiguration(config, resources.displayMetrics)
+
+                    val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    }
                     startActivity(intent)
                     finish()
                 }
@@ -1071,9 +1098,6 @@ class SettingsActivity : AppCompatActivity() {
         btn.setTextColor(normalTxtColor)
     }
 
-    /**
-     * GEFIXT: Robustes semantisches Versionierungs-Polling via GitHub-API
-     */
     private fun checkForUpdatesFromGithub() {
         val apiUrl = "https://api.github.com/repos/Ship-of-Agony/KlippShell4Creality/releases"
 
@@ -1111,7 +1135,6 @@ class SettingsActivity : AppCompatActivity() {
                             "0.8.6"
                         }
 
-                        // FIX: Suffixes abschneiden (z. B. "-rc") und Teil für Teil numerisch vergleichen
                         val cleanCurrent = currentVersionName.takeWhile { it.isDigit() || it == '.' }.trim('.')
                         val cleanLatest = latestVersionTag.takeWhile { it.isDigit() || it == '.' }.trim('.')
 
