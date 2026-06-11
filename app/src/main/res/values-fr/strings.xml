@@ -189,4 +189,9 @@
     <string name="layout_mode_auto">Mode d\'affichage : AUTOMATIQUE</string>
     <string name="layout_mode_phone">Mode d\'affichage : SMARTPHONE</string>
     <string name="layout_mode_tablet">Mode d\'affichage : TABLET</string>
+
+    <string name="autostart_disabled">Démarrage direct : NON</string>
+    <string name="autostart_enabled">Démarrage direct : OUI ✓</string>
+    <string name="toast_autostart_on">Démarrage direct activé ✓</string>
+    <string name="toast_autostart_off">Démarrage direct désactivé</string>
 </resources>

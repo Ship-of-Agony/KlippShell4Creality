@@ -189,4 +189,9 @@
     <string name="layout_mode_auto">Erzwungener Modus: AUTOMATISCH</string>
     <string name="layout_mode_phone">Erzwungener Modus: SMARTPHONE</string>
     <string name="layout_mode_tablet">Erzwungener Modus: TABLET</string>
+
+    <string name="autostart_disabled">Autostart: OFF</string>
+    <string name="autostart_enabled">Autostart: ON ✓</string>
+    <string name="toast_autostart_on">Autostart enabled ✓</string>
+    <string name="toast_autostart_off">Autostart disabled</string>
 </resources>

@@ -102,6 +102,20 @@
                 app:cornerRadius="100dp" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAutoStartToggle"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
+                android:text="@string/autostart_disabled"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:cornerRadius="100dp" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNotificationsMenu"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="match_parent"

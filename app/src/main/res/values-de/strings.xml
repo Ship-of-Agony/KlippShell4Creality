@@ -189,4 +189,9 @@
     <string name="layout_mode_auto">Layout-Ansicht: AUTOMATISCH</string>
     <string name="layout_mode_phone">Layout-Ansicht: SMARTPHONE</string>
     <string name="layout_mode_tablet">Layout-Ansicht: TABLET</string>
+
+    <string name="autostart_disabled">Direktstart: AUS</string>
+    <string name="autostart_enabled">Direktstart: AN ✓</string>
+    <string name="toast_autostart_on">Direktstart aktiviert ✓</string>
+    <string name="toast_autostart_off">Direktstart deaktiviert</string>
 </resources>

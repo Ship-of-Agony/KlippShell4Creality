@@ -27,6 +27,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -57,8 +58,10 @@ import org.json.JSONObject
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
 class MainActivity : AppCompatActivity() {
 
-    // KORREKTUR: prefs auf die Klassenebene angehoben, damit alle Methoden Zugriff haben
     private lateinit var prefs: SharedPreferences
+
+    // Kontrollvariable gegen Endlosschleifen beim Zurückgehen
+    private var autoStartExecuted = false
 
     private lateinit var containerPrinters: LinearLayout
     private lateinit var tvNoPrinter: TextView
@@ -132,14 +135,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // KORREKTUR: Globale prefs ZUALLERERST initialisieren
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-
         val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedTheme)
 
+        // KORREKTUR: autoStartExecuted aus dem savedInstanceState wiederherstellen, um Endlosschleife nach recreate() zu verhindern
         if (savedInstanceState != null) {
             shouldRecreateOnReturn = savedInstanceState.getBoolean("recreate_flag", false)
+            autoStartExecuted = savedInstanceState.getBoolean("auto_start_executed", false)
         }
 
         super.onCreate(savedInstanceState)
@@ -326,11 +329,27 @@ class MainActivity : AppCompatActivity() {
         applyLanguageAndRefreshUI()
 
         if (prefs.getBoolean("update_auto_check", true)) checkUpdatesSilentlyInBackground()
-        if (printerArray.length() > 0 && isAndroidTV()) startTvBackgroundWorker()
+        if (printerArray.length() > 0) startTvBackgroundWorker()
+
+        // Direktstart greift NUR noch, wenn exakt 1 Drucker eingerichtet ist (== 1)
+        if (!autoStartExecuted && prefs.getBoolean("auto_start_printer", false) && printerArray.length() == 1) {
+            autoStartExecuted = true
+            val primaryPrinter = printerArray.getJSONObject(0)
+            shouldRecreateOnReturn = true
+            startActivity(Intent(this, WebViewActivity::class.java).apply {
+                putExtra("PRINTER_IP", primaryPrinter.optString("ip", ""))
+                putExtra("PRINTER_PORT", primaryPrinter.optString("port", "7125"))
+                if (primaryPrinter.optString("defaultView", "") == "camera") {
+                    putExtra("IS_CAMERA_VIEW", true)
+                }
+            })
+        }
     }
 
+    // KORREKTUR: autoStartExecuted im Bundle mitsichern
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("recreate_flag", shouldRecreateOnReturn)
+        outState.putBoolean("auto_start_executed", autoStartExecuted)
         super.onSaveInstanceState(outState)
     }
 
@@ -522,7 +541,7 @@ class MainActivity : AppCompatActivity() {
             list.put(JSONObject().put("name", name).put("ip", ip).put("port", port).put("model", model).put("defaultView", defaultView))
             prefs.edit().putString("printers_list", list.toString()).apply()
             applyLanguageAndRefreshUI()
-            if (list.length() == 1 && isAndroidTV()) startTvBackgroundWorker()
+            if (list.length() == 1) startTvBackgroundWorker()
         } catch (e: JSONException) { Log.e("KlippShell", "Fehler beim Speichern des Druckers", e) }
     }
 
@@ -533,7 +552,7 @@ class MainActivity : AppCompatActivity() {
         tvNoPrinter.visibility = if (list.length() == 0) View.VISIBLE else View.GONE
         if (list.length() == 0) {
             containerAddPrinterForm.isVisible = true; tvAddPrinterTitle.text = getString(R.string.add_printer_up)
-            if (isAndroidTV()) WorkManager.getInstance(applicationContext).cancelUniqueWork("KlipperTvKachelWorker")
+            WorkManager.getInstance(applicationContext).cancelUniqueWork("KlipperTvKachelWorker")
         }
 
         val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -613,7 +632,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
             try {
-                connection = (URL("https://api.github.com/repos/Ship-of-Agony/KlippShell4Creality/releases").openConnection() as HttpURLConnection).apply { requestMethod = "GET"; connectTimeout = 4000; readTimeout = 4000; useCaches = false; setRequestProperty("User-Agent", "KlippShell-App"); setRequestProperty("Accept", "application/vnd.github.v3+json") }
+                connection = (URL("https://api.github.com/repos/Ship-of-Agony/KlippShell4Creality").openConnection() as HttpURLConnection).apply { requestMethod = "GET"; connectTimeout = 4000; readTimeout = 4000; useCaches = false; setRequestProperty("User-Agent", "KlippShell-App"); setRequestProperty("Accept", "application/vnd.github.v3+json") }
                 if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                     val arr = JSONArray(connection.inputStream.bufferedReader().use { it.readText() })
                     if (arr.length() > 0) {
@@ -693,7 +712,7 @@ class MainActivity : AppCompatActivity() {
             setOnClickListener {
                 prefs.edit().putBoolean("has_shown_permissions", true).apply(); dialog.dismiss()
                 if (try { JSONArray(prefs.getString("printers_list", "[]")).length() } catch (_: Exception) { 0 } == 0) actvMainPrinterModel.requestFocus() else findViewById<View>(R.id.btnSettings)?.requestFocus()
-                if (isAndroidTV()) startTvBackgroundWorker()
+                if (try { JSONArray(prefs.getString("printers_list", "[]")).length() } catch (_: Exception) { 0 } > 0) startTvBackgroundWorker()
             }
         }
 

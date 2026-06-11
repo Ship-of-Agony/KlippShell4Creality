@@ -189,4 +189,9 @@
     <string name="layout_mode_auto">Vista de diseño: AUTOMÁTICO</string>
     <string name="layout_mode_phone">Vista de diseño: SMARTPHONE</string>
     <string name="layout_mode_tablet">Vista de diseño: TABLET</string>
+
+    <string name="autostart_disabled">Inicio directo: NO</string>
+    <string name="autostart_enabled">Inicio directo: SÍ ✓</string>
+    <string name="toast_autostart_on">Inicio directo activado ✓</string>
+    <string name="toast_autostart_off">Inicio directo desactivado</string>
 </resources>

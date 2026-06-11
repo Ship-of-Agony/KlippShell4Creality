@@ -72,7 +72,6 @@ class SettingsActivity : AppCompatActivity() {
     private var advancedTvButton: MaterialButton? = null
     private var advancedTabletButton: MaterialButton? = null
 
-    // KORREKTUR: attachBaseContext hinzugefügt, damit die Sprache VOR dem Laden des XML-Layouts aktiv ist
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedLang = prefs.getString("app_lang", "system") ?: "system"
@@ -101,12 +100,11 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
 
-        // ORIENTATION MANAGEMENT: Zwingt den Bildschirm in das passende Format zur Hardware-Präsentation
-        val overrideMode = prefs.getInt("layout_mode_override", 0) // 0=Auto, 1=Phone, 2=Tablet
+        val overrideMode = prefs.getInt("layout_mode_override", 0)
         when (overrideMode) {
-            1 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT  // Smartphone -> Hochformat sperren
-            2 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE // Tablet -> Querformat erzwingen!
-            else -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED // Auto -> System entscheiden lassen
+            1 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            2 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            else -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
 
         super.onCreate(savedInstanceState)
@@ -150,6 +148,8 @@ class SettingsActivity : AppCompatActivity() {
         val btnAboutMenu = findViewById<MaterialButton>(R.id.btnAboutMenu)
         val btnResetApp = findViewById<MaterialButton>(R.id.btnResetApp)
         val btnSettingsBack = findViewById<MaterialButton>(R.id.btnSettingsBack)
+
+        val btnAutoStartToggle = findViewById<MaterialButton>(R.id.btnAutoStartToggle)
 
         val btnPillThemeLight = findViewById<MaterialButton>(R.id.btnPillThemeLight)
         val btnPillThemeDark = findViewById<MaterialButton>(R.id.btnPillThemeDark)
@@ -209,6 +209,14 @@ class SettingsActivity : AppCompatActivity() {
             showSubPanel(panelScreensaver, 4, getString(R.string.menu_screensaver))
             refreshScreensaverSubpagePills()
             findViewById<MaterialButton>(R.id.btnPillSaver30)?.requestFocus()
+        }
+
+        // KORREKTUR: Toasts laden jetzt voll lokalisiert aus den XMLs
+        btnAutoStartToggle.setOnClickListener {
+            val current = prefs.getBoolean("auto_start_printer", false)
+            prefs.edit().putBoolean("auto_start_printer", !current).apply()
+            updateAutoStartButtonVisuals(btnAutoStartToggle)
+            showCenteredPillToast(if (!current) getString(R.string.toast_autostart_on) else getString(R.string.toast_autostart_off))
         }
 
         btnNotificationsMenu.setOnClickListener {
@@ -328,7 +336,8 @@ class SettingsActivity : AppCompatActivity() {
         arrayOf(
             btnThemeSelect, btnChangeLanguage, btnGlobalScreensaver, btnNotificationsMenu,
             btnAboutMenu, btnResetApp, btnSubMenuSounds, btnSubMenuPopups,
-            btnPillThemeLight, btnPillThemeDark, btnPillThemeSystem, btnSettingsBack
+            btnPillThemeLight, btnPillThemeDark, btnPillThemeSystem, btnSettingsBack,
+            btnAutoStartToggle
         ).forEach { btn ->
             btn?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
@@ -336,6 +345,7 @@ class SettingsActivity : AppCompatActivity() {
                     v.strokeWidth = if (hasFocus) 8 else 0
                     v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
                 }
+                if (v == btnAutoStartToggle) updateAutoStartButtonVisuals(btnAutoStartToggle)
             }
         }
 
@@ -393,6 +403,30 @@ class SettingsActivity : AppCompatActivity() {
             btn.setTextColor(ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
         }
 
+        if (btn.isFocused) {
+            btn.strokeWidth = 8
+            btn.strokeColor = ColorStateList.valueOf(targetBorderColor)
+        } else {
+            btn.strokeWidth = 0
+            btn.strokeColor = null
+        }
+    }
+
+    // KORREKTUR: Button-Beschriftungen laden jetzt voll lokalisiert aus den XML-Ressourcen!
+    private fun updateAutoStartButtonVisuals(btn: MaterialButton) {
+        val isEnabled = prefs.getBoolean("auto_start_printer", false)
+        btn.text = if (isEnabled) getString(R.string.autostart_enabled) else getString(R.string.autostart_disabled)
+
+        if (isEnabled) {
+            btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            btn.setTextColor(Color.WHITE)
+        } else {
+            btn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.pill_normal_inactive))
+            btn.setTextColor(ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
+        }
+
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
         if (btn.isFocused) {
             btn.strokeWidth = 8
             btn.strokeColor = ColorStateList.valueOf(targetBorderColor)
@@ -1059,11 +1093,14 @@ class SettingsActivity : AppCompatActivity() {
 
         updatePillVisuals(findViewById(R.id.btnCheckUpdates))
 
+        updateAutoStartButtonVisuals(findViewById(R.id.btnAutoStartToggle))
+
         val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeLight), currentMode == AppCompatDelegate.MODE_NIGHT_NO)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeDark), currentMode == AppCompatDelegate.MODE_NIGHT_YES)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeSystem), currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
+        setupPill(R.id.btnPillSaver30)
         setupPill(R.id.btnPillSaver30)
         setupPill(R.id.btnPillSaver60)
         setupPill(R.id.btnPillSaver90)

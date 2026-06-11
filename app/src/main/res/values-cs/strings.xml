@@ -189,4 +189,9 @@
     <string name="layout_mode_auto">Zobrazení rozvržení: AUTOMATICKY</string>
     <string name="layout_mode_phone">Zobrazení rozvržení: SMARTPHONE</string>
     <string name="layout_mode_tablet">Zobrazení rozvržení: TABLET</string>
+
+    <string name="autostart_disabled">Autostart: VYP</string>
+    <string name="autostart_enabled">Autostart: ZAP ✓</string>
+    <string name="toast_autostart_on">Autostart aktivován ✓</string>
+    <string name="toast_autostart_off">Autostart deaktivován</string>
 </resources>

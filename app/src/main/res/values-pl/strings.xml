@@ -189,4 +189,9 @@
     <string name="layout_mode_auto">Widok układu: AUTOMATYCZNY</string>
     <string name="layout_mode_phone">Widok układu: SMARTPHONE</string>
     <string name="layout_mode_tablet">Widok układu: TABLET</string>
+
+    <string name="autostart_disabled">Autostart: WYŁ</string>
+    <string name="autostart_enabled">Autostart: WŁ ✓</string>
+    <string name="toast_autostart_on">Autostart włączony ✓</string>
+    <string name="toast_autostart_off">Autostart wyłączony</string>
 </resources>

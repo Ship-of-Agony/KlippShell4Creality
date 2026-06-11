@@ -189,4 +189,9 @@
     <string name="layout_mode_auto">Отображение макета: АВТОМАТИЧЕСКИ</string>
     <string name="layout_mode_phone">Отображение макета: СМАРТФОН</string>
     <string name="layout_mode_tablet">Отображение макета: ПЛАНШЕТ</string>
+
+    <string name="autostart_disabled">Автостарт: ВЫКЛ</string>
+    <string name="autostart_enabled">Автостарт: ВКЛ ✓</string>
+    <string name="toast_autostart_on">Автостарт включен ✓</string>
+    <string name="toast_autostart_off">Автостарт выключен</string>
 </resources>
