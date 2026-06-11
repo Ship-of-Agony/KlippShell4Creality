@@ -76,6 +76,8 @@
     <string name="osd_pos_banner_right">Справа</string>
     <string name="osd_state_on">OSD: ВКЛ</string>
     <string name="osd_state_off">OSD: ВЫКЛ</string>
+    <string name="btn_zoom_in">Zoom (+)</string>
+    <string name="btn_zoom_out">Zoom (-)</string>
 
     <string name="menu_ratio_title">Изменить Соотношение Сторон</string>
     <string name="ratio_16_9_new">16:9 Широкоэкранный</string>

@@ -22,7 +22,7 @@
 
     <string name="choose_default_view_title">Standard Oberfläche</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Live-Stream über</string>
+    <string name="menu_change_camera_type">Live-Stream</string>
     <string name="found_printers">Gefundene Drucker</string>
     <string name="toast_no_connection">Keine Verbindung zum Drucker</string>
     <string name="yes_delete">Löschen</string>
@@ -67,15 +67,17 @@
     <string name="osd_pos_bottom_center">Unten Mitte</string>
     <string name="toast_position_saved">Position gespeichert ✓</string>
     <string name="toast_position_fullscreen_only">Änderung nur bei aktiven OSD möglich</string>
-    <string name="menu_osd_style_title">OSD Stil</string>
-    <string name="osd_style_box">Kompakte Box</string>
-    <string name="osd_style_banner">Flexible Leiste</string>
+    <string name="menu_osd_style_title">OSD Format</string>
+    <string name="osd_style_box">Box</string>
+    <string name="osd_style_banner">Leiste</string>
     <string name="osd_pos_banner_top">Oben</string>
     <string name="osd_pos_banner_bottom">Unten</string>
     <string name="osd_pos_banner_left">Links</string>
     <string name="osd_pos_banner_right">Rechts</string>
-    <string name="osd_state_on">OSD: AN</string>
-    <string name="osd_state_off">OSD: AUS</string>
+    <string name="osd_state_on">On-Screen-Display</string>
+    <string name="osd_state_off">On-Screen-Display</string>
+    <string name="btn_zoom_in">Zoom (+)</string>
+    <string name="btn_zoom_out">Zoom (-)</string>
 
     <string name="menu_ratio_title">Bildformat ändern</string>
     <string name="ratio_16_9_new">16:9 Breitbild</string>

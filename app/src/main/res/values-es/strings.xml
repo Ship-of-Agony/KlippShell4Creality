@@ -76,6 +76,8 @@
     <string name="osd_pos_banner_right">Derecha</string>
     <string name="osd_state_on">OSD: ENCENDIDO</string>
     <string name="osd_state_off">OSD: APAGADO</string>
+    <string name="btn_zoom_in">Zoom (+)</string>
+    <string name="btn_zoom_out">Zoom (-)</string>
 
     <string name="menu_ratio_title">Cambiar Relación de Aspecto</string>
     <string name="ratio_16_9_new">16:9 Pantalla Ancha</string>
