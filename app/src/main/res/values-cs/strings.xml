@@ -76,8 +76,8 @@
     <string name="osd_pos_banner_right">Vpravo</string>
     <string name="osd_state_on">OSD: ZAP</string>
     <string name="osd_state_off">OSD: VYP</string>
-    <string name="btn_zoom_in">Zoom (+)</string>
-    <string name="btn_zoom_out">Zoom (-)</string>
+    <string name="btn_zoom_in">Přiblížit (+)</string>
+    <string name="btn_zoom_out">Oddálit (-)</string>
 
     <string name="menu_ratio_title">Změnit formát obrazu</string>
     <string name="ratio_16_9_new">16:9 Širokoúhlý</string>
