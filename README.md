@@ -4,7 +4,7 @@
 
    ⚠️ Note: I'm not completely sure yet if this fix by DnG Crafts is actually required for video streams on some devices to ensure full app functionality.
    
-   ----> See for more Infos: https://github.com/DnG-Crafts/K2-Camera ⚠️<----
+   ----> See for more Infos: https://github.com/DnG-Crafts/K2-Camera <---- ⚠️
 
 🛋️ The Couch Concept: Keep an eye on your 3D printer relaxed from your sofa while watching your favorite show on TV—without having to constantly run to the printer or open up your laptop.
 
