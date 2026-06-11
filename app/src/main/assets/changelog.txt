@@ -1,3 +1,14 @@
+v0.8.8.110626-rc
+
+• Moonraker Milestone System: Activated the background worker to live-track print progress and issue unique milestone notifications (First Layer, 50%, 75%, 90%, 100%) per file.
+• Notification Customization: Bound background alerts directly to menu toggles to guarantee sounds and popups only fire when explicitly enabled by the user.
+• Autostart Mode: Implemented an auto-skip mechanism to bypass the dashboard overview on fresh launch, with a safety pause if multiple printers are detected.
+• Loop Prevention: Saved the execution state within the savedInstanceState bundle to eliminate infinite autostart loops when returning from the WebView activity.
+• Material3 & UI Polish: Embedded the new button into standard and split-screen layouts, utilizing clean Material3 styling with fully wired D-Pad remote focus feedback.
+• Launcher Deep-Link Fix: Registered the klippshell:// scheme via a view intent filter in the manifest to resolve target SDK registration blockades in the TV launcher provider.
+• Internationalization: Fully localized all newly introduced settings text, toasts, and popups into German, English, Polish, Spanish, French, Russian, and Czech.
+• OTA & Build Maintenance: Increased the application versionCode to 14 to provide reliable over-the-air update support and adjusted the version signature fallbacks.
+
 v0.8.7.090626-rc
 
 • Picture-in-Picture (PiP) Mode: Implemented full native PiP support for background multitasking, allowing users to monitor print progress via a floating overlay with real-time status tracking (tvPipProgress) and dedicated remote control actions (Maximize/Resize) on supported Android TV and mobile platforms.

@@ -168,7 +168,8 @@ class SettingsActivity : AppCompatActivity() {
             val versionName = packageInfo.versionName
             findViewById<TextView>(R.id.tvAppVersion)?.text = "Version $versionName"
         } catch (e: Exception) {
-            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.7.090626-rc"
+            // KORREKTUR: Fallback-Text synchronisiert auf die neue Version 0.8.8
+            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.8.110626-rc"
         }
 
         btnThemeSelect.setOnClickListener {
@@ -211,7 +212,6 @@ class SettingsActivity : AppCompatActivity() {
             findViewById<MaterialButton>(R.id.btnPillSaver30)?.requestFocus()
         }
 
-        // KORREKTUR: Toasts laden jetzt voll lokalisiert aus den XMLs
         btnAutoStartToggle.setOnClickListener {
             val current = prefs.getBoolean("auto_start_printer", false)
             prefs.edit().putBoolean("auto_start_printer", !current).apply()
@@ -412,7 +412,6 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    // KORREKTUR: Button-Beschriftungen laden jetzt voll lokalisiert aus den XML-Ressourcen!
     private fun updateAutoStartButtonVisuals(btn: MaterialButton) {
         val isEnabled = prefs.getBoolean("auto_start_printer", false)
         btn.text = if (isEnabled) getString(R.string.autostart_enabled) else getString(R.string.autostart_disabled)
