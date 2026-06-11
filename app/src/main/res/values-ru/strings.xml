@@ -67,6 +67,17 @@
     <string name="osd_pos_bottom_center">Снижу по Центру</string>
     <string name="toast_position_saved">Позиция сохранена ✓</string>
     <string name="toast_position_fullscreen_only">Изменение возможно только при активном OSD</string>
+    <string name="menu_osd_style_title">Стиль OSD</string>
+    <string name="osd_style_box">Компактный бокс</string>
+    <string name="osd_style_banner">Гибкая лента</string>
+    <string name="osd_pos_banner_top">Вверху</string>
+    <string name="osd_pos_banner_bottom">Внизу</string>
+    <string name="osd_pos_banner_left">Слева</string>
+    <string name="osd_pos_banner_right">Справа</string>
+    <string name="osd_state_on">OSD: ВКЛ</string>
+    <string name="osd_state_off">OSD: ВЫКЛ</string>
+    <string name="btn_zoom_in">Приблизить (+)</string>
+    <string name="btn_zoom_out">Отдалить (-)</string>
 
     <string name="menu_ratio_title">Изменить Соотношение Сторон</string>
     <string name="ratio_16_9_new">16:9 Широкоэкранный</string>
@@ -178,4 +189,9 @@
     <string name="layout_mode_auto">Отображение макета: АВТОМАТИЧЕСКИ</string>
     <string name="layout_mode_phone">Отображение макета: СМАРТФОН</string>
     <string name="layout_mode_tablet">Отображение макета: ПЛАНШЕТ</string>
+
+    <string name="autostart_disabled">Автостарт: ВЫКЛ</string>
+    <string name="autostart_enabled">Автостарт: ВКЛ ✓</string>
+    <string name="toast_autostart_on">Автостарт включен ✓</string>
+    <string name="toast_autostart_off">Автостарт выключен</string>
 </resources>

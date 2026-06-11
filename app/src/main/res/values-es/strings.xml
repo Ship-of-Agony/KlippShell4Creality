@@ -67,6 +67,17 @@
     <string name="osd_pos_bottom_center">Abajo Centro</string>
     <string name="toast_position_saved">Posición guardada ✓</string>
     <string name="toast_position_fullscreen_only">Cambio solo posible con OSD activo</string>
+    <string name="menu_osd_style_title">Estilo OSD</string>
+    <string name="osd_style_box">Caja compacta</string>
+    <string name="osd_style_banner">Barra flexible</string>
+    <string name="osd_pos_banner_top">Arriba</string>
+    <string name="osd_pos_banner_bottom">Abajo</string>
+    <string name="osd_pos_banner_left">Izquierda</string>
+    <string name="osd_pos_banner_right">Derecha</string>
+    <string name="osd_state_on">OSD: ENCENDIDO</string>
+    <string name="osd_state_off">OSD: APAGADO</string>
+    <string name="btn_zoom_in">Acercar (+)</string>
+    <string name="btn_zoom_out">Alejar (-)</string>
 
     <string name="menu_ratio_title">Cambiar Relación de Aspecto</string>
     <string name="ratio_16_9_new">16:9 Pantalla Ancha</string>
@@ -178,4 +189,9 @@
     <string name="layout_mode_auto">Vista de diseño: AUTOMÁTICO</string>
     <string name="layout_mode_phone">Vista de diseño: SMARTPHONE</string>
     <string name="layout_mode_tablet">Vista de diseño: TABLET</string>
+
+    <string name="autostart_disabled">Inicio directo: NO</string>
+    <string name="autostart_enabled">Inicio directo: SÍ ✓</string>
+    <string name="toast_autostart_on">Inicio directo activado ✓</string>
+    <string name="toast_autostart_off">Inicio directo desactivado</string>
 </resources>

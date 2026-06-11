@@ -67,6 +67,17 @@
     <string name="osd_pos_bottom_center">Dół Środek</string>
     <string name="toast_position_saved">Pozycja zapisana ✓</string>
     <string name="toast_position_fullscreen_only">Zmiana możliwa tylko przy aktywnym OSD</string>
+    <string name="menu_osd_style_title">Styl OSD</string>
+    <string name="osd_style_box">Kompaktowe pole</string>
+    <string name="osd_style_banner">Elastyczny pasek</string>
+    <string name="osd_pos_banner_top">Góra</string>
+    <string name="osd_pos_banner_bottom">Dół</string>
+    <string name="osd_pos_banner_left">Lewo</string>
+    <string name="osd_pos_banner_right">Prawo</string>
+    <string name="osd_state_on">OSD: WŁ.</string>
+    <string name="osd_state_off">OSD: WYŁ.</string>
+    <string name="btn_zoom_in">Powiększ (+)</string>
+    <string name="btn_zoom_out">Pomniejsz (-)</string>
 
     <string name="menu_ratio_title">Zmień Proporcje Obrazu</string>
     <string name="ratio_16_9_new">16:9 Panoramiczny</string>
@@ -178,4 +189,9 @@
     <string name="layout_mode_auto">Widok układu: AUTOMATYCZNY</string>
     <string name="layout_mode_phone">Widok układu: SMARTPHONE</string>
     <string name="layout_mode_tablet">Widok układu: TABLET</string>
+
+    <string name="autostart_disabled">Autostart: WYŁ</string>
+    <string name="autostart_enabled">Autostart: WŁ ✓</string>
+    <string name="toast_autostart_on">Autostart włączony ✓</string>
+    <string name="toast_autostart_off">Autostart wyłączony</string>
 </resources>

@@ -67,6 +67,17 @@
     <string name="osd_pos_bottom_center">Dole uprostřed</string>
     <string name="toast_position_saved">Pozice uložena ✓</string>
     <string name="toast_position_fullscreen_only">Změna je možná pouze při aktivním OSD</string>
+    <string name="menu_osd_style_title">Styl OSD</string>
+    <string name="osd_style_box">Kompaktní box</string>
+    <string name="osd_style_banner">Flexibilní lišta</string>
+    <string name="osd_pos_banner_top">Nahoře</string>
+    <string name="osd_pos_banner_bottom">Dole</string>
+    <string name="osd_pos_banner_left">Vlevo</string>
+    <string name="osd_pos_banner_right">Vpravo</string>
+    <string name="osd_state_on">OSD: ZAP</string>
+    <string name="osd_state_off">OSD: VYP</string>
+    <string name="btn_zoom_in">Přiblížit (+)</string>
+    <string name="btn_zoom_out">Oddálit (-)</string>
 
     <string name="menu_ratio_title">Změnit formát obrazu</string>
     <string name="ratio_16_9_new">16:9 Širokoúhlý</string>
@@ -178,4 +189,9 @@
     <string name="layout_mode_auto">Zobrazení rozvržení: AUTOMATICKY</string>
     <string name="layout_mode_phone">Zobrazení rozvržení: SMARTPHONE</string>
     <string name="layout_mode_tablet">Zobrazení rozvržení: TABLET</string>
+
+    <string name="autostart_disabled">Autostart: VYP</string>
+    <string name="autostart_enabled">Autostart: ZAP ✓</string>
+    <string name="toast_autostart_on">Autostart aktivován ✓</string>
+    <string name="toast_autostart_off">Autostart deaktivován</string>
 </resources>

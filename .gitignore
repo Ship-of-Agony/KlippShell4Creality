@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# KORREKTUR: Build-Releases und APK-Metadaten strikt ignorieren
+**/build/
+**/release/
+output-metadata.json
+*.dm

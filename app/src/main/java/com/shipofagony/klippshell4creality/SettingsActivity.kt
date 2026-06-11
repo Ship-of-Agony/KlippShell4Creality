@@ -72,23 +72,39 @@ class SettingsActivity : AppCompatActivity() {
     private var advancedTvButton: MaterialButton? = null
     private var advancedTabletButton: MaterialButton? = null
 
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+        val savedLang = prefs.getString("app_lang", "system") ?: "system"
+        val config = android.content.res.Configuration(newBase.resources.configuration)
+
+        if (savedLang != "system") {
+            val locale = Locale.forLanguageTag(savedLang)
+            Locale.setDefault(locale)
+            config.setLocale(locale)
+        }
+
+        val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        when (savedTheme) {
+            AppCompatDelegate.MODE_NIGHT_YES -> {
+                config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or android.content.res.Configuration.UI_MODE_NIGHT_YES
+            }
+            AppCompatDelegate.MODE_NIGHT_NO -> {
+                config.uiMode = (config.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or android.content.res.Configuration.UI_MODE_NIGHT_NO
+            }
+        }
+
+        val localizedContext = newBase.createConfigurationContext(config)
+        super.attachBaseContext(localizedContext)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
 
-        val savedLang = prefs.getString("app_lang", "de") ?: "de"
-        val locale = Locale.forLanguageTag(savedLang)
-        Locale.setDefault(locale)
-
-        val config = resources.configuration
-        config.setLocale(locale)
-        baseContext.resources.configuration.updateFrom(config)
-
-        // ORIENTATION MANAGEMENT: Zwingt den Bildschirm in das passende Format zur Hardware-Präsentation
-        val overrideMode = prefs.getInt("layout_mode_override", 0) // 0=Auto, 1=Phone, 2=Tablet
+        val overrideMode = prefs.getInt("layout_mode_override", 0)
         when (overrideMode) {
-            1 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT  // Smartphone -> Hochformat sperren
-            2 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE // Tablet -> Querformat erzwingen!
-            else -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED // Auto -> System entscheiden lassen
+            1 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            2 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            else -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
 
         super.onCreate(savedInstanceState)
@@ -133,6 +149,8 @@ class SettingsActivity : AppCompatActivity() {
         val btnResetApp = findViewById<MaterialButton>(R.id.btnResetApp)
         val btnSettingsBack = findViewById<MaterialButton>(R.id.btnSettingsBack)
 
+        val btnAutoStartToggle = findViewById<MaterialButton>(R.id.btnAutoStartToggle)
+
         val btnPillThemeLight = findViewById<MaterialButton>(R.id.btnPillThemeLight)
         val btnPillThemeDark = findViewById<MaterialButton>(R.id.btnPillThemeDark)
         val btnPillThemeSystem = findViewById<MaterialButton>(R.id.btnPillThemeSystem)
@@ -150,7 +168,8 @@ class SettingsActivity : AppCompatActivity() {
             val versionName = packageInfo.versionName
             findViewById<TextView>(R.id.tvAppVersion)?.text = "Version $versionName"
         } catch (e: Exception) {
-            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.7.090626-rc"
+            // KORREKTUR: Fallback-Text synchronisiert auf die neue Version 0.8.8
+            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.8.110626-rc"
         }
 
         btnThemeSelect.setOnClickListener {
@@ -191,6 +210,13 @@ class SettingsActivity : AppCompatActivity() {
             showSubPanel(panelScreensaver, 4, getString(R.string.menu_screensaver))
             refreshScreensaverSubpagePills()
             findViewById<MaterialButton>(R.id.btnPillSaver30)?.requestFocus()
+        }
+
+        btnAutoStartToggle.setOnClickListener {
+            val current = prefs.getBoolean("auto_start_printer", false)
+            prefs.edit().putBoolean("auto_start_printer", !current).apply()
+            updateAutoStartButtonVisuals(btnAutoStartToggle)
+            showCenteredPillToast(if (!current) getString(R.string.toast_autostart_on) else getString(R.string.toast_autostart_off))
         }
 
         btnNotificationsMenu.setOnClickListener {
@@ -310,7 +336,8 @@ class SettingsActivity : AppCompatActivity() {
         arrayOf(
             btnThemeSelect, btnChangeLanguage, btnGlobalScreensaver, btnNotificationsMenu,
             btnAboutMenu, btnResetApp, btnSubMenuSounds, btnSubMenuPopups,
-            btnPillThemeLight, btnPillThemeDark, btnPillThemeSystem, btnSettingsBack
+            btnPillThemeLight, btnPillThemeDark, btnPillThemeSystem, btnSettingsBack,
+            btnAutoStartToggle
         ).forEach { btn ->
             btn?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
@@ -318,6 +345,7 @@ class SettingsActivity : AppCompatActivity() {
                     v.strokeWidth = if (hasFocus) 8 else 0
                     v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
                 }
+                if (v == btnAutoStartToggle) updateAutoStartButtonVisuals(btnAutoStartToggle)
             }
         }
 
@@ -384,6 +412,29 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateAutoStartButtonVisuals(btn: MaterialButton) {
+        val isEnabled = prefs.getBoolean("auto_start_printer", false)
+        btn.text = if (isEnabled) getString(R.string.autostart_enabled) else getString(R.string.autostart_disabled)
+
+        if (isEnabled) {
+            btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            btn.setTextColor(Color.WHITE)
+        } else {
+            btn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.pill_normal_inactive))
+            btn.setTextColor(ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
+        }
+
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
+        if (btn.isFocused) {
+            btn.strokeWidth = 8
+            btn.strokeColor = ColorStateList.valueOf(targetBorderColor)
+        } else {
+            btn.strokeWidth = 0
+            btn.strokeColor = null
+        }
+    }
+
     private fun updateTabletButtonVisuals(btn: MaterialButton, overrideMode: Int) {
         btn.text = when (overrideMode) {
             1 -> getString(R.string.layout_mode_phone)
@@ -393,11 +444,11 @@ class SettingsActivity : AppCompatActivity() {
 
         when (overrideMode) {
             1 -> {
-                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")) // Signal-Rot
+                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
                 btn.setTextColor(Color.WHITE)
             }
             2 -> {
-                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")) // KlippShell-Grün
+                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
                 btn.setTextColor(Color.WHITE)
             }
             else -> {
@@ -793,9 +844,18 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 setOnClickListener {
-                    prefs.edit().putString("app_lang", codes[index]).apply()
-                    val intent = packageManager.getLaunchIntentForPackage(packageName)
-                    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    val selectedCode = codes[index]
+                    prefs.edit().putString("app_lang", selectedCode).apply()
+
+                    val locale = if (selectedCode == "system") Locale.getDefault() else Locale.forLanguageTag(selectedCode)
+                    Locale.setDefault(locale)
+                    val config = resources.configuration
+                    config.setLocale(locale)
+                    resources.updateConfiguration(config, resources.displayMetrics)
+
+                    val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    }
                     startActivity(intent)
                     finish()
                 }
@@ -806,9 +866,6 @@ class SettingsActivity : AppCompatActivity() {
         (preFocused ?: containerLanguageButtons.getChildAt(0) as? MaterialButton)?.requestFocus()
     }
 
-    /**
-     * DYNAMISCHER ASSET-LOADER: Holt den Changelog nun live aus der physischen changelog.txt
-     */
     private fun loadChangelogFromAssets() {
         val changelogSb = java.lang.StringBuilder()
         try {
@@ -1035,11 +1092,14 @@ class SettingsActivity : AppCompatActivity() {
 
         updatePillVisuals(findViewById(R.id.btnCheckUpdates))
 
+        updateAutoStartButtonVisuals(findViewById(R.id.btnAutoStartToggle))
+
         val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeLight), currentMode == AppCompatDelegate.MODE_NIGHT_NO)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeDark), currentMode == AppCompatDelegate.MODE_NIGHT_YES)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeSystem), currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
+        setupPill(R.id.btnPillSaver30)
         setupPill(R.id.btnPillSaver30)
         setupPill(R.id.btnPillSaver60)
         setupPill(R.id.btnPillSaver90)
@@ -1111,11 +1171,29 @@ class SettingsActivity : AppCompatActivity() {
                             "0.8.6"
                         }
 
-                        val latestNumeric = latestVersionTag.replace(".", "").toIntOrNull() ?: 0
-                        val currentNumeric = currentVersionName.replace(".", "").toIntOrNull() ?: 0
+                        val cleanCurrent = currentVersionName.takeWhile { it.isDigit() || it == '.' }.trim('.')
+                        val cleanLatest = latestVersionTag.takeWhile { it.isDigit() || it == '.' }.trim('.')
+
+                        val currentParts = cleanCurrent.split(".").map { it.toIntOrNull() ?: 0 }
+                        val latestParts = cleanLatest.split(".").map { it.toIntOrNull() ?: 0 }
+
+                        var isNewer = false
+                        val maxLength = maxOf(currentParts.size, latestParts.size)
+                        for (i in 0 until maxLength) {
+                            val currentPart = currentParts.getOrElse(i) { 0 }
+                            val latestPart = latestParts.getOrElse(i) { 0 }
+                            if (latestPart > currentPart) {
+                                isNewer = true
+                                break
+                            }
+                            if (latestPart < currentPart) {
+                                isNewer = false
+                                break
+                            }
+                        }
 
                         withContext(Dispatchers.Main) {
-                            if (latestNumeric > currentNumeric && downloadUrl.isNotEmpty()) {
+                            if (isNewer && downloadUrl.isNotEmpty()) {
                                 showUpdateAvailableDialog(latestVersionTag, downloadUrl)
                             } else {
                                 showCenteredPillToast(getString(R.string.toast_updater_up_to_date))

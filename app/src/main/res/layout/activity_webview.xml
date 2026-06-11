@@ -17,6 +17,52 @@
         app:layout_constraintRight_toRightOf="parent" />
 
     <LinearLayout
+        android:id="@+id/layoutScrollRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:visibility="visible"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScrollRightUp"
+            android:layout_width="50dp"
+            android:layout_height="100dp"
+            android:layout_marginBottom="16dp"
+            android:text="▲"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            app:backgroundTint="#661976D2"
+            app:cornerRadius="25dp"
+            app:elevation="4dp"
+            app:rippleColor="#4DFFFFFF"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScrollRightDown"
+            android:layout_width="50dp"
+            android:layout_height="100dp"
+            android:text="▼"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            app:backgroundTint="#661976D2"
+            app:cornerRadius="25dp"
+            app:elevation="4dp"
+            app:rippleColor="#4DFFFFFF"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/layoutOsd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -33,96 +79,67 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginEnd="24dp">
-            <TextView
-                android:id="@+id/tvOsdExtruder"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/tvOsdBed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:layout_marginTop="4dp" />
-            <TextView
-                android:id="@+id/tvOsdChamberSensor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:layout_marginTop="4dp"
-                android:visibility="gone" />
-            <TextView
-                android:id="@+id/tvOsdChamberHeater"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:layout_marginTop="4dp"
-                android:visibility="gone" />
+            <TextView android:id="@+id/tvOsdExtruder" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/tvOsdBed" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:layout_marginTop="4dp" />
+            <TextView android:id="@+id/tvOsdChamberSensor" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:layout_marginTop="4dp" android:visibility="gone" />
+            <TextView android:id="@+id/tvOsdChamberHeater" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:layout_marginTop="4dp" android:visibility="gone" />
         </LinearLayout>
-
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <TextView
-                android:id="@+id/tvOsdFanModel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/tvOsdFanAux"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:layout_marginTop="4dp" />
-            <TextView
-                android:id="@+id/tvOsdFanChamber"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:layout_marginTop="4dp" />
-            <TextView
-                android:id="@+id/tvOsdProgress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#1976D2"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginTop="6dp" />
-            <TextView
-                android:id="@+id/tvOsdTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:layout_marginTop="2dp" />
+            <TextView android:id="@+id/tvOsdFanModel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/tvOsdFanAux" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:layout_marginTop="4dp" />
+            <TextView android:id="@+id/tvOsdFanChamber" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:layout_marginTop="4dp" />
+            <TextView android:id="@+id/tvOsdProgress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#1976D2" android:textSize="16sp" android:textStyle="bold" android:layout_marginTop="6dp" />
+            <TextView android:id="@+id/tvOsdTime" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:layout_marginTop="2dp" />
         </LinearLayout>
     </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/containerWebNotification"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutOsdBanner"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:padding="16dp"
+        android:layout_marginTop="24dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/layoutWebButtons"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintWidth_max="520dp" />
+        app:layout_constraintRight_toRightOf="parent">
+
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/osdBannerFlow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:flow_wrapMode="chain"
+            app:flow_horizontalGap="12dp"
+            app:flow_verticalGap="4dp"
+            app:flow_horizontalStyle="packed"
+            app:constraint_referenced_ids="tvOsdExtruderBanner,tvOsdBedBanner,tvOsdChamberSensorBanner,tvOsdChamberHeaterBanner,tvOsdFanModelBanner,tvOsdFanAuxBanner,tvOsdFanChamberBanner,tvOsdProgressBanner,tvOsdTimeBanner" />
+
+        <TextView android:id="@+id/tvOsdExtruderBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdBedBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdChamberSensorBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:visibility="gone" />
+        <TextView android:id="@+id/tvOsdChamberHeaterBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" android:visibility="gone" />
+        <TextView android:id="@+id/tvOsdFanModelBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdFanAuxBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdFanChamberBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+        <TextView android:id="@+id/tvOsdProgressBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#1976D2" android:textSize="16sp" android:textStyle="bold" />
+        <TextView android:id="@+id/tvOsdTimeBanner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF" android:textSize="14sp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/layoutWebButtons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="24dp"
         android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -172,6 +189,17 @@
             android:insetLeft="0dp"
             android:insetRight="0dp" />
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/containerWebNotification"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/layoutWebButtons"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintWidth_max="520dp" />
 
     <FrameLayout
         android:id="@+id/layoutScreensaver"

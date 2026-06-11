@@ -22,7 +22,7 @@
 
     <string name="choose_default_view_title">Standard Oberfläche</string>
     <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Live-Stream über</string>
+    <string name="menu_change_camera_type">Live-Stream</string>
     <string name="found_printers">Gefundene Drucker</string>
     <string name="toast_no_connection">Keine Verbindung zum Drucker</string>
     <string name="yes_delete">Löschen</string>
@@ -57,7 +57,7 @@
     <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub-OTA-Updater hinzugefügt: Asynchrone Online-Prüfung auf neue Releases\n• Integrierter Lizenz-Viewer: Neues scrollbares Dialogfenster für Urheberrechte\n• Layout-Bereinigung: Redundante UI-Texte entfernt, Logo-Easter-Egg geschützt\n• Stabilität erhöht: Kotlin Null-Safety-Fehler behoben und Dialog-Fokus optimiert\n\nv0.8.4.300526-rc\n• TV-Suchdialog für Modell-Auswahl hinzugefügt\n• Tolerante G-Code/Modell-Suche implementiert\n• Speicher-Polling für Moonraker optimiert\n\nv0.8.3\n• D-Pad Fokus-Sicherheit für Menüebenen erhöht\n• SoundManager Audio-Kanäle stabilisiert\n• Presets-Reset gefixt</string>
     <string name="settings_optimized_tv">Optimiert für Android TV</string>
 
-    <string name="menu_options_title">Opciones</string>
+    <string name="menu_options_title">Optionen</string>
     <string name="menu_osd_show">OSD einblenden</string>
     <string name="menu_osd_hide">OSD ausblenden</string>
     <string name="osd_position_title">OSD Position wählen</string>
@@ -67,6 +67,17 @@
     <string name="osd_pos_bottom_center">Unten Mitte</string>
     <string name="toast_position_saved">Position gespeichert ✓</string>
     <string name="toast_position_fullscreen_only">Änderung nur bei aktiven OSD möglich</string>
+    <string name="menu_osd_style_title">OSD Format</string>
+    <string name="osd_style_box">Box</string>
+    <string name="osd_style_banner">Leiste</string>
+    <string name="osd_pos_banner_top">Oben</string>
+    <string name="osd_pos_banner_bottom">Unten</string>
+    <string name="osd_pos_banner_left">Links</string>
+    <string name="osd_pos_banner_right">Rechts</string>
+    <string name="osd_state_on">On-Screen-Display</string>
+    <string name="osd_state_off">On-Screen-Display</string>
+    <string name="btn_zoom_in">Zoom (+)</string>
+    <string name="btn_zoom_out">Zoom (-)</string>
 
     <string name="menu_ratio_title">Bildformat ändern</string>
     <string name="ratio_16_9_new">16:9 Breitbild</string>
@@ -105,9 +116,9 @@
 
     <string name="event_offline">Offline</string>
     <string name="event_first_layer">Erste Schicht</string>
-    <string name="event_50">50% erreicht</string>
-    <string name="event_75">75% erreicht</string>
-    <string name="event_90">90% erreicht</string>
+    <string name="event_50">50% reached</string>
+    <string name="event_75">75% reached</string>
+    <string name="event_90">90% reached</string>
     <string name="event_100">Fertiggestellt</string>
     <string name="event_error">Fehler</string>
 
@@ -178,4 +189,9 @@
     <string name="layout_mode_auto">Layout-Ansicht: AUTOMATISCH</string>
     <string name="layout_mode_phone">Layout-Ansicht: SMARTPHONE</string>
     <string name="layout_mode_tablet">Layout-Ansicht: TABLET</string>
+
+    <string name="autostart_disabled">Direktstart: AUS</string>
+    <string name="autostart_enabled">Direktstart: AN ✓</string>
+    <string name="toast_autostart_on">Direktstart aktiviert ✓</string>
+    <string name="toast_autostart_off">Direktstart deaktiviert</string>
 </resources>

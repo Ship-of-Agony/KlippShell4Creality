@@ -67,6 +67,17 @@
     <string name="osd_pos_bottom_center">Bas centre</string>
     <string name="toast_position_saved">Position enregistrée ✓</string>
     <string name="toast_position_fullscreen_only">Modification possible uniquement lorsque l\'OSD est actif</string>
+    <string name="menu_osd_style_title">Style OSD</string>
+    <string name="osd_style_box">Boîte compacte</string>
+    <string name="osd_style_banner">Bandeau flexible</string>
+    <string name="osd_pos_banner_top">Haut</string>
+    <string name="osd_pos_banner_bottom">Bas</string>
+    <string name="osd_pos_banner_left">Gauche</string>
+    <string name="osd_pos_banner_right">Droite</string>
+    <string name="osd_state_on">OSD: ACTIVÉ</string>
+    <string name="osd_state_off">OSD: DÉSACTIVÉ</string>
+    <string name="btn_zoom_in">Zoom (+)</string>
+    <string name="btn_zoom_out">Zoom (-)</string>
 
     <string name="menu_ratio_title">Changer le format d\'image</string>
     <string name="ratio_16_9_new">Écran large 16:9</string>
@@ -178,4 +189,9 @@
     <string name="layout_mode_auto">Mode d\'affichage : AUTOMATIQUE</string>
     <string name="layout_mode_phone">Mode d\'affichage : SMARTPHONE</string>
     <string name="layout_mode_tablet">Mode d\'affichage : TABLET</string>
+
+    <string name="autostart_disabled">Démarrage direct : NON</string>
+    <string name="autostart_enabled">Démarrage direct : OUI ✓</string>
+    <string name="toast_autostart_on">Démarrage direct activé ✓</string>
+    <string name="toast_autostart_off">Démarrage direct désactivé</string>
 </resources>
