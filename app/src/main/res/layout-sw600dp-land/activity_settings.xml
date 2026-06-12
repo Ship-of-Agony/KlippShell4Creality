@@ -60,20 +60,6 @@
             android:visibility="visible">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnThemeSelect"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp"
-                android:text="@string/theme_title"
-                android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                app:cornerRadius="100dp" />
-
-            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnChangeLanguage"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="match_parent"
@@ -88,14 +74,28 @@
                 app:cornerRadius="100dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnGlobalScreensaver"
+                android:id="@+id/btnThemeSelect"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:paddingTop="14dp"
                 android:paddingBottom="14dp"
-                android:text="@string/menu_screensaver"
+                android:text="@string/theme_title"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:cornerRadius="100dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNotificationsMenu"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
+                android:text="@string/settings_notify_title"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
@@ -116,14 +116,42 @@
                 app:cornerRadius="100dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnNotificationsMenu"
+                android:id="@+id/btnGlobalScreensaver"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:paddingTop="14dp"
                 android:paddingBottom="14dp"
-                android:text="@string/settings_notify_title"
+                android:text="@string/menu_screensaver"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:cornerRadius="100dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRoleSelect"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
+                android:text="@string/settings_role_title"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:cornerRadius="100dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPipAdbSelect"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
+                android:text="@string/menu_pip_adb_title"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
@@ -427,6 +455,79 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/screensaver_off"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:cornerRadius="100dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <ScrollView
+        android:id="@+id/scrollPanelRole"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="16dp"
+        android:scrollbars="none"
+        android:fillViewport="true"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
+        app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
+
+        <LinearLayout
+            android:id="@+id/panelRole"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:elevation="8dp"
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPillRoleAuto"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
+                android:text="@string/settings_role_auto"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:cornerRadius="100dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPillRoleMaster"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
+                android:text="@string/settings_role_master"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:cornerRadius="100dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPillRoleSlave"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
+                android:text="@string/settings_role_slave"
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 app:cornerRadius="100dp" />

@@ -11,11 +11,11 @@ android {
         minSdk = 24
         targetSdk = 36
 
-        // Auf 14 erhöht für den neuen Release Candidate (Upgrade-Sicherheit)
-        versionCode = 14
+        // Auf 15 erhöht für den neuen Release Candidate (Upgrade-Sicherheit)
+        versionCode = 15
 
-        // Deine neue Release-Versionsnummer für den 11. Juni 2026
-        versionName = "0.8.8.110626-rc"
+        // Deine neue Release-Versionsnummer für den 12. Juni 2026
+        versionName = "0.8.9.120626-rc"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

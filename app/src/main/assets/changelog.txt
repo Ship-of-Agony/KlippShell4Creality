@@ -1,3 +1,12 @@
+v0.8.9.120626-rc
+
+
+• Dynamic Onboarding & Welcome Guide: Implemented a highly visible, dismissible welcome tile for first-time users natively injected into the printer list. It provides a structured 6-point guide covering Master/Slave concepts, D-Pad live control bindings, Direct Start, Companion Mode, PiP ADB unlocking, and recommendations for alternative Android TV launchers (e.g., Projectivity Launcher) to bypass manufacturer restrictions.
+• Auto-Discovery Companion Mode (Master/Slave): Engineered a robust network architecture allowing smartphones to act as seamless remote controls for Android TV dashboards. Features a background subnet scanner (port 9999) that instantly discovers the TV Master, establishes a smart TCP handshake, and auto-synchronizes the active Klipper printer configuration without requiring manual IP entry.
+• Hardware PiP Restriction Bypass & ADB Guide: Developed a code-level bypass (hasSystemFeature override) for Android TV devices that falsely block Picture-in-Picture capabilities. Added a dedicated, fully localized settings menu containing a code-formatted (<tt>) step-by-step terminal guide to permanently force PiP overlay permissions via AppOps.
+• Unified Settings Architecture: Completely restructured the settings layout for both portrait (mobile) and landscape (tablet/TV) modes to follow a logical, user-centric flow. Eliminated redundant UI elements, improved D-Pad focus routing, and integrated the new PiP and Auto-Start toggles seamlessly into the main UI pipeline.
+• Compiler & Layout Stability Fixes: Resolved critical AAPT2 resource linking crashes caused by invalid layout attributes (layout_constraintStart_toUnified), fixed Kotlin compilation errors related to read-only property reassignments (replaced with setLineSpacing), and restored truncated core methods (savePrinter) to ensure absolute build integrity.
+
 v0.8.8.110626-rc
 
 • Moonraker Milestone System: Activated the background worker to live-track print progress and issue unique milestone notifications (First Layer, 50%, 75%, 90%, 100%) per file.

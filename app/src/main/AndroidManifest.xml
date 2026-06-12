@@ -48,6 +48,11 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|uiMode"
             tools:targetApi="26" />
 
+        <activity
+            android:name=".CompanionRemoteActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|uiMode" />
+
         <receiver
             android:name=".TvChannelReceiver"
             android:enabled="true"

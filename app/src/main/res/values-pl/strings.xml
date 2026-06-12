@@ -194,4 +194,45 @@
     <string name="autostart_enabled">Autostart: WŁ ✓</string>
     <string name="toast_autostart_on">Autostart włączony ✓</string>
     <string name="toast_autostart_off">Autostart wyłączony</string>
+
+    <string name="settings_role_title">Tryb aplikacji (Rola urządzenia)</string>
+    <string name="settings_role_auto">Automatyczne wykrywanie</string>
+    <string name="settings_role_master">TV / Monitor (Master)</string>
+    <string name="settings_role_slave">Pilot zdalnego sterowania (Slave)</string>
+
+    <string name="remote_title">Pilot KlippShell</string>
+    <string name="remote_status_connected">Połączono z TV</string>
+    <string name="remote_status_disconnected">Rozłączono</string>
+
+    <string name="remote_dpad_up">W górę</string>
+    <string name="remote_dpad_down">W dół</string>
+    <string name="remote_dpad_left">W lewo</string>
+    <string name="remote_dpad_right">W prawo</string>
+    <string name="remote_dpad_ok">Potwierdź (OK)</string>
+    <string name="remote_btn_back">Wstecz</string>
+
+    <string name="remote_shortcut_layout">Format obrazu (Box/Banner)</string>
+    <string name="remote_shortcut_zoom_in">Powiększ</string>
+    <string name="remote_shortcut_zoom_out">Pomniejsz</string>
+    <string name="remote_shortcut_pip">Obraz w obrazie (PiP)</string>
+    <string name="remote_shortcut_stream">Przełącz kamerę</string>
+    <string name="remote_shortcut_light">Oświetlenie obudowy (LED)</string>
+    <string name="remote_shortcut_estop">ZATRZYMANIE AWARYJNE</string>
+
+    <string name="menu_pip_adb_title">Odblokuj PIP przez ADB</string>
+    <string name="dialog_pip_adb_guide_title">Instrukcja ADB dla Picture-in-Picture</string>
+    <string name="dialog_pip_adb_guide_text"><![CDATA[
+Niektórzy producenci telewizorów domyślnie blokują funkcję Obraz w obrazie (PiP). Wykonaj poniższe kroki, aby odblokować ją na stałe:<br><br>
+1. Włącz Opcje programistyczne w telewizorze (Kliknij 7 razy "Numer kompilacji" w ustawieniach systemu).<br>
+2. Włącz "Debugowanie ADB" w opcjach programistycznych.<br>
+3. Otwórz wiersz poleceń na komputerze i połącz się z telewizorem:<br>
+<tt><b>adb connect [IP_TWOJEGO_TV]:5555</b></tt><br><br>
+4. Skopiuj i wykonaj dokładnie następujące polecenie:<br>
+<tt><b>adb shell appops set com.shipofagony.klippshell4creality PICTURE_IN_PICTURE allow</b></tt><br><br>
+5. Uruchom ponownie aplikację KlippShell na TV. Funkcja PiP jest już gotowa do użycia!
+]]></string>
+
+    <string name="welcome_tile_title">Witamy w KlippShell! 👋</string>
+    <string name="welcome_tile_msg">Cieszymy się, że tu jesteś! Aby jak najlepiej wykorzystać monitoring drukarki, oto krótki przegląd najważniejszych funkcji KlippShell oraz specyfiki niektórych urządzeń TV. KlippShell został zaprojektowany tak, aby działał płynnie na smartfonach, tabletach lub w sposób przyjazny dla użytkownika na Android TV.\n\n1️⃣ PIERWSZE KROKI\nDodaj swoją pierwszą drukarkę 3D poniżej. Obecnie uwzględniono prawie wszystkie modele dostępne na rynku. Jeśli chcesz użyć inej drukarki opartej na systemie Klipper, możesz wybrać \"Custom Model\".\nUwaga: W zależności od modelu drukarki i konfiguracji sieci może być konieczna ręczna regulacja portów i ścieżek dostępu do kamery, aby zagwarantować bezproblemowy monitoring. Automatyczne skanowanie sieci powinno jednak samo obsłużyć większość konfiguracji.\n⚠️ Jeśli nie otrzymujesz obrazu na żywo z drukarki, odwiedź stronę https://github.com/DnG-Crafts/K2-Camera i zainstaluj FIX. Niestety wymaga to uprawnień roota na drukarce!\n💡 Wskazówka: Długie naciśnięcie w menu głównym na jedną z zapisanych drukarek otwiera opcje zmiany domyślnego widoku między monitoringiem strumienia na żywo a Klipper OS lub usunięcia tej drukarki.\n\n2️⃣ INTELIGENTNE STEROWANIE NA ŻYWO\nW trybie strumienia wideo sterujesz wszystkim za pomocą trzech dolnych przycisków głównych:\n• Lewy przycisk: Otwiera menu wyświetlacza ekranowego (OSD), zoomu wideo, PiP, oświetlenia obudowy, wygaszacza ekranu i formatu obrazu.\n• Środkowy przycisk: Płynnie przełącza między Klipper OS (pulpit nawigacyjny) a czystym strumieniem na żywo z kamery.\n• Prawy przycisk: W dowolnym momencie bezpiecznie powraca do menu głównego.\n\n3️⃣ TRYB BEZPOŚREDNIEGO STARTU\nJeśli pomyślnie skonfigurowałeś już drukarkę, możesz wybrać tryb Bezpośredniego Startu w ustawieniach. Pozwala to na uruchomienie aplikacji bezpośrednio w widoku strumienia na żywo.\n\n4️⃣ TRYB COMPANION\nDzięki KlippShell możesz używać swojego urządzenia jako panelu TV (Master) lub pilota na smartfonie (Slave). Włącz tryb Companion w ustawieniach, aby wygodnie sterować telewizorem ze smartfona.\n\n5️⃣ OBRAZ W OBRAZE (PiP)\nChoć KlippShell w pełni obsługuje PiP, niektórzy producenci telewizorów odmawiają natywnego oferowania tej funkcji. Bez obaw: W ustawieniach znajdziesz zaawansowaną funkcję z dokładną instrukcją, jak łatwo wymusić PiP na telewizorze za pomocą polecenia ADB!\n\n6️⃣ FUNKCJA TV \"NOW LIVE\"\nJeśli chcesz korzystać z funkcji TV \"Now Live\", ograniczenia producenta mogą uniemożliwić jej natywne wyświetlanie na panelu TV. W takim przypadku zdecydowanie zalecamy korzystanie z alternatywnego launchera TV, takiego jak \"Projectivity Launcher\" na urządzeniu TV, aby w pełni cieszyć się tą funkcją.</string>
+    <string name="welcome_tile_btn">Rozumiem i Ukryj</string>
 </resources>

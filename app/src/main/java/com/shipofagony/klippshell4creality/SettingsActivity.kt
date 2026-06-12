@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Html
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -52,6 +53,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var panelLanguage: LinearLayout
     private lateinit var panelNotifySelect: LinearLayout
     private lateinit var panelScreensaver: LinearLayout
+    private lateinit var panelRole: LinearLayout
     private lateinit var panelAbout: LinearLayout
     private lateinit var containerLanguageButtons: LinearLayout
 
@@ -128,6 +130,7 @@ class SettingsActivity : AppCompatActivity() {
         panelLanguage = findViewById(R.id.panelLanguage)
         panelNotifySelect = findViewById(R.id.panelNotifySelect)
         panelScreensaver = findViewById(R.id.panelScreensaver)
+        panelRole = findViewById(R.id.panelRole)
         panelAbout = findViewById(R.id.panelAbout)
         containerLanguageButtons = findViewById(R.id.containerLanguageButtons)
 
@@ -141,19 +144,24 @@ class SettingsActivity : AppCompatActivity() {
         tvAboutContactLink.text = getString(R.string.about_contact_text)
         tvAboutContactLink.setTextColor(Color.parseColor("#2196F3"))
 
-        val btnThemeSelect = findViewById<MaterialButton>(R.id.btnThemeSelect)
         val btnChangeLanguage = findViewById<MaterialButton>(R.id.btnChangeLanguage)
-        val btnGlobalScreensaver = findViewById<MaterialButton>(R.id.btnGlobalScreensaver)
+        val btnThemeSelect = findViewById<MaterialButton>(R.id.btnThemeSelect)
         val btnNotificationsMenu = findViewById<MaterialButton>(R.id.btnNotificationsMenu)
+        val btnAutoStartToggle = findViewById<MaterialButton>(R.id.btnAutoStartToggle)
+        val btnGlobalScreensaver = findViewById<MaterialButton>(R.id.btnGlobalScreensaver)
+        val btnRoleSelect = findViewById<MaterialButton>(R.id.btnRoleSelect)
+        val btnPipAdbSelect = findViewById<MaterialButton>(R.id.btnPipAdbSelect)
         val btnAboutMenu = findViewById<MaterialButton>(R.id.btnAboutMenu)
         val btnResetApp = findViewById<MaterialButton>(R.id.btnResetApp)
         val btnSettingsBack = findViewById<MaterialButton>(R.id.btnSettingsBack)
 
-        val btnAutoStartToggle = findViewById<MaterialButton>(R.id.btnAutoStartToggle)
-
         val btnPillThemeLight = findViewById<MaterialButton>(R.id.btnPillThemeLight)
         val btnPillThemeDark = findViewById<MaterialButton>(R.id.btnPillThemeDark)
         val btnPillThemeSystem = findViewById<MaterialButton>(R.id.btnPillThemeSystem)
+
+        val btnPillRoleAuto = findViewById<MaterialButton>(R.id.btnPillRoleAuto)
+        val btnPillRoleMaster = findViewById<MaterialButton>(R.id.btnPillRoleMaster)
+        val btnPillRoleSlave = findViewById<MaterialButton>(R.id.btnPillRoleSlave)
 
         val btnSubMenuSounds = findViewById<MaterialButton>(R.id.btnSubMenuSounds)
         val btnSubMenuPopups = findViewById<MaterialButton>(R.id.btnSubMenuPopups)
@@ -161,14 +169,14 @@ class SettingsActivity : AppCompatActivity() {
         val btnCheckUpdates = findViewById<MaterialButton>(R.id.btnCheckUpdates)
         val ivAboutStudioLogo = findViewById<ImageView>(R.id.ivAboutStudioLogo)
 
-        btnThemeSelect.requestFocus()
+        // KORREKTUR: Fokus startet auf Position 1 (Sprache ändern) nach deiner neuen Anordnung
+        btnChangeLanguage.requestFocus()
 
         try {
             val packageInfo = packageManager.getPackageInfo(packageName, 0)
             val versionName = packageInfo.versionName
             findViewById<TextView>(R.id.tvAppVersion)?.text = "Version $versionName"
         } catch (e: Exception) {
-            // KORREKTUR: Fallback-Text synchronisiert auf die neue Version 0.8.8
             findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.8.110626-rc"
         }
 
@@ -187,7 +195,7 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        val themeClick = View.OnClickListener { view ->
+        val intentThemeClick = View.OnClickListener { view ->
             val targetMode = when (view.id) {
                 R.id.btnPillThemeLight -> AppCompatDelegate.MODE_NIGHT_NO
                 R.id.btnPillThemeDark -> AppCompatDelegate.MODE_NIGHT_YES
@@ -197,9 +205,9 @@ class SettingsActivity : AppCompatActivity() {
             AppCompatDelegate.setDefaultNightMode(targetMode)
             recreate()
         }
-        btnPillThemeLight.setOnClickListener(themeClick)
-        btnPillThemeDark.setOnClickListener(themeClick)
-        btnPillThemeSystem.setOnClickListener(themeClick)
+        btnPillThemeLight.setOnClickListener(intentThemeClick)
+        btnPillThemeDark.setOnClickListener(intentThemeClick)
+        btnPillThemeSystem.setOnClickListener(intentThemeClick)
 
         btnChangeLanguage.setOnClickListener {
             showSubPanel(panelLanguage, 6, getString(R.string.change_language))
@@ -219,18 +227,48 @@ class SettingsActivity : AppCompatActivity() {
             showCenteredPillToast(if (!current) getString(R.string.toast_autostart_on) else getString(R.string.toast_autostart_off))
         }
 
+        btnRoleSelect.setOnClickListener {
+            showSubPanel(panelRole, 7, getString(R.string.settings_role_title))
+
+            val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
+            updateSubpagePillColor(btnPillRoleAuto, currentRole == "auto")
+            updateSubpagePillColor(btnPillRoleMaster, currentRole == "master")
+            updateSubpagePillColor(btnPillRoleSlave, currentRole == "slave")
+
+            when (currentRole) {
+                "auto" -> btnPillRoleAuto.requestFocus()
+                "master" -> btnPillRoleMaster.requestFocus()
+                "slave" -> btnPillRoleSlave.requestFocus()
+            }
+        }
+
+        val roleClick = View.OnClickListener { view ->
+            val targetRole = when (view.id) {
+                R.id.btnPillRoleMaster -> "master"
+                R.id.btnPillRoleSlave -> "slave"
+                else -> "auto"
+            }
+            prefs.edit().putString("app_device_role", targetRole).apply()
+            updateSubpagePillColor(btnPillRoleAuto, targetRole == "auto")
+            updateSubpagePillColor(btnPillRoleMaster, targetRole == "master")
+            updateSubpagePillColor(btnPillRoleSlave, targetRole == "slave")
+            showCenteredPillToast(getString(R.string.settings_role_title) + " ✓")
+        }
+        btnPillRoleAuto.setOnClickListener(roleClick)
+        btnPillRoleMaster.setOnClickListener(roleClick)
+        btnPillRoleSlave.setOnClickListener(roleClick)
+
+        btnPipAdbSelect.setOnClickListener {
+            showPipAdbGuideDialog()
+        }
+
         btnNotificationsMenu.setOnClickListener {
             showSubPanel(panelNotifySelect, 1, getString(R.string.settings_notify_title))
             btnSubMenuSounds.requestFocus()
         }
 
-        btnSubMenuSounds.setOnClickListener {
-            showSoundsConfigurationDialog()
-        }
-
-        btnSubMenuPopups.setOnClickListener {
-            showPopupsConfigurationDialog()
-        }
+        btnSubMenuSounds.setOnClickListener { showSoundsConfigurationDialog() }
+        btnSubMenuPopups.setOnClickListener { showPopupsConfigurationDialog() }
 
         btnAboutMenu.setOnClickListener {
             showSubPanel(panelAbout, 3, getString(R.string.btn_about_menu))
@@ -270,13 +308,9 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        btnCheckUpdates.setOnClickListener {
-            showUpdateSubMenuDialog()
-        }
+        btnCheckUpdates.setOnClickListener { showUpdateSubMenuDialog() }
+        tvLicensesLink.setOnClickListener { showLicensesDialog() }
 
-        tvLicensesLink.setOnClickListener {
-            showLicensesDialog()
-        }
         tvLicensesLink.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
             v.animate().scaleX(if (hasFocus) 1.08f else 1.0f).scaleY(if (hasFocus) 1.08f else 1.0f).setDuration(150).start()
             val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -334,10 +368,10 @@ class SettingsActivity : AppCompatActivity() {
         val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         arrayOf(
-            btnThemeSelect, btnChangeLanguage, btnGlobalScreensaver, btnNotificationsMenu,
+            btnChangeLanguage, btnThemeSelect, btnNotificationsMenu, btnAutoStartToggle, btnGlobalScreensaver, btnRoleSelect, btnPipAdbSelect,
             btnAboutMenu, btnResetApp, btnSubMenuSounds, btnSubMenuPopups,
             btnPillThemeLight, btnPillThemeDark, btnPillThemeSystem, btnSettingsBack,
-            btnAutoStartToggle
+            btnPillRoleAuto, btnPillRoleMaster, btnPillRoleSlave
         ).forEach { btn ->
             btn?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
@@ -354,7 +388,7 @@ class SettingsActivity : AppCompatActivity() {
         if (isDualScreenMode) {
             showSubPanel(panelTheme, 5, getString(R.string.theme_title))
         } else {
-            val subPanels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelAbout)
+            val subPanels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelRole, panelAbout)
             subPanels.forEach { panel ->
                 panel.visibility = View.GONE
                 (panel.parent as? ScrollView)?.visibility = View.GONE
@@ -365,6 +399,71 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private fun showPipAdbGuideDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = getString(R.string.dialog_pip_adb_guide_title)
+        val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val textColor = if (isNight) Color.WHITE else Color.BLACK
+        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
+
+        val scrollView = ScrollView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(250))
+            setPadding(12, 12, 12, 12)
+            background = ContextCompat.getDrawable(this@SettingsActivity, R.drawable.bg_input_rounded)
+        }
+
+        val tvContent = TextView(this).apply {
+            text = Html.fromHtml(getString(R.string.dialog_pip_adb_guide_text), Html.FROM_HTML_MODE_LEGACY)
+            setHtmlTextColor(textColor)
+            textSize = 14f
+            setLineSpacing(0f, 1.2f)
+        }
+
+        scrollView.addView(tvContent)
+        container?.addView(scrollView)
+
+        val closeBtn = MaterialButton(this).apply {
+            text = getString(R.string.notify_btn_default)
+            isAllCaps = false
+            textSize = 16f
+            isFocusable = true
+            shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+            setPadding(0, toPx(30), 0, toPx(30))
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(0, 16, 0, 0)
+            }
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) {
+                    v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
+                    (v as MaterialButton).strokeWidth = 8
+                    v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
+                    (v as MaterialButton).strokeWidth = 0
+                }
+            }
+            setOnClickListener {
+                dialog.dismiss()
+                findViewById<MaterialButton>(R.id.btnPipAdbSelect)?.requestFocus()
+            }
+        }
+
+        container?.addView(closeBtn)
+        dialog.show()
+        closeBtn.requestFocus()
+    }
+
+    private fun TextView.setHtmlTextColor(color: Int) {
+        this.setTextColor(color)
+    }
+
     private fun showSubPanel(activePanel: View, layer: Int, title: String) {
         currentMenuLayer = layer
         tvSettingsTitle.text = title
@@ -373,7 +472,7 @@ class SettingsActivity : AppCompatActivity() {
             scrollPanelSettings.visibility = View.GONE
         }
 
-        val panels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelAbout)
+        val panels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelRole, panelAbout)
         panels.forEach { panel ->
             val parentScrollView = panel.parent as? ScrollView
             if (panel == activePanel) {
@@ -563,6 +662,7 @@ class SettingsActivity : AppCompatActivity() {
         advancedTabletButton?.let { mainContainer.removeView(it); advancedTabletButton = null }
     }
 
+    // KORREKTUR: Navigations-Mapping an deine gewünschte Reihenfolge angepasst
     private fun updateMenuButtonSelection(activeLayer: Int) {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val activeBg = ColorStateList.valueOf(if (isNight) Color.parseColor("#44FFFFFF") else Color.parseColor("#1A888888"))
@@ -573,10 +673,11 @@ class SettingsActivity : AppCompatActivity() {
         val normalTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
 
         val menuButtons = arrayOf(
-            R.id.btnThemeSelect to 5,
             R.id.btnChangeLanguage to 6,
-            R.id.btnGlobalScreensaver to 4,
+            R.id.btnThemeSelect to 5,
             R.id.btnNotificationsMenu to 1,
+            R.id.btnGlobalScreensaver to 4,
+            R.id.btnRoleSelect to 7,
             R.id.btnAboutMenu to 3
         )
 
@@ -873,7 +974,7 @@ class SettingsActivity : AppCompatActivity() {
             val reader = BufferedReader(InputStreamReader(stream))
             reader.forEachLine { changelogSb.append(it).append("\n") }
         } catch (e: Exception) {
-            Log.e("KlippShell", "Fehler beim Lesen der changelog.txt aus den Assets", e)
+            Log.e("KlippShell", "Fehler beim Lesen der changelog.txt", e)
             changelogSb.append("Changelog konnte nicht geladen werden.")
         }
         tvChangelogContent.text = changelogSb.toString().trim()
@@ -897,6 +998,7 @@ class SettingsActivity : AppCompatActivity() {
         updateSubpagePillColor(findViewById(R.id.btnPillSaverOff), activeTimeout == 0L)
     }
 
+    // KORREKTUR: Zurück-Navigation auf Basis der neuen Button-Pipeline aktualisiert
     private fun handleBackNavigation() {
         if (isDualScreenMode) {
             finish()
@@ -905,7 +1007,7 @@ class SettingsActivity : AppCompatActivity() {
                 finish()
             } else {
                 val oldLayer = currentMenuLayer
-                val panels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelAbout)
+                val panels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelRole, panelAbout)
                 panels.forEach { panel ->
                     panel.visibility = View.GONE
                     (panel.parent as? ScrollView)?.visibility = View.GONE
@@ -915,12 +1017,13 @@ class SettingsActivity : AppCompatActivity() {
                 tvSettingsTitle.text = getString(R.string.settings_title)
 
                 val targetBtnId = when (oldLayer) {
-                    5 -> R.id.btnThemeSelect
                     6 -> R.id.btnChangeLanguage
-                    4 -> R.id.btnGlobalScreensaver
+                    5 -> R.id.btnThemeSelect
                     1 -> R.id.btnNotificationsMenu
+                    4 -> R.id.btnGlobalScreensaver
+                    7 -> R.id.btnRoleSelect
                     3 -> R.id.btnAboutMenu
-                    else -> R.id.btnThemeSelect
+                    else -> R.id.btnChangeLanguage
                 }
                 findViewById<View>(targetBtnId)?.requestFocus()
             }
@@ -1078,6 +1181,7 @@ class SettingsActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
+    // KORREKTUR: Alle Buttons für den Initial-Zustand und Fokus-Pipeline in der richtigen Reihenfolge gemappt
     private fun initPillButtonStates() {
         val defaultTimeout = 120 * 60 * 1000L
         if (!prefs.contains("screensaver_timeout_global_fallback")) {
@@ -1085,13 +1189,12 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         arrayOf(
-            R.id.btnThemeSelect, R.id.btnChangeLanguage, R.id.btnGlobalScreensaver,
-            R.id.btnNotificationsMenu, R.id.btnAboutMenu, R.id.btnSubMenuSounds,
-            R.id.btnSubMenuPopups, R.id.btnResetApp
+            R.id.btnChangeLanguage, R.id.btnThemeSelect, R.id.btnNotificationsMenu, R.id.btnAutoStartToggle,
+            R.id.btnGlobalScreensaver, R.id.btnRoleSelect, R.id.btnPipAdbSelect,
+            R.id.btnAboutMenu, R.id.btnSubMenuSounds, R.id.btnSubMenuPopups, R.id.btnResetApp
         ).forEach { id -> updatePillVisuals(findViewById(id)) }
 
         updatePillVisuals(findViewById(R.id.btnCheckUpdates))
-
         updateAutoStartButtonVisuals(findViewById(R.id.btnAutoStartToggle))
 
         val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -1099,12 +1202,20 @@ class SettingsActivity : AppCompatActivity() {
         updateSubpagePillColor(findViewById(R.id.btnPillThemeDark), currentMode == AppCompatDelegate.MODE_NIGHT_YES)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeSystem), currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
-        setupPill(R.id.btnPillSaver30)
+        val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
+        updateSubpagePillColor(findViewById(R.id.btnPillRoleAuto), currentRole == "auto")
+        updateSubpagePillColor(findViewById(R.id.btnPillRoleMaster), currentRole == "master")
+        updateSubpagePillColor(findViewById(R.id.btnPillRoleSlave), currentRole == "slave")
+
         setupPill(R.id.btnPillSaver30)
         setupPill(R.id.btnPillSaver60)
         setupPill(R.id.btnPillSaver90)
         setupPill(R.id.btnPillSaver120)
         setupPill(R.id.btnPillSaverOff)
+
+        setupPill(R.id.btnPillRoleAuto)
+        setupPill(R.id.btnPillRoleMaster)
+        setupPill(R.id.btnPillRoleSlave)
 
         checkAndRenderAdvancedMenu()
     }
@@ -1158,7 +1269,6 @@ class SettingsActivity : AppCompatActivity() {
                     if (jsonArray.length() > 0) {
                         val jsonObject = jsonArray.getJSONObject(0)
                         val latestVersionTag = jsonObject.optString("tag_name", "").replace("v", "").trim()
-
                         val assetsArray = jsonObject.optJSONArray("assets")
                         var downloadUrl = ""
                         if (assetsArray != null && assetsArray.length() > 0) {

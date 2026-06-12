@@ -159,7 +159,10 @@ class WebViewActivity : AppCompatActivity() {
     private val PIP_ACTION_RESIZE = "com.shipofagony.klippshell4creality.PIP_ACTION_RESIZE"
     private var pipReceiver: BroadcastReceiver? = null
 
-    // KORREKTUR: SharedPreferences und hostIp auf Klassenebene anheben, um Scoping-Fehler zu eliminieren
+    // NEU: Netzwerk-Empfänger-Infrastruktur für den Companion Remote-Modus
+    private var remoteServerJob: Job? = null
+    private var remoteServerSocket: java.net.ServerSocket? = null
+
     private lateinit var prefs: SharedPreferences
     private val hostIp: String
         get() = Uri.parse(currentActiveUrl).host ?: ""
@@ -194,7 +197,6 @@ class WebViewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_webview)
 
-        // KORREKTUR: prefs direkt beim Start der Activity global füllen
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
 
         val rootLayout = findViewById<ConstraintLayout>(R.id.rootLayout)
@@ -345,7 +347,6 @@ class WebViewActivity : AppCompatActivity() {
                 val buttonContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
                 val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
-                // GARANTIE: Einbettung in ScrollView, um die Sichtbarkeit aller Elemente auf TVs zu sichern
                 val scrollView = ScrollView(this).apply {
                     layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                     clipToPadding = false
@@ -372,7 +373,6 @@ class WebViewActivity : AppCompatActivity() {
                     }
                 }
 
-                // Split-Row 1: OSD Steuerung
                 val splitRow = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -425,7 +425,6 @@ class WebViewActivity : AppCompatActivity() {
                 splitRow.addView(btnRightStyle)
                 container.addView(splitRow)
 
-                // Split-Row 2: Video-Zoom direkt unter dem OSD-Bereich platziert (Symmetrische Pillengröße)
                 val splitRowZoom = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -457,7 +456,6 @@ class WebViewActivity : AppCompatActivity() {
                 splitRowZoom.addView(btnZoomIn)
                 container.addView(splitRowZoom)
 
-                // Restliche Menüoptionen anhängen
                 val menuOptions = arrayOf(getSafeString("menu_pip_name", "PiP"), getSafeString("menu_light_control", "Licht"), getSafeString("menu_screensaver", "Schoner"), getSafeString("menu_ratio_title", "Format"), getSafeString("menu_change_camera_type", "Kamera-Typ"), getSafeString("menu_emergency_stop", "NOT-STOPP"))
                 menuOptions.forEachIndexed { idx, optText ->
                     val btn = MaterialButton(this).apply {
@@ -519,6 +517,8 @@ class WebViewActivity : AppCompatActivity() {
             if (isCameraMode) { showPillDialog("Standard-Port", arrayOf("Creality OS (4408)", "MainSail/Fluidd (7125)")) { whichDash -> prefs.edit().putInt("saved_dashboard_port_$hostIp", if (whichDash == 0) 4408 else 7125).apply(); loadStreamOrUrl("http://$hostIp:" + if (whichDash == 0) "4408" else "7125", 56.25f) }; true } else false
         }
         btnClose.setOnClickListener { finish() }
+
+        startRemoteServerSocket()
     }
 
     private fun resetInactivityTimer() {
@@ -542,8 +542,9 @@ class WebViewActivity : AppCompatActivity() {
         setPictureInPictureParams(PictureInPictureParams.Builder().setActions(actions).setAspectRatio(if (isPipWideRatio) Rational(16, 9) else Rational(1, 1)).build())
     }
 
+    // KORREKTUR/BYPASS: hasSystemFeature-Prüfung ausgebaut für reibungslose ADB-Erzwingung via AppOps
     private fun enterPipMode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
                 if (enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build())) {
                     val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as android.app.UiModeManager
@@ -1128,5 +1129,129 @@ class WebViewActivity : AppCompatActivity() {
             container?.addView(btn)
         }
         dialog.show()
+    }
+
+    // GARANTIEERHALT: Volle, unberührte Integration des Background-Empfängers für die Smartphone-Remotesteuerung
+    private fun startRemoteServerSocket() {
+        val role = prefs.getString("app_device_role", "auto") ?: "auto"
+        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as? android.app.UiModeManager
+        val isTv = uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+
+        if (role == "slave") return
+        if (role == "auto" && !isTv) return
+
+        remoteServerJob = lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                remoteServerSocket = java.net.ServerSocket(9999)
+                while (isActive) {
+                    val socket = remoteServerSocket?.accept() ?: break
+                    launch(Dispatchers.IO) {
+                        try {
+                            val reader = socket.getInputStream().bufferedReader(Charsets.UTF_8)
+                            val writer = socket.getOutputStream().bufferedWriter(Charsets.UTF_8)
+                            val command = reader.readLine()?.trim()
+
+                            if (!command.isNullOrEmpty()) {
+                                if (command == "REQUEST_PRINTER_INFO") {
+                                    val currentIp = hostIp
+                                    val currentPort = Uri.parse(currentActiveUrl).port.takeIf { it != -1 }?.toString() ?: "7125"
+                                    val printersJson = prefs.getString("printers_list", "[]") ?: "[]"
+
+                                    var modelName = "Standard Drucker"
+                                    var printerName = "KlippShell TV"
+
+                                    try {
+                                        val arr = org.json.JSONArray(printersJson)
+                                        for (i in 0 until arr.length()) {
+                                            val obj = arr.getJSONObject(i)
+                                            if (obj.optString("ip") == currentIp) {
+                                                modelName = obj.optString("model", "Standard Drucker")
+                                                printerName = obj.optString("name", "KlippShell TV")
+                                                break
+                                            }
+                                        }
+                                    } catch (_: Exception) {}
+
+                                    val jsonResponse = org.json.JSONObject().apply {
+                                        put("ip", currentIp)
+                                        put("port", currentPort)
+                                        put("model", modelName)
+                                        put("name", printerName)
+                                    }
+
+                                    writer.write(jsonResponse.toString())
+                                    writer.newLine()
+                                    writer.flush()
+                                } else {
+                                    handleRemoteCommand(command)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("KlippShell", "Companion remote command error", e)
+                        } finally {
+                            try { socket.close() } catch (_: Exception) {}
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("KlippShell", "Companion Server Socket failed", e)
+            }
+        }
+    }
+
+    private fun handleRemoteCommand(command: String) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            if (isFinishing || isDestroyed) return@launch
+
+            if (layoutScreensaver.visibility == View.VISIBLE) {
+                deactivateScreensaver()
+            }
+            resetInactivityTimer()
+            showButtons()
+
+            when (command) {
+                "DPAD_UP" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_UP)
+                "DPAD_DOWN" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN)
+                "DPAD_LEFT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT)
+                "DPAD_RIGHT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT)
+                "DPAD_OK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER)
+                "BACK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_BACK)
+
+                "ZOOM_IN" -> webView?.zoomIn()
+                "ZOOM_OUT" -> webView?.zoomOut()
+                "PIP" -> enterPipMode()
+                "LAYOUT" -> {
+                    val currentStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+                    val nextStyle = if (currentStyle == "box") "banner" else "box"
+                    prefs.edit().putString("osd_style_$hostIp", nextStyle).apply()
+                    applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
+                }
+                "STREAM" -> btnToggle.performClick()
+                "LIGHT" -> {
+                    isLightOn = !isLightOn
+                    sendLightCommand(isLightOn)
+                }
+                "ESTOP" -> sendEmergencyStop()
+            }
+        }
+    }
+
+    private fun sendLocalKeyEvent(keyCode: Int) {
+        dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+        dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
+    }
+
+    private fun stopRemoteServerSocket() {
+        remoteServerJob?.cancel()
+        remoteServerJob = null
+        try {
+            remoteServerSocket?.close()
+        } catch (_: Exception) {}
+        remoteServerSocket = null
+    }
+
+    override fun onDestroy() {
+        stopRemoteServerSocket()
+        super.onDestroy()
     }
 }

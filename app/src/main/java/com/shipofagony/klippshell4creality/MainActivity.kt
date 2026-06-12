@@ -139,7 +139,6 @@ class MainActivity : AppCompatActivity() {
         val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedTheme)
 
-        // KORREKTUR: autoStartExecuted aus dem savedInstanceState wiederherstellen, um Endlosschleife nach recreate() zu verhindern
         if (savedInstanceState != null) {
             shouldRecreateOnReturn = savedInstanceState.getBoolean("recreate_flag", false)
             autoStartExecuted = savedInstanceState.getBoolean("auto_start_executed", false)
@@ -152,7 +151,11 @@ class MainActivity : AppCompatActivity() {
                 val printerArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (_: Exception) { JSONArray() }
                 if (printerArray.length() > 0) {
                     val primaryPrinter = printerArray.getJSONObject(0)
-                    val webViewIntent = Intent(this, WebViewActivity::class.java).apply {
+
+                    val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+                    val targetActivityClass = if (activeRole == "slave") CompanionRemoteActivity::class.java else WebViewActivity::class.java
+
+                    val webViewIntent = Intent(this, targetActivityClass).apply {
                         putExtra("PRINTER_IP", primaryPrinter.optString("ip", ""))
                         putExtra("PRINTER_PORT", primaryPrinter.optString("port", "7125"))
                         if (primaryPrinter.optString("defaultView", "") == "camera") {
@@ -331,12 +334,15 @@ class MainActivity : AppCompatActivity() {
         if (prefs.getBoolean("update_auto_check", true)) checkUpdatesSilentlyInBackground()
         if (printerArray.length() > 0) startTvBackgroundWorker()
 
-        // Direktstart greift NUR noch, wenn exakt 1 Drucker eingerichtet ist (== 1)
         if (!autoStartExecuted && prefs.getBoolean("auto_start_printer", false) && printerArray.length() == 1) {
             autoStartExecuted = true
             val primaryPrinter = printerArray.getJSONObject(0)
             shouldRecreateOnReturn = true
-            startActivity(Intent(this, WebViewActivity::class.java).apply {
+
+            val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+            val targetActivityClass = if (activeRole == "slave") CompanionRemoteActivity::class.java else WebViewActivity::class.java
+
+            startActivity(Intent(this, targetActivityClass).apply {
                 putExtra("PRINTER_IP", primaryPrinter.optString("ip", ""))
                 putExtra("PRINTER_PORT", primaryPrinter.optString("port", "7125"))
                 if (primaryPrinter.optString("defaultView", "") == "camera") {
@@ -346,7 +352,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // KORREKTUR: autoStartExecuted im Bundle mitsichern
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("recreate_flag", shouldRecreateOnReturn)
         outState.putBoolean("auto_start_executed", autoStartExecuted)
@@ -370,6 +375,166 @@ class MainActivity : AppCompatActivity() {
                 "KlipperTvKachelWorker", ExistingPeriodicWorkPolicy.KEEP, tvWorkRequest
             )
         } catch (e: Exception) { Log.e("KlippShell", "Fehler beim Starten des TV-Workers", e) }
+    }
+
+    private fun createWelcomeTile(isNightMode: Boolean): View {
+        val textColor = if (isNightMode) Color.WHITE else Color.BLACK
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(toPx(16), toPx(12), toPx(16), toPx(12))
+            }
+            background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_card)
+            elevation = 8f
+            setPadding(toPx(24), toPx(24), toPx(24), toPx(24))
+        }
+
+        val title = TextView(this).apply {
+            text = try { getString(resources.getIdentifier("welcome_tile_title", "string", packageName)) } catch(e: Exception) { "Willkommen bei KlippShell! 👋" }
+            textSize = 20f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(textColor)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = toPx(8)
+            }
+        }
+
+        val msg = TextView(this).apply {
+            text = try { getString(resources.getIdentifier("welcome_tile_msg", "string", packageName)) } catch(e: Exception) { "Schön, dass du da bist! Damit du das Beste aus deinem Drucker-Monitoring herausholen kannst, ist hier eine kurze Übersicht zu den Kernfunktionen von KlippShell und den Besonderheiten einiger TV-Geräte. KlippShell wurde so konzipiert, dass es auf dem Smartphone, dem Tablet oder bedienerfreundlich auf dem Android TV läuft.\n\n1️⃣ ERSTE SCHRITTE\nFüge unten deinen ersten 3D-Drucker hinzu. Aktuell sind fast alle auf dem Markt befindlichen Modelle eingepflegt. Falls du einen anderen Drucker auf Klipper-Basis nutzen möchtest, kannst du \"Custom Model\" wählen.\nHinweis: Je nach Druckermodell und Netzwerk-Konfiguration musst du eventuell deine Ports und Kamera-Zugänge manuell anpassen, um ein einwandfreies Monitoring zu garantieren. Der automatische Netzwerkscan sollte jedoch die meisten Konfigurationen selbstständig abdecken.\n⚠️ Falls du kein Livebild des Druckers bekommst, schau bitte unter https://github.com/DnG-Crafts/K2-Camera vorbei und installiere den FIX. Dies erfordert leider Root-Rechte auf dem Drucker!\n💡 Tipp: Ein langer Tastendruck im Hauptmenü auf einen deiner gespeicherten Drucker öffnet die Optionen, um die Standardansicht zwischen Live-Stream Monitoring und Klipper OS zu ändern oder diesen Drucker zu löschen.\n\n2️⃣ SMARTE LIVE-STEUERUNG\nIm Videostream-Modus steuerst du alles über drei untere Haupttasten:\n• Linke Taste: Öffnet das Menü für On-Screen-Display (OSD), Video-Zoom, PiP, Gehäuse-Beleuchtung, Bildschirmschoner und Bildformat.\n• Mittlere Taste: Wechselt nahtlos zwischen Klipper OS (Dashboard) und dem reinen Kamera-Livestream.\n• Rechte Taste: Bringt dich jederzeit sicher zum Hauptmenü zurück.\n\n3️⃣ DIREKTSTART-MODUS\nWenn du einen Drucker bereits erfolgreich konfiguriert hast, kannst du in den Einstellungen den Direktstart-Modus wählen. Dieser erlaubt dir, direkt beim App-Start in der Live-Stream-Ansicht zu beginnen.\n\n4️⃣ DER COMPANION-MODUS\nMit KlippShell kannst du dein Gerät als TV-Dashboard (Master) oder als Smartphone-Fernbedienung (Slave) nutzen. Aktiviere den Companion-Modus in den Einstellungen, um deinen Fernseher komfortabel von deinem Smartphone aus zu steuern.\n\n5️⃣ PICTURE-IN-PICTURE (PiP)\nObwohl KlippShell PiP vollständig unterstützt, weigern sich einige TV-Hersteller, dieses Feature nativ anzubieten. Keine Sorge: In den Einstellungen findest du eine erweiterte Funktion mit einer präzisen Anleitung, wie du PiP auf deinem TV-Gerät ganz einfach via ADB-Befehl freischalten kannst!\n\n6️⃣ TV \"NOW LIVE\" FUNKTION\nWenn du die \"Now Live\" TV-Funktion verwenden möchtest, kann es durch Hersteller-Restriktionen vorkommen, dass diese nicht nativ auf deinem TV-Dashboard angezeigt werden. In diesem Fall empfehlen wir, einen alternativen TV-Launcher wie den \"Projectivity Launcher\" auf dem TV-Gerät zu nutzen, um in den vollen Genuss dieser Funktion zu kommen." }
+            textSize = 15f
+            setTextColor(textColor)
+            alpha = 0.85f
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                bottomMargin = toPx(20)
+            }
+        }
+
+        val btnDismiss = MaterialButton(this).apply {
+            text = try { getString(resources.getIdentifier("welcome_tile_btn", "string", packageName)) } catch(e: Exception) { "Verstanden & Ausblenden" }
+            isAllCaps = false
+            textSize = 16f
+            setPadding(0, toPx(14), 0, toPx(14))
+            shapeAppearanceModel = com.google.android.material.shape.ShapeAppearanceModel.builder().setAllCorners(com.google.android.material.shape.CornerFamily.ROUNDED, 100f).build()
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+
+            isFocusable = true
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
+                if (v is MaterialButton) {
+                    v.strokeWidth = if (hasFocus) 8 else 0
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null
+                }
+            }
+
+            setOnClickListener {
+                prefs.edit().putBoolean("has_seen_welcome_tile", true).apply()
+                loadPrinters()
+            }
+        }
+
+        layout.addView(title)
+        layout.addView(msg)
+        layout.addView(btnDismiss)
+
+        return layout
+    }
+
+    private fun loadPrinters() {
+        containerPrinters.removeAllViews()
+        val list = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { prefs.edit().putString("printers_list", "[]").apply(); JSONArray() }
+
+        val hasSeenWelcome = prefs.getBoolean("has_seen_welcome_tile", false)
+        tvNoPrinter.visibility = if (list.length() == 0 && hasSeenWelcome) View.VISIBLE else View.GONE
+
+        if (list.length() == 0) {
+            containerAddPrinterForm.isVisible = true; tvAddPrinterTitle.text = getString(R.string.add_printer_up)
+            WorkManager.getInstance(applicationContext).cancelUniqueWork("KlipperTvKachelWorker")
+        }
+
+        val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val useHorizontalLayout = list.length() <= 2 && hasSeenWelcome
+        containerPrinters.orientation = if (useHorizontalLayout) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+        containerPrinters.gravity = if (useHorizontalLayout) Gravity.CENTER else Gravity.NO_GRAVITY
+
+        if (!hasSeenWelcome) {
+            containerPrinters.addView(createWelcomeTile(isNightMode))
+        }
+
+        for (i in 0 until list.length()) {
+            val printer = try { list.getJSONObject(i) } catch (_: Exception) { null } ?: continue
+            val itemView = LayoutInflater.from(this).inflate(R.layout.printer_item, containerPrinters, false).apply { isFocusable = true; isFocusableInTouchMode = false }
+
+            itemView.layoutParams = LinearLayout.LayoutParams(if (useHorizontalLayout) toPx(280) else ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(toPx(16), toPx(12), toPx(16), toPx(12)); if (useHorizontalLayout) gravity = Gravity.CENTER_VERTICAL
+            }
+
+            if (useHorizontalLayout && itemView is LinearLayout) { itemView.orientation = LinearLayout.VERTICAL; itemView.gravity = Gravity.CENTER; itemView.setPadding(toPx(24), toPx(32), toPx(24), toPx(32)) }
+            val tvName = itemView.findViewById<TextView>(R.id.tvPrinterNameAndAddress)
+
+            itemView.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                val drawable = v.background as? GradientDrawable
+                if (hasFocus) {
+                    v.animate().scaleX(1.02f).scaleY(1.02f).translationZ(8f).setDuration(150).start(); v.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#44FFFFFF"))
+                    drawable?.setStroke(8, if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
+                    if (isNightMode) tvName?.setTextColor(Color.WHITE)
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(150).start(); v.backgroundTintList = null
+                    drawable?.setStroke(2, if (isNightMode) Color.parseColor("#4DFFFFFF") else Color.parseColor("#33000000"))
+                    tvName?.setTextColor(if (isNightMode) Color.WHITE else Color.BLACK)
+                }
+            }
+
+            itemView.findViewById<ImageView>(R.id.ivPrinterIcon)?.let { icon ->
+                icon.setImageResource(getPrinterImageResource(printer.optString("model", "")))
+                if (useHorizontalLayout) icon.layoutParams = LinearLayout.LayoutParams(toPx(90), toPx(90)).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, 0, 0, toPx(16)) }
+            }
+
+            tvName?.let { tv ->
+                tv.text = printer.optString("name", "Unbekannt"); tv.textSize = if (useHorizontalLayout) 20f else 18f; tv.setTypeface(null, android.graphics.Typeface.BOLD)
+                tv.setTextColor(if (isNightMode) Color.WHITE else Color.BLACK)
+                if (useHorizontalLayout) tv.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL }
+            }
+
+            itemView.setOnClickListener {
+                shouldRecreateOnReturn = true
+                val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+                val targetActivityClass = if (activeRole == "slave") CompanionRemoteActivity::class.java else WebViewActivity::class.java
+
+                startActivity(Intent(this, targetActivityClass).apply { putExtra("PRINTER_IP", printer.optString("ip", "")); putExtra("PRINTER_PORT", printer.optString("port", "7125")); if (printer.optString("defaultView", "") == "camera") putExtra("IS_CAMERA_VIEW", true) })
+            }
+
+            itemView.setOnLongClickListener {
+                showPillDialog(printer.optString("name", "Drucker"), arrayOf(getString(R.string.choose_default_view_title), getString(R.string.yes_delete)), arrayOf(null, "#E53935")) { whichAction ->
+                    if (whichAction == 0) {
+                        showPillDialog(getString(R.string.choose_default_view_title), arrayOf(getString(R.string.menu_change_camera_type), getString(R.string.choose_default_view))) { whichView ->
+                            try {
+                                val arr = JSONArray(prefs.getString("printers_list", "[]"))
+                                arr.getJSONObject(i).put("defaultView", if (whichView == 0) "camera" else "interface")
+                                prefs.edit().putString("printers_list", arr.toString()).apply()
+                                applyLanguageAndRefreshUI(); showCenteredPillToast(getString(R.string.choose_default_view_title) + " ✓")
+                            } catch (e: Exception) { Log.e("KlippShell", "Fehler beim Ändern der Standardansicht", e) }
+                        }
+                    } else {
+                        showPillDialog(getString(R.string.reset_confirm_msg), arrayOf(getString(R.string.yes_delete), getString(R.string.cancel)), arrayOf("#E53935", null)) { confirmDelete ->
+                            if (confirmDelete == 0) {
+                                val currentArray = JSONArray(prefs.getString("printers_list", "[]"))
+                                val newList = JSONArray()
+                                for (j in 0 until currentArray.length()) { if (j != i) newList.put(currentArray.get(j)) }
+                                prefs.edit().putString("printers_list", newList.toString()).apply(); applyLanguageAndRefreshUI()
+                            }
+                        }
+                    }
+                }
+                true
+            }
+            containerPrinters.addView(itemView)
+        }
     }
 
     private fun applyLanguageAndRefreshUI() {
@@ -545,89 +710,6 @@ class MainActivity : AppCompatActivity() {
         } catch (e: JSONException) { Log.e("KlippShell", "Fehler beim Speichern des Druckers", e) }
     }
 
-    private fun loadPrinters() {
-        containerPrinters.removeAllViews()
-        val list = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { prefs.edit().putString("printers_list", "[]").apply(); JSONArray() }
-
-        tvNoPrinter.visibility = if (list.length() == 0) View.VISIBLE else View.GONE
-        if (list.length() == 0) {
-            containerAddPrinterForm.isVisible = true; tvAddPrinterTitle.text = getString(R.string.add_printer_up)
-            WorkManager.getInstance(applicationContext).cancelUniqueWork("KlipperTvKachelWorker")
-        }
-
-        val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val useHorizontalLayout = list.length() <= 2
-        containerPrinters.orientation = if (useHorizontalLayout) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
-        containerPrinters.gravity = if (useHorizontalLayout) Gravity.CENTER else Gravity.NO_GRAVITY
-
-        for (i in 0 until list.length()) {
-            val printer = try { list.getJSONObject(i) } catch (_: Exception) { null } ?: continue
-            val itemView = LayoutInflater.from(this).inflate(R.layout.printer_item, containerPrinters, false).apply { isFocusable = true; isFocusableInTouchMode = false }
-
-            itemView.layoutParams = LinearLayout.LayoutParams(if (useHorizontalLayout) toPx(280) else ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(toPx(16), toPx(12), toPx(16), toPx(12)); if (useHorizontalLayout) gravity = Gravity.CENTER_VERTICAL
-            }
-
-            if (useHorizontalLayout && itemView is LinearLayout) { itemView.orientation = LinearLayout.VERTICAL; itemView.gravity = Gravity.CENTER; itemView.setPadding(toPx(24), toPx(32), toPx(24), toPx(32)) }
-            val tvName = itemView.findViewById<TextView>(R.id.tvPrinterNameAndAddress)
-
-            itemView.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
-                val drawable = v.background as? GradientDrawable
-                if (hasFocus) {
-                    v.animate().scaleX(1.02f).scaleY(1.02f).translationZ(8f).setDuration(150).start(); v.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#44FFFFFF"))
-                    drawable?.setStroke(8, if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1"))
-                    if (isNightMode) tvName?.setTextColor(Color.WHITE)
-                } else {
-                    v.animate().scaleX(1.0f).scaleY(1.0f).translationZ(0f).setDuration(150).start(); v.backgroundTintList = null
-                    drawable?.setStroke(2, if (isNightMode) Color.parseColor("#4DFFFFFF") else Color.parseColor("#33000000"))
-                    tvName?.setTextColor(if (isNightMode) Color.WHITE else Color.BLACK)
-                }
-            }
-
-            itemView.findViewById<ImageView>(R.id.ivPrinterIcon)?.let { icon ->
-                icon.setImageResource(getPrinterImageResource(printer.optString("model", "")))
-                if (useHorizontalLayout) icon.layoutParams = LinearLayout.LayoutParams(toPx(90), toPx(90)).apply { gravity = Gravity.CENTER_HORIZONTAL; setMargins(0, 0, 0, toPx(16)) }
-            }
-
-            tvName?.let { tv ->
-                tv.text = printer.optString("name", "Unbekannt"); tv.textSize = if (useHorizontalLayout) 20f else 18f; tv.setTypeface(null, android.graphics.Typeface.BOLD)
-                tv.setTextColor(if (isNightMode) Color.WHITE else Color.BLACK)
-                if (useHorizontalLayout) tv.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL }
-            }
-
-            itemView.setOnClickListener {
-                shouldRecreateOnReturn = true
-                startActivity(Intent(this, WebViewActivity::class.java).apply { putExtra("PRINTER_IP", printer.optString("ip", "")); putExtra("PRINTER_PORT", printer.optString("port", "7125")); if (printer.optString("defaultView", "") == "camera") putExtra("IS_CAMERA_VIEW", true) })
-            }
-
-            itemView.setOnLongClickListener {
-                showPillDialog(printer.optString("name", "Drucker"), arrayOf(getString(R.string.choose_default_view_title), getString(R.string.yes_delete)), arrayOf(null, "#E53935")) { whichAction ->
-                    if (whichAction == 0) {
-                        showPillDialog(getString(R.string.choose_default_view_title), arrayOf(getString(R.string.menu_change_camera_type), getString(R.string.choose_default_view))) { whichView ->
-                            try {
-                                val arr = JSONArray(prefs.getString("printers_list", "[]"))
-                                arr.getJSONObject(i).put("defaultView", if (whichView == 0) "camera" else "interface")
-                                prefs.edit().putString("printers_list", arr.toString()).apply()
-                                applyLanguageAndRefreshUI(); showCenteredPillToast(getString(R.string.choose_default_view_title) + " ✓")
-                            } catch (e: Exception) { Log.e("KlippShell", "Fehler beim Ändern der Standardansicht", e) }
-                        }
-                    } else {
-                        showPillDialog(getString(R.string.reset_confirm_msg), arrayOf(getString(R.string.yes_delete), getString(R.string.cancel)), arrayOf("#E53935", null)) { confirmDelete ->
-                            if (confirmDelete == 0) {
-                                val currentArray = JSONArray(prefs.getString("printers_list", "[]"))
-                                val newList = JSONArray()
-                                for (j in 0 until currentArray.length()) { if (j != i) newList.put(currentArray.get(j)) }
-                                prefs.edit().putString("printers_list", newList.toString()).apply(); applyLanguageAndRefreshUI()
-                            }
-                        }
-                    }
-                }
-                true
-            }
-            containerPrinters.addView(itemView)
-        }
-    }
-
     private fun checkUpdatesSilentlyInBackground() {
         lifecycleScope.launch(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
@@ -645,7 +727,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-            } catch (e: Exception) { Log.e("KlippShell", "Lautloser Update-Check fehlgeschlagen", e) } finally { connection?.disconnect() }
+            } catch (e: Exception) { Log.e("KlippShell", "Lautloser Update-Check failed", e) } finally { connection?.disconnect() }
         }
     }
 
@@ -730,5 +812,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() { mainHandler.removeCallbacksAndMessages(null); currentFocus?.clearFocus(); super.onDestroy() }
+
     private fun toPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 }

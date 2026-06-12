@@ -194,4 +194,45 @@
     <string name="autostart_enabled">Autostart: ZAP ✓</string>
     <string name="toast_autostart_on">Autostart aktivován ✓</string>
     <string name="toast_autostart_off">Autostart deaktivován</string>
+
+    <string name="settings_role_title">Režim aplikace (Role zařízení)</string>
+    <string name="settings_role_auto">Automatická detekce</string>
+    <string name="settings_role_master">TV / Monitor (Master)</string>
+    <string name="settings_role_slave">Dálkové ovládání (Slave)</string>
+
+    <string name="remote_title">Dálkové ovládání KlippShell</string>
+    <string name="remote_status_connected">Připojeno k TV</string>
+    <string name="remote_status_disconnected">Odpojeno</string>
+
+    <string name="remote_dpad_up">Nahoru</string>
+    <string name="remote_dpad_down">Dolů</string>
+    <string name="remote_dpad_left">Doleva</string>
+    <string name="remote_dpad_right">Doprava</string>
+    <string name="remote_dpad_ok">Potvrdit (OK)</string>
+    <string name="remote_btn_back">Zpět</string>
+
+    <string name="remote_shortcut_layout">Formát obrazu (Box/Banner)</string>
+    <string name="remote_shortcut_zoom_in">Přiblížit</string>
+    <string name="remote_shortcut_zoom_out">Oddálit</string>
+    <string name="remote_shortcut_pip">Obraz v obraze (PiP)</string>
+    <string name="remote_shortcut_stream">Přepnout kameru</string>
+    <string name="remote_shortcut_light">Osvětlení tiskárny (LED)</string>
+    <string name="remote_shortcut_estop">NOUZOVÉ ZASTAVENÍ</string>
+
+    <string name="menu_pip_adb_title">Odemknout PIP přes ADB</string>
+    <string name="dialog_pip_adb_guide_title">Picture-in-Picture ADB Instrukce</string>
+    <string name="dialog_pip_adb_guide_text"><![CDATA[
+Někteří výrobci TV standardně blokují funkci Obraz v obraze (PiP). Pro trvalé odblokování postupujte takto:<br><br>
+1. Povolte Možnosti pro vývojáře na TV (7x klikněte na "Číslo sestavení" v nastavení systému).<br>
+2. Povolte "Ladění ADB" v možnostech pro vývojáře.<br>
+3. Otevřete příkazový řádek na PC a připojte se k TV:<br>
+<tt><b>adb connect [VASE_TV_IP]:5555</b></tt><br><br>
+4. Zkopírujte a spusťte následující příkaz přesně:<br>
+<tt><b>adb shell appops set com.shipofagony.klippshell4creality PICTURE_IN_PICTURE allow</b></tt><br><br>
+5. Restartujte aplikaci KlippShell na TV. Funkce PiP je nyní připravena k použití!
+]]></string>
+
+    <string name="welcome_tile_title">Vítejte v KlippShell! 👋</string>
+    <string name="welcome_tile_msg">Jsme rádi, že jste tady! Chcete-li z monitorování tiskárny vytěžit maximum, zde je stručný přehled hlavních funkcí KlippShell a specifik některých TV zařízení. KlippShell byl navržen tak, aby běžel hladce na chytrých telefonech, tabletech nebo uživatelsky přívětivě na Android TV.\n\n1️⃣ PRVNÍ KROKY\nNíže přidejte svou první 3D tiskárnu. V současné době jsou zahrnuty téměř všechny modely na trhu. Pokud chcete použít jinou tiskárnu založenou na Klipperu, můžete zvolit \"Custom Model\".\nPoznámka: V závislosti na modelu tiskárny a konfiguraci sítě možná budete muset ručně upravit porty a přístupové cesty ke kameře, abyste zaručili bezproblémové monitorování. Automatický síťový sken by však měl většinu konfigurací pokrýt automaticky.\n⚠️ Pokud nezískáte živý obraz tiskárny, navštivte prosím https://github.com/DnG-Crafts/K2-Camera a nainstalujte FIX. To bohužel vyžaduje práva root na tiskárně!\n💡 Tip: Dlouhým stisknutím v hlavním menu na jednu z uložených tiskáren otevřete možnosti pro změnu výchozího zobrazení mezi Live-Stream Monitoringem a Klipper OS nebo pro smazání tiskárny.\n\n2️⃣ CHYTRÉ ŽIVÉ OVLÁDÁNÍ\nV režimu videostreamu ovládáte vše pomocí tří spodních hlavních tlačítek:\n• Levé tlačítko: Otevře nabídku pro On-Screen Display (OSD), zoom videa, PiP, osvětlení tiskárny, spořič obrazovky a formát obrazu.\n• Prostřední tlačítko: Bezproblémově přepíná mezi Klipper OS (přístrojová deska) a čistým živým přenosem z kamery.\n• Pravé tlačítko: Kdykoli vás bezpečně vrátí do hlavního menu.\n\n3️⃣ REŽIM PŘÍMÉHO STARTU\nPokud jste již tiskárnu úspěšně nakonfigurovali, můžete v nastavení zvolit režim Přímého startu. To vám umožní spustit aplikaci přímo do zobrazení živého streamu.\n\n4️⃣ REŽIM COMPANION\nS KlippShell můžete používat své zařízení jako TV panel (Master) nebo jako dálkové ovládání pro smartphone (Slave). Aktivujte režim Companion v nastavení, abyste mohli pohodlně ovládat televizor ze svého smartphonu.\n\n5️⃣ OBRAZ V OBRAZE (PiP)\nPřestože KlippShell plně podporuje PiP, někteří výrobci televizorů odmítají tuto funkci nativně nabízet. Žádný strach: V nastavení najdete pokročilou funkci s přesným návodem, jak PiP na televizoru snadno vynutit pomocí příkazu ADB!\n\n6️⃣ TV FUNKCE \"NOW LIVE\"\nPokud chcete používat televizní funkci \"Now Live\", omezení výrobců mohou zabránit jejímu nativnímu zobrazení na vašem TV panelu. V tomto případě důrazně doporučujeme použít alternativní TV launcher, jako je \"Projectivity Launcher\" na vašem TV zařízení, abyste si tuto funkci plně užili.</string>
+    <string name="welcome_tile_btn">Rozumím &amp; Skrýt</string>
 </resources>
