@@ -56,6 +56,7 @@
     <string name="about_changelog_title">Lista Zmian</string>
     <string name="about_changelog_text">v0.8.5.050626-rc\n• Dodano aktualizator GitHub OTA: Asynchroniczna weryfikacja online\n• Zintegrowana przeglądarka licencji: Nowe przewijane okno dialogowe praw autorskich\n• Czyszczenie układu: Usunięto nadmiarowy tekst UI, chroniony Easter Egg logo\n• Zwiększona stabilność: Naprawiono błędy null safety i zoptymalizowano fokus okna</string>
     <string name="settings_optimized_tv">Zoptymalizowano dla Android TV</string>
+    <string name="about_contact_option">Kontakt</string>
 
     <string name="menu_options_title">Opcje</string>
     <string name="menu_osd_show">Pokaż OSD</string>

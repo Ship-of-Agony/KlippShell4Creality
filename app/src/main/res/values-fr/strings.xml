@@ -56,6 +56,7 @@
     <string name="about_changelog_title">Journal des modifications</string>
     <string name="about_changelog_text">v0.8.5.050626-rc\n• Mise à jour OTA GitHub ajoutée : Vérification en ligne asynchrone des nouvelles versions\n• Visionneuse de licences intégrée : Nouvelle boîte de dialogue déroulante pour les droits d\'auteur\n• Nettoyage de la mise en page : Suppression des textes d\'interface redondants, protection de l\'Easter Egg du logo\n• Stabilité accrue : Correction des erreurs de Null-Safety Kotlin et optimisation du focus de dialogue\n\nv0.8.4.300526-rc\n• Ajout de la boîte de dialogue de recherche TV pour la sélection du modèle\n• Implémentation d\'une recherche tolérante de G-Code/modèle\n• Optimisation du polling de mémoire pour Moonraker\n\nv0.8.3\n• Sécurité du focus D-Pad augmentée pour les niveaux de menu\n• Stabilisation des canaux audio du SoundManager\n• Correction de la réinitialisation des préréglages</string>
     <string name="settings_optimized_tv">Optimisé pour Android TV</string>
+    <string name="about_contact_option">Contact</string>
 
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Afficher l\'OSD</string>

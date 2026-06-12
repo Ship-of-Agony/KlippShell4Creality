@@ -56,6 +56,7 @@
     <string name="about_changelog_title">Changelog</string>
     <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub OTA Updater added: Asynchronous online verification for new releases\n• Integrated License Viewer: New scrollable dialog window for copyrights\n• Layout cleanup: Redundant UI text removed, Logo Easter Egg protected\n• Increased stability: Fixed Kotlin null safety bugs and optimized dialog focus\n\nv0.8.4.300526-rc\n• TV search dialog for model selection added\n• Tolerant G-Code/model search implemented\n• Shmem polling for Moonraker optimized\n\nv0.8.3\n• D-Pad focus safety for menu levels increased\n• SoundManager audio channels stabilized\n• Presets reset fixed</string>
     <string name="settings_optimized_tv">Optimized for Android TV</string>
+    <string name="about_contact_option">Contact</string>
 
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Show OSD</string>

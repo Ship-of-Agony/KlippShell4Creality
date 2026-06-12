@@ -56,6 +56,7 @@
     <string name="about_changelog_title">Changelog</string>
     <string name="about_changelog_text">v0.8.5.050626-rc\n• GitHub-OTA-Updater hinzugefügt: Asynchrone Online-Prüfung auf neue Releases\n• Integrierter Lizenz-Viewer: Neues scrollbares Dialogfenster für Urheberrechte\n• Layout-Bereinigung: Redundante UI-Texte entfernt, Logo-Easter-Egg geschützt\n• Stabilität erhöht: Kotlin Null-Safety-Fehler behoben und Dialog-Fokus optimiert\n\nv0.8.4.300526-rc\n• TV-Suchdialog für Modell-Auswahl hinzugefügt\n• Tolerante G-Code/Modell-Suche implementiert\n• Speicher-Polling für Moonraker optimiert\n\nv0.8.3\n• D-Pad Fokus-Sicherheit für Menüebenen erhöht\n• SoundManager Audio-Kanäle stabilisiert\n• Presets-Reset gefixt</string>
     <string name="settings_optimized_tv">Optimiert für Android TV</string>
+    <string name="about_contact_option">Kontakt</string>
 
     <string name="menu_options_title">Optionen</string>
     <string name="menu_osd_show">OSD einblenden</string>
@@ -65,7 +66,7 @@
     <string name="osd_pos_top_center">Oben Mitte</string>
     <string name="osd_pos_top_right">Oben Rechts</string>
     <string name="osd_pos_bottom_center">Unten Mitte</string>
-    <string name="toast_position_saved">Position gespeichert ✓</string>
+    <string name="toast_position_saved">Position gespeichert</string>
     <string name="toast_position_fullscreen_only">Änderung nur bei aktiven OSD möglich</string>
     <string name="menu_osd_style_title">OSD Format</string>
     <string name="osd_style_box">Box</string>
@@ -157,7 +158,7 @@
     <string name="toast_restored_brightness">Helligkeit wiederhergestellt</string>
 
     <string name="toast_updater_checking">Prüfe Version…</string>
-    <string name="toast_updater_up_to_date">KlippShell ist auf dem neuesten Stand ✓</string>
+    <string name="toast_updater_up_to_date">KlippShell ist auf dem neuesten Stand</string>
     <string name="toast_updater_server_error">Update-Server nicht erreichbar (404 / Timeout)</string>
     <string name="toast_updater_error_code">Fehler beim Abruf (Code: %1$d)</string>
     <string name="update_available_title">Update auf Version %1$s verfügbar!</string>
@@ -191,8 +192,8 @@
     <string name="layout_mode_tablet">Layout-Ansicht: TABLET</string>
 
     <string name="autostart_disabled">Direktstart: AUS</string>
-    <string name="autostart_enabled">Direktstart: AN ✓</string>
-    <string name="toast_autostart_on">Direktstart aktiviert ✓</string>
+    <string name="autostart_enabled">Direktstart: AN</string>
+    <string name="toast_autostart_on">Direktstart aktiviert</string>
     <string name="toast_autostart_off">Direktstart deaktiviert</string>
 
     <string name="settings_role_title">Companion Modus (Master-Slave)</string>

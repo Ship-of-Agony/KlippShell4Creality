@@ -56,6 +56,7 @@
     <string name="about_changelog_title">Seznam změn</string>
     <string name="about_changelog_text">v0.8.5.050626-rc\n• Přidán GitHub OTA updater: Asynchronní online kontrola\n• Integrovaný prohlížeč licencí: Nové posuvné dialogové okno\n• Čištění rozvržení: Odstraněn redundantní text UI, chráněno Easter Egg logo\n• Zvýšená stabilita: Opraveny chyby null safety a optimalizován fokus dialogů</string>
     <string name="settings_optimized_tv">Optimalizováno pro Android TV</string>
+    <string name="about_contact_option">Kontakt</string>
 
     <string name="menu_options_title">Možnosti</string>
     <string name="menu_osd_show">Zobrazit OSD</string>

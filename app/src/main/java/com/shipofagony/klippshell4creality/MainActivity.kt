@@ -8,7 +8,6 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,12 +26,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
+import androidx.core.content.FileProvider
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.ListenableWorker
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.google.android.material.button.MaterialButton
@@ -43,24 +41,29 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URL
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import org.json.JSONException
-import org.json.JSONObject
 
 @Suppress("DEPRECATION", "Lint", "SetTextI18n", "LocalSuppress")
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var prefs: SharedPreferences
+    // =======================================================
+    // KUGELSICHERE HILFSFUNKTION (Ganz oben, damit sie nie fehlt)
+    // =======================================================
+    private fun toPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
+    }
 
-    // Kontrollvariable gegen Endlosschleifen beim Zurückgehen
+    private lateinit var prefs: SharedPreferences
     private var autoStartExecuted = false
 
     private lateinit var containerPrinters: LinearLayout
@@ -258,21 +261,29 @@ class MainActivity : AppCompatActivity() {
         btnExit?.setTextColor(Color.WHITE)
         btnExit?.setOnClickListener { finishAffinity() }
         btnExit?.layoutParams?.let { params ->
-            params.width = toPx(560)
-            if (params is LinearLayout.LayoutParams) {
-                params.gravity = Gravity.CENTER_HORIZONTAL
-            } else if (params is FrameLayout.LayoutParams) {
-                params.gravity = Gravity.CENTER_HORIZONTAL
-            } else if (params.javaClass.name.contains("ConstraintLayout")) {
-                try {
-                    val clazz = params.javaClass
-                    clazz.getField("matchConstraintDefaultWidth").set(params, 0)
-                    clazz.getField("startToStart").set(params, 0)
-                    clazz.getField("endToEnd").set(params, 0)
-                    clazz.getField("leftToLeft").set(params, 0)
-                    clazz.getField("rightToRight").set(params, 0)
-                } catch (e: Exception) {
-                    Log.e("KlippShell", "Fehler beim Zentrieren des Beenden-Buttons", e)
+            val isTvOrTablet = isAndroidTV() || (resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE
+            if (!isTvOrTablet && resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                params.width = toPx(260)
+            } else {
+                params.width = toPx(560)
+            }
+
+            when (params) {
+                is LinearLayout.LayoutParams -> params.gravity = Gravity.CENTER_HORIZONTAL
+                is FrameLayout.LayoutParams -> params.gravity = Gravity.CENTER_HORIZONTAL
+                else -> {
+                    if (params.javaClass.name.contains("ConstraintLayout")) {
+                        try {
+                            val clazz = params.javaClass
+                            clazz.getField("matchConstraintDefaultWidth").set(params, 0)
+                            clazz.getField("startToStart").set(params, 0)
+                            clazz.getField("endToEnd").set(params, 0)
+                            clazz.getField("leftToLeft").set(params, 0)
+                            clazz.getField("rightToRight").set(params, 0)
+                        } catch (e: Exception) {
+                            Log.e("KlippShell", "Fehler beim Zentrieren des Beenden-Buttons", e)
+                        }
+                    }
                 }
             }
             btnExit.layoutParams = params
@@ -568,9 +579,9 @@ class MainActivity : AppCompatActivity() {
                 setColor(if (isNightMode) "#252B2E".toColorInt() else Color.WHITE)
                 setStroke(4, if (isNightMode) Color.WHITE else "#BDBDBD".toColorInt())
             }
-            setPadding(50, 35, 50, 35)
+            setPadding(toPx(50), toPx(35), toPx(50), toPx(35))
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
-                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; setMargins(50, 0, 50, 240)
+                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; setMargins(toPx(50), 0, toPx(50), toPx(120))
             }
         }
         val container = FrameLayout(this).apply { addView(pillView) }
@@ -593,7 +604,7 @@ class MainActivity : AppCompatActivity() {
     private fun searchNetworkForPrinters() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
         dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.search_network)
-        val progressBar = ProgressBar(this).apply { setPadding(0, 24, 0, 24); indeterminateTintList = ColorStateList.valueOf("#2196F3".toColorInt()) }
+        val progressBar = ProgressBar(this).apply { setPadding(0, toPx(24), 0, toPx(24)); indeterminateTintList = ColorStateList.valueOf("#2196F3".toColorInt()) }
         dialogView.findViewById<LinearLayout>(R.id.buttonContainer)?.addView(progressBar)
 
         val progressDialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create()
@@ -660,8 +671,8 @@ class MainActivity : AppCompatActivity() {
 
         val etSearch = EditText(this).apply {
             hint = getString(R.string.search_model_hint); background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_pill_input)
-            setPadding(24, 16, 24, 16); textSize = 15f; setTextColor(textColor); setHintTextColor(if (isNightMode) Color.GRAY else Color.parseColor("#757575"))
-            isFocusable = true; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, 16) }
+            setPadding(toPx(24), toPx(16), toPx(24), toPx(16)); textSize = 15f; setTextColor(textColor); setHintTextColor(if (isNightMode) Color.GRAY else Color.parseColor("#757575"))
+            isFocusable = true; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, toPx(16)) }
         }
         mainContainer.addView(etSearch)
 
@@ -674,15 +685,15 @@ class MainActivity : AppCompatActivity() {
             allModels.filter { it.lowercase(Locale.getDefault()).contains(filterText.lowercase(Locale.getDefault())) }.forEach { modelName ->
                 val kachel = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; isFocusable = true; isClickable = true
-                    background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_rounded); backgroundTintList = ColorStateList.valueOf(cardBgColor); setPadding(16, 20, 16, 20)
-                    layoutParams = GridLayout.LayoutParams().apply { width = 0; height = ViewGroup.LayoutParams.WRAP_CONTENT; columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f); setMargins(8, 8, 8, 8) }
+                    background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_rounded); backgroundTintList = ColorStateList.valueOf(cardBgColor); setPadding(toPx(16), toPx(20), toPx(16), toPx(20))
+                    layoutParams = GridLayout.LayoutParams().apply { width = 0; height = ViewGroup.LayoutParams.WRAP_CONTENT; columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f); setMargins(toPx(8), toPx(8), toPx(8), toPx(8)) }
                     onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                         v.animate().scaleX(if (hasFocus) 1.05f else 1.0f).scaleY(if (hasFocus) 1.05f else 1.0f).setDuration(120).start()
                         (v.background as? GradientDrawable)?.setStroke(6, if (hasFocus) (if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else (if (isNightMode) Color.parseColor("#4DFFFFFF") else Color.parseColor("#33000000")))
                     }
                     setOnClickListener { onSelected(modelName); dialog.dismiss() }
                 }
-                kachel.addView(ImageView(this).apply { layoutParams = LinearLayout.LayoutParams(toPx(64), toPx(64)).apply { setMargins(0, 0, 0, 8) }; scaleType = ImageView.ScaleType.CENTER_INSIDE; setImageResource(getPrinterImageResource(modelName)) })
+                kachel.addView(ImageView(this).apply { layoutParams = LinearLayout.LayoutParams(toPx(64), toPx(64)).apply { setMargins(0, 0, 0, toPx(8)) }; scaleType = ImageView.ScaleType.CENTER_INSIDE; setImageResource(getPrinterImageResource(modelName)) })
                 kachel.addView(TextView(this).apply { text = modelName; textSize = 14f; gravity = Gravity.CENTER; setTextColor(textColor); setTypeface(null, android.graphics.Typeface.BOLD); maxLines = 2 })
                 gridLayout.addView(kachel)
             }
@@ -710,11 +721,32 @@ class MainActivity : AppCompatActivity() {
         } catch (e: JSONException) { Log.e("KlippShell", "Fehler beim Speichern des Druckers", e) }
     }
 
+    private fun isNewerVersion(latest: String, current: String): Boolean {
+        val cleanLatest = latest.replace(Regex("[^0-9.]"), "").split(".").map { it.toIntOrNull() ?: 0 }
+        val cleanCurrent = current.replace(Regex("[^0-9.]"), "").split(".").map { it.toIntOrNull() ?: 0 }
+        val maxLen = maxOf(cleanLatest.size, cleanCurrent.size)
+        for (i in 0 until maxLen) {
+            val l = cleanLatest.getOrElse(i) { 0 }
+            val c = cleanCurrent.getOrElse(i) { 0 }
+            if (l > c) return true
+            if (l < c) return false
+        }
+        return false
+    }
+
     private fun checkUpdatesSilentlyInBackground() {
         lifecycleScope.launch(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
             try {
-                connection = (URL("https://api.github.com/repos/Ship-of-Agony/KlippShell4Creality").openConnection() as HttpURLConnection).apply { requestMethod = "GET"; connectTimeout = 4000; readTimeout = 4000; useCaches = false; setRequestProperty("User-Agent", "KlippShell-App"); setRequestProperty("Accept", "application/vnd.github.v3+json") }
+                connection = (URL("https://api.github.com/repos/Ship-of-Agony/KlippShell4Creality/releases").openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 4000
+                    readTimeout = 4000
+                    useCaches = false
+                    setRequestProperty("User-Agent", "KlippShell-App")
+                    setRequestProperty("Accept", "application/vnd.github.v3+json")
+                }
+
                 if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                     val arr = JSONArray(connection.inputStream.bufferedReader().use { it.readText() })
                     if (arr.length() > 0) {
@@ -722,12 +754,13 @@ class MainActivity : AppCompatActivity() {
                         val assetsArray = arr.getJSONObject(0).optJSONArray("assets")
                         val downloadUrl = if (assetsArray != null && assetsArray.length() > 0) assetsArray.getJSONObject(0).optString("browser_download_url", "") else ""
                         val currentVersionName = try { packageManager.getPackageInfo(packageName, 0).versionName?.replace("v", "")?.trim() ?: "0.8.5" } catch (e: Exception) { "0.8.5" }
-                        if ((latestVersionTag.replace(".", "").toIntOrNull() ?: 0) > (currentVersionName.replace(".", "").toIntOrNull() ?: 0) && downloadUrl.isNotEmpty()) {
+
+                        if (isNewerVersion(latestVersionTag, currentVersionName) && downloadUrl.isNotEmpty()) {
                             withContext(Dispatchers.Main) { showUpdateAvailableDialog(latestVersionTag, downloadUrl) }
                         }
                     }
                 }
-            } catch (e: Exception) { Log.e("KlippShell", "Lautloser Update-Check failed", e) } finally { connection?.disconnect() }
+            } catch (e: Exception) { Log.e("KlippShell", "Lautloser Update-Check fehlgeschlagen", e) } finally { connection?.disconnect() }
         }
     }
 
@@ -735,11 +768,97 @@ class MainActivity : AppCompatActivity() {
         val options = arrayOf(getString(R.string.btn_download_now), getString(R.string.btn_later))
         showPillDialog(title = getString(R.string.update_available_title, newVersion), items = options, hexColors = arrayOf("#4CAF50", null)) { index ->
             if (index == 0 && downloadUrl.isNotEmpty()) {
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                    startActivity(intent)
-                } catch (e: Exception) { showCenteredPillToast(getString(R.string.toast_update_browser_error)) }
+                downloadAndInstallApk(downloadUrl)
             }
+        }
+    }
+
+    private fun downloadAndInstallApk(apkUrl: String) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = "Download läuft..."
+
+        val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val textColor = if (isNightMode) Color.WHITE else Color.BLACK
+
+        val progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            isIndeterminate = false
+            max = 100
+            progressTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            setPadding(toPx(24), toPx(24), toPx(24), toPx(8))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+
+        val tvProgress = TextView(this).apply {
+            text = "0%"
+            gravity = Gravity.CENTER
+            setTextColor(textColor)
+            textSize = 16f
+            setPadding(0, 0, 0, toPx(24))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+
+        val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+        container?.addView(progressBar)
+        container?.addView(tvProgress)
+        dialog.show()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL(apkUrl)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.connect()
+                val fileLength = connection.contentLength
+                val input = connection.inputStream
+
+                val file = File(cacheDir, "update.apk")
+                val output = FileOutputStream(file)
+
+                val data = ByteArray(4096)
+                var total: Long = 0
+                var count: Int
+                while (input.read(data).also { count = it } != -1) {
+                    total += count
+                    if (fileLength > 0) {
+                        val prog = (total * 100 / fileLength).toInt()
+                        withContext(Dispatchers.Main) {
+                            progressBar.progress = prog
+                            tvProgress.text = "$prog%"
+                        }
+                    }
+                    output.write(data, 0, count)
+                }
+                output.flush()
+                output.close()
+                input.close()
+
+                withContext(Dispatchers.Main) {
+                    dialog.dismiss()
+                    installApk(file)
+                }
+            } catch (e: Exception) {
+                Log.e("Updater", "Download error", e)
+                withContext(Dispatchers.Main) {
+                    dialog.dismiss()
+                    showCenteredPillToast("Download fehlgeschlagen!")
+                }
+            }
+        }
+    }
+
+    private fun installApk(file: File) {
+        try {
+            val uri = FileProvider.getUriForFile(this, "$packageName.provider", file)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("Updater", "Install error", e)
+            showCenteredPillToast("Installation fehlgeschlagen!")
         }
     }
 
@@ -754,13 +873,16 @@ class MainActivity : AppCompatActivity() {
         val textColor = if (isNightMode) Color.WHITE else Color.BLACK
         val btnBgColor = if (isNightMode) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A888888")
 
+        val isTvOrTablet = isAndroidTV() || (resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE
+        val pVert = if (isTvOrTablet) toPx(30) else toPx(14)
+
         items.forEachIndexed { index, itemText ->
             val btn = MaterialButton(this).apply {
-                text = itemText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                text = itemText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, pVert, 0, pVert)
                 val customHex = hexColors?.getOrNull(index)
                 if (customHex != null) { backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex)); setTextColor(Color.WHITE) }
                 else { backgroundTintList = ColorStateList.valueOf(btnBgColor); setTextColor(textColor) }
-                isFocusable = true; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
+                isFocusable = true; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(10), 0, toPx(10)) }
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()
@@ -782,11 +904,14 @@ class MainActivity : AppCompatActivity() {
         val mainContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        mainContainer?.addView(TextView(this).apply { text = getString(R.string.perm_dialog_msg); textSize = 15f; setTextColor(if (isNightMode) Color.WHITE else Color.BLACK); setPadding(24, 16, 24, 32); gravity = Gravity.START }, 0)
+        mainContainer?.addView(TextView(this).apply { text = getString(R.string.perm_dialog_msg); textSize = 15f; setTextColor(if (isNightMode) Color.WHITE else Color.BLACK); setPadding(toPx(24), toPx(16), toPx(24), toPx(32)); gravity = Gravity.START }, 0)
+
+        val isTvOrTablet = isAndroidTV() || (resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE
+        val pVert = if (isTvOrTablet) toPx(30) else toPx(14)
 
         val btnAccept = MaterialButton(this).apply {
-            text = getString(R.string.perm_dialog_btn); isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")); setTextColor(Color.WHITE); isFocusable = true
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, 16) }
+            text = getString(R.string.perm_dialog_btn); isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, pVert, 0, pVert); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")); setTextColor(Color.WHITE); isFocusable = true
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, toPx(16)) }
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).translationZ(if (hasFocus) 6f else 0f).setDuration(100).start()
                 if (v is MaterialButton) { v.strokeWidth = if (hasFocus) 8 else 0; v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null }
@@ -799,7 +924,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val btnDecline = MaterialButton(this).apply {
-            text = getString(R.string.perm_dialog_btn_decline); isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")); setTextColor(Color.WHITE); isFocusable = true
+            text = getString(R.string.perm_dialog_btn_decline); isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, pVert, 0, pVert); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")); setTextColor(Color.WHITE); isFocusable = true
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).translationZ(if (hasFocus) 6f else 0f).setDuration(100).start()
                 if (v is MaterialButton) { v.strokeWidth = if (hasFocus) 8 else 0; v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null }
@@ -812,6 +937,4 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() { mainHandler.removeCallbacksAndMessages(null); currentFocus?.clearFocus(); super.onDestroy() }
-
-    private fun toPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 }

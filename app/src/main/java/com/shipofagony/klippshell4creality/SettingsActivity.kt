@@ -169,7 +169,6 @@ class SettingsActivity : AppCompatActivity() {
         val btnCheckUpdates = findViewById<MaterialButton>(R.id.btnCheckUpdates)
         val ivAboutStudioLogo = findViewById<ImageView>(R.id.ivAboutStudioLogo)
 
-        // KORREKTUR: Fokus startet auf Position 1 (Sprache ändern) nach deiner neuen Anordnung
         btnChangeLanguage.requestFocus()
 
         try {
@@ -318,7 +317,8 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         tvAboutContactLink.setOnClickListener {
-            val contactOptions = arrayOf("GitHub Repository", "klippshell@gmail.com")
+            // E-Mail Text wurde in "Kontakt" umbenannt
+            val contactOptions = arrayOf("GitHub Repository", getString(R.string.about_contact_option))
             showTvDialog(getString(R.string.studio_name), contactOptions, arrayOf("#4CAF50", "#2196F3")) { choice ->
                 if (choice == 0) {
                     val urlIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Ship-of-Agony/KlippShell4Creality"))
@@ -427,13 +427,15 @@ class SettingsActivity : AppCompatActivity() {
         scrollView.addView(tvContent)
         container?.addView(scrollView)
 
+        val pVert = if (isDualScreenMode) toPx(30) else toPx(14)
+
         val closeBtn = MaterialButton(this).apply {
             text = getString(R.string.notify_btn_default)
             isAllCaps = false
             textSize = 16f
             isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-            setPadding(0, toPx(30), 0, toPx(30))
+            setPadding(0, pVert, 0, pVert)
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
             setTextColor(Color.WHITE)
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -662,7 +664,6 @@ class SettingsActivity : AppCompatActivity() {
         advancedTabletButton?.let { mainContainer.removeView(it); advancedTabletButton = null }
     }
 
-    // KORREKTUR: Navigations-Mapping an deine gewünschte Reihenfolge angepasst
     private fun updateMenuButtonSelection(activeLayer: Int) {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val activeBg = ColorStateList.valueOf(if (isNight) Color.parseColor("#44FFFFFF") else Color.parseColor("#1A888888"))
@@ -795,6 +796,9 @@ class SettingsActivity : AppCompatActivity() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
+        val pVert = if (isDualScreenMode) toPx(30) else toPx(14)
+        val pVertClose = if (isDualScreenMode) toPx(26) else toPx(14)
+
         options.forEachIndexed { index, itemText ->
             val customHex = hexColors.getOrNull(index)
             val btn = MaterialButton(this).apply {
@@ -803,7 +807,7 @@ class SettingsActivity : AppCompatActivity() {
                 textSize = 16f
                 isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-                setPadding(0, toPx(30), 0, toPx(30))
+                setPadding(0, pVert, 0, pVert)
 
                 if (customHex != null) {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex))
@@ -859,7 +863,7 @@ class SettingsActivity : AppCompatActivity() {
             textSize = 16f
             isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-            setPadding(0, toPx(26), 0, toPx(26))
+            setPadding(0, pVertClose, 0, pVertClose)
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
             setTextColor(Color.WHITE)
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -911,6 +915,8 @@ class SettingsActivity : AppCompatActivity() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
+        val pVert = if (isDualScreenMode) toPx(30) else toPx(14)
+
         names.forEachIndexed { index, langName ->
             val isSelected = codes[index] == activeCode
             val btn = MaterialButton(this).apply {
@@ -919,7 +925,7 @@ class SettingsActivity : AppCompatActivity() {
                 textSize = 16f
                 isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-                setPadding(0, toPx(30), 0, toPx(30))
+                setPadding(0, pVert, 0, pVert)
 
                 if (isSelected) {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
@@ -998,7 +1004,6 @@ class SettingsActivity : AppCompatActivity() {
         updateSubpagePillColor(findViewById(R.id.btnPillSaverOff), activeTimeout == 0L)
     }
 
-    // KORREKTUR: Zurück-Navigation auf Basis der neuen Button-Pipeline aktualisiert
     private fun handleBackNavigation() {
         if (isDualScreenMode) {
             finish()
@@ -1066,6 +1071,9 @@ class SettingsActivity : AppCompatActivity() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
+        val pVert = if (isDualScreenMode) toPx(30) else toPx(14)
+        val pVertClose = if (isDualScreenMode) toPx(26) else toPx(14)
+
         items.forEachIndexed { index, itemText ->
             val customHex = hexColors?.getOrNull(index)
             val btn = MaterialButton(this).apply {
@@ -1074,7 +1082,7 @@ class SettingsActivity : AppCompatActivity() {
                 textSize = 16f
                 isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-                setPadding(0, toPx(30), 0, toPx(30))
+                setPadding(0, pVert, 0, pVert)
 
                 if (customHex != null) {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex))
@@ -1110,7 +1118,7 @@ class SettingsActivity : AppCompatActivity() {
             textSize = 16f
             isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-            setPadding(0, toPx(26), 0, toPx(26))
+            setPadding(0, pVertClose, 0, pVertClose)
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
             setTextColor(Color.WHITE)
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -1181,7 +1189,6 @@ class SettingsActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
-    // KORREKTUR: Alle Buttons für den Initial-Zustand und Fokus-Pipeline in der richtigen Reihenfolge gemappt
     private fun initPillButtonStates() {
         val defaultTimeout = 120 * 60 * 1000L
         if (!prefs.contains("screensaver_timeout_global_fallback")) {
@@ -1384,13 +1391,15 @@ class SettingsActivity : AppCompatActivity() {
         scrollView.addView(tvContent)
         container?.addView(scrollView)
 
+        val pVertClose = if (isDualScreenMode) toPx(30) else toPx(14)
+
         val closeBtn = MaterialButton(this).apply {
             text = getString(R.string.notify_btn_default)
             isAllCaps = false
             textSize = 16f
             isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-            setPadding(0, toPx(30), 0, toPx(30))
+            setPadding(0, pVertClose, 0, pVertClose)
 
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
             setTextColor(Color.WHITE)

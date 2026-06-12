@@ -56,6 +56,7 @@
     <string name="about_changelog_title">Historial de Cambios</string>
     <string name="about_changelog_text">v0.8.5.050626-rc\n• Actualizador OTA de GitHub añadido: Verificación asíncrona en línea\n• Visor de Licencias integrado: Nueva ventana desplazable para derechos de autor\n• Limpieza de diseño: Eliminado texto redundante, Huevo de Pascua protegido\n• Mayor estabilidad: Corregidos errores de seguridad nula y enfoque optimizado\n\nv0.8.4.300526-rc\n• Diálogo de búsqueda en TV para selección de modelo añadido\n• Búsqueda tolerante de G-Code/modelo implementada\n• Sondeo de memoria optimizado para Moonraker\n\nv0.8.3\n• Seguridad de enfoque D-Pad para níveis de menú aumentada\n• Canales de audio de SoundManager estabilizados\n• Restablecimiento de ajustes corregido</string>
     <string name="settings_optimized_tv">Optimizado para Android TV</string>
+    <string name="about_contact_option">Contacto</string>
 
     <string name="menu_options_title">Opciones</string>
     <string name="menu_osd_show">Mostrar OSD</string>

@@ -56,6 +56,7 @@
     <string name="about_changelog_title">Список Изменений</string>
     <string name="about_changelog_text">v0.8.5.050626-rc\n• Добавлено обновление GitHub OTA: Асинхронная онлайн-проверка\n• Встроенный просмотрщик лицензий: Новое прокручиваемое диалоговое окно\n• Очистка макета: Удален избыточный текст интерфейса, защищена пасхалка логотипа\n• Повышена стабильность: Исправлены ошибки null safety и оптимизирован фокус диалогов</string>
     <string name="settings_optimized_tv">Оптимизировано для Android TV</string>
+    <string name="about_contact_option">Контакты</string>
 
     <string name="menu_options_title">Опции</string>
     <string name="menu_osd_show">Показать OSD</string>

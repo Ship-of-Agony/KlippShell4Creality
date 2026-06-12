@@ -19,28 +19,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineCenter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
-
     <ScrollView
         android:id="@+id/scrollPanelSettings"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
         android:fillViewport="true"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:visibility="visible"
-        app:layout_constraintEnd_toStartOf="@id/guidelineCenter"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
 
@@ -56,8 +49,7 @@
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
             android:clipChildren="false"
-            android:clipToPadding="false"
-            android:visibility="visible">
+            android:clipToPadding="false">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnChangeLanguage"
@@ -192,15 +184,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
         android:fillViewport="true"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
@@ -215,11 +205,7 @@
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:paddingEnd="24dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPillThemeLight"
@@ -266,15 +252,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
         android:fillViewport="true"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
@@ -289,11 +273,7 @@
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:visibility="gone">
-
+            android:paddingEnd="24dp">
             <LinearLayout
                 android:id="@+id/containerLanguageButtons"
                 android:layout_width="match_parent"
@@ -307,15 +287,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
         android:fillViewport="true"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
@@ -330,10 +308,7 @@
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:visibility="gone">
+            android:paddingEnd="24dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSubMenuSounds"
@@ -369,15 +344,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
         android:fillViewport="true"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
@@ -392,10 +365,7 @@
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:visibility="gone">
+            android:paddingEnd="24dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPillSaver30"
@@ -466,15 +436,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
         android:fillViewport="true"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
@@ -489,10 +457,7 @@
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:visibility="gone">
+            android:paddingEnd="24dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPillRoleAuto"
@@ -539,15 +504,13 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:scrollbars="none"
         android:fillViewport="true"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@id/guidelineCenter"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
@@ -562,10 +525,7 @@
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:visibility="gone">
+            android:paddingEnd="24dp">
 
             <TextView
                 android:layout_width="match_parent"
@@ -683,7 +643,7 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSettingsBack"
         style="@style/Widget.Material3.Button"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:layout_marginStart="24dp"
@@ -696,10 +656,9 @@
         android:textSize="18sp"
         app:backgroundTint="#2196F3"
         app:cornerRadius="100dp"
-        app:layout_constraintWidth_max="560dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <LinearLayout android:id="@+id/layoutMenuPopups" android:layout_width="0dp" android:layout_height="wrap_content" android:visibility="gone" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
     <LinearLayout android:id="@+id/layoutMenuSounds" android:layout_width="0dp" android:layout_height="wrap_content" android:visibility="gone" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" />
