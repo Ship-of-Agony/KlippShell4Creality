@@ -76,7 +76,6 @@ class SettingsActivity : AppCompatActivity() {
 
     private var btnCompanionToggleProgrammatic: MaterialButton? = null
 
-    // KUGELSICHERE ARCHITEKTUR: Klassenweite dynamische Randfarbe verhindert Scope-Fehler dauerhaft
     private val targetBorderColor: Int
         get() {
             val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -178,6 +177,7 @@ class SettingsActivity : AppCompatActivity() {
         val btnSubMenuPopups = findViewById<MaterialButton>(R.id.btnSubMenuPopups)
 
         val btnCheckUpdates = findViewById<MaterialButton>(R.id.btnCheckUpdates)
+        val btnSettingsFaq = findViewById<MaterialButton>(R.id.btnSettingsFaq)
         val ivAboutStudioLogo = findViewById<ImageView>(R.id.ivAboutStudioLogo)
 
         val pVertPill = if (isDualScreenMode) toPx(30) else toPx(14)
@@ -304,7 +304,7 @@ class SettingsActivity : AppCompatActivity() {
         btnAboutMenu.setOnClickListener {
             showSubPanel(panelAbout, 3, getString(R.string.btn_about_menu))
             loadChangelogFromAssets()
-            btnCheckUpdates.requestFocus()
+            btnSettingsFaq?.requestFocus() ?: btnCheckUpdates.requestFocus()
         }
 
         btnResetApp.setOnClickListener {
@@ -336,6 +336,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         btnCheckUpdates.setOnClickListener { showUpdateSubMenuDialog() }
+        btnSettingsFaq?.setOnClickListener { showFaqDialog() }
         tvLicensesLink.setOnClickListener { showLicensesDialog() }
 
         tvLicensesLink.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
@@ -388,7 +389,7 @@ class SettingsActivity : AppCompatActivity() {
             btnChangeLanguage, btnThemeSelect, btnNotificationsMenu, btnAutoStartToggle, btnGlobalScreensaver, btnRoleSelect, btnPipAdbSelect,
             btnAboutMenu, btnResetApp, btnSubMenuSounds, btnSubMenuPopups,
             btnPillThemeLight, btnPillThemeDark, btnPillThemeSystem, btnSettingsBack,
-            btnPillRoleAuto, btnPillRoleMaster, btnPillRoleSlave
+            btnPillRoleAuto, btnPillRoleMaster, btnPillRoleSlave, btnSettingsFaq
         ).forEach { btn ->
             btn?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
@@ -403,7 +404,8 @@ class SettingsActivity : AppCompatActivity() {
         initPillButtonStates()
 
         if (isDualScreenMode) {
-            showSubPanel(panelTheme, 5, getString(R.string.theme_title))
+            showSubPanel(panelAbout, 3, getString(R.string.btn_about_menu))
+            loadChangelogFromAssets()
         } else {
             val subPanels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelRole, panelAbout)
             subPanels.forEach { panel ->
@@ -1138,6 +1140,85 @@ class SettingsActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
+    private fun showFaqDialog() {
+        val faqSb = java.lang.StringBuilder()
+        try {
+            val stream = assets.open("faq.txt")
+            val reader = BufferedReader(InputStreamReader(stream))
+            reader.forEachLine { faqSb.append(it).append("\n") }
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Fehler beim Lesen der faq.txt", e)
+            faqSb.append("FAQ konnte nicht geladen werden.")
+        }
+
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = "FAQ"
+        val oldContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+
+        val dialogScrollView = ScrollView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply { setMargins(0, toPx(4), 0, toPx(4)) }
+            isVerticalScrollBarEnabled = true
+            clipToPadding = false
+            clipChildren = false
+        }
+
+        val scrollContainer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            clipToPadding = false
+            clipChildren = false
+        }
+        dialogScrollView.addView(scrollContainer)
+
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val textColor = if (isNight) Color.WHITE else Color.BLACK
+
+        val tvContent = TextView(this).apply {
+            text = faqSb.toString().trim()
+            setTextColor(textColor)
+            textSize = 14f
+        }
+        scrollContainer.addView(tvContent)
+
+        val pVertClose = if (isDualScreenMode) toPx(26) else toPx(14)
+
+        val closeBtn = MaterialButton(this).apply {
+            text = getString(R.string.notify_btn_default)
+            isAllCaps = false
+            textSize = 16f
+            isFocusable = true
+            shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+            setPadding(0, pVertClose, 0, pVertClose)
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(16), 0, toPx(8)) }
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) {
+                    v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
+                    (v as MaterialButton).strokeWidth = 8
+                    v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                } else { v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 0 }
+            }
+            setOnClickListener {
+                dialog.dismiss()
+                findViewById<MaterialButton>(R.id.btnSettingsFaq)?.requestFocus()
+            }
+        }
+        scrollContainer.addView(closeBtn)
+
+        oldContainer?.parent?.let { parent ->
+            val group = parent as ViewGroup
+            val idx = group.indexOfChild(oldContainer)
+            if (idx != -1) { group.removeViewAt(idx); group.addView(dialogScrollView, idx) }
+        }
+        dialog.setOnCancelListener { if (isDualScreenMode) handleBackNavigation() else initPillButtonStates() }
+        dialog.show()
+        closeBtn.requestFocus()
+    }
+
     private fun initPillButtonStates() {
         val defaultTimeout = 120 * 60 * 1000L
         if (!prefs.contains("screensaver_timeout_global_fallback")) {
@@ -1151,6 +1232,7 @@ class SettingsActivity : AppCompatActivity() {
         ).forEach { id -> updatePillVisuals(findViewById(id)) }
 
         updatePillVisuals(findViewById(R.id.btnCheckUpdates))
+        updatePillVisuals(findViewById(R.id.btnSettingsFaq))
         updateAutoStartButtonVisuals(findViewById(R.id.btnAutoStartToggle))
 
         val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -1189,6 +1271,12 @@ class SettingsActivity : AppCompatActivity() {
         if (btn == null) return
         if (btn.id == R.id.btnCheckUpdates) {
             btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            btn.setTextColor(Color.WHITE)
+            return
+        }
+
+        if (btn.id == R.id.btnSettingsFaq) {
+            btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
             btn.setTextColor(Color.WHITE)
             return
         }

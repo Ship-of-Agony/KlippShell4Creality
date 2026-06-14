@@ -262,4 +262,11 @@
 
     <string name="menu_thumbnail_progress">Прогресс модели</string>
 
+    <string name="toast_saved">Сохранено ✓</string>
+    <string name="toast_fullscreen_only">Доступно только в полноэкранном режиме</string>
+
+    <string name="remote_footer_offline">ТВ не в сети • Стандартный: %s</string>
+    <string name="remote_footer_connecting">Поиск профиля принтера на ТВ…</string>
+    <string name="remote_footer_online">Подключено в реальном времени: %s</string>
+
 </resources>

@@ -36,6 +36,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -64,6 +65,7 @@ import android.content.SharedPreferences
 class WebViewActivity : AppCompatActivity() {
 
     private var webView: WebView? = null
+    private var webView3D: WebView? = null
     private lateinit var layoutOsd: View
     private lateinit var layoutOsdBanner: View
     private lateinit var layoutWebButtons: LinearLayout
@@ -172,6 +174,7 @@ class WebViewActivity : AppCompatActivity() {
     private val channelInfoId = "klippshell_info_channel"
 
     private var isThumbnailEnabled = true
+    private var isBenchyShowing = false
     private var currentGCodeFilename = ""
     private var thumbnailBitmap: android.graphics.Bitmap? = null
     private val thumbContainerId = View.generateViewId()
@@ -218,7 +221,7 @@ class WebViewActivity : AppCompatActivity() {
                 "fr" -> "Erreurs et statut"
                 "pl" -> "Błędy i status"
                 "cs" -> "Chyby a stav"
-                "ru" -> "Ошибки und status"
+                "ru" -> "Ohibki und status"
                 else -> "Errors & Status Alerts"
             }
 
@@ -228,7 +231,7 @@ class WebViewActivity : AppCompatActivity() {
                 "fr" -> "Informations et étapes"
                 "pl" -> "Informacje i kamienie milowe"
                 "cs" -> "Informace a milníky"
-                "ru" -> "Информация und Meilensteine"
+                "ru" -> "Informacija und Meilensteine"
                 else -> "Information & Milestones"
             }
 
@@ -251,7 +254,7 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
-    // KORREKTUR: .setPadding(0) wurde entfernt, da NotificationCompat.Builder dies nicht unterstützt
+    // FIX: Das falsche .setPadding(...) wurde hier restlos entfernt
     private fun sendNativeSystemNotification(title: String, message: String, targetChannelId: String, bitmap: android.graphics.Bitmap? = null) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as AndroidNotificationManager
         registerNotificationChannels()
@@ -325,11 +328,24 @@ class WebViewActivity : AppCompatActivity() {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = 20f
-                setColor(Color.parseColor("#40000000"))
-                setStroke(4, Color.parseColor("#80FFFFFF"))
+                setColor(Color.parseColor("#20000000"))
             }
             clipToOutline = true
         }
+
+        webView3D = WebView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+            setBackgroundColor(Color.TRANSPARENT)
+            setLayerType(View.LAYER_TYPE_HARDWARE, null)
+            webViewClient = WebViewClient()
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.allowFileAccess = true
+            settings.allowContentAccess = true
+            settings.allowFileAccessFromFileURLs = true
+            settings.allowUniversalAccessFromFileURLs = true
+        }
+
         ivThumbBackground = ImageView(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             scaleType = ImageView.ScaleType.CENTER_CROP
@@ -338,6 +354,8 @@ class WebViewActivity : AppCompatActivity() {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             scaleType = ImageView.ScaleType.CENTER_CROP
         }
+
+        thumbLayout.addView(webView3D)
         thumbLayout.addView(ivThumbBackground)
         thumbLayout.addView(ivThumbForeground)
         rootLayout?.addView(thumbLayout)
@@ -585,7 +603,13 @@ class WebViewActivity : AppCompatActivity() {
                     setOnClickListener {
                         isThumbnailEnabled = !isThumbnailEnabled
                         prefs.edit().putBoolean("thumbnail_enabled_$hostIp", isThumbnailEnabled).apply()
-                        findViewById<FrameLayout>(thumbContainerId)?.visibility = if (isThumbnailEnabled && isCameraMode && thumbnailBitmap != null) View.VISIBLE else View.GONE
+                        val tView = findViewById<FrameLayout>(thumbContainerId)
+                        if (isThumbnailEnabled && isCameraMode) {
+                            tView?.visibility = View.VISIBLE
+                            setupProgressThumbnailDrawables(thumbnailBitmap)
+                        } else {
+                            tView?.visibility = View.GONE
+                        }
                         applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
                         dialog.dismiss()
                     }
@@ -669,9 +693,9 @@ class WebViewActivity : AppCompatActivity() {
             if (isCameraMode && isOsdEnabled) {
                 val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
                 val positionOptions = if (osdStyle == "banner") arrayOf(getSafeString("osd_pos_banner_top", "Oben"), getSafeString("osd_pos_banner_bottom", "Unten"), getSafeString("osd_pos_banner_left", "Links"), getSafeString("osd_pos_banner_right", "Rechts")) else arrayOf("Oben Links", "Oben Mitte", "Oben Rechts", "Unten Mitte")
-                showPillDialog(getSafeString("osd_position_title", "OSD Position"), positionOptions) { index -> val posStr = if (osdStyle == "banner") when(index) { 0 -> "top"; 1 -> "bottom"; 2 -> "left"; else -> "right" } else when(index) { 0 -> "top_left"; 1 -> "top_center"; 2 -> "top_right"; else -> "bottom_center" }; prefs.edit().putString("osd_position_$hostIp", posStr).apply(); applyOsdPositionAndStyle(posStr); showCenteredPillToast("Saved ✓") }
+                showPillDialog(getSafeString("osd_position_title", "OSD Position"), positionOptions) { index -> val posStr = if (osdStyle == "banner") when(index) { 0 -> "top"; 1 -> "bottom"; 2 -> "left"; else -> "right" } else when(index) { 0 -> "top_left"; 1 -> "top_center"; 2 -> "top_right"; else -> "bottom_center" }; prefs.edit().putString("osd_position_$hostIp", posStr).apply(); applyOsdPositionAndStyle(posStr); showCenteredPillToast(getSafeString("toast_saved", "Gespeichert ✓")) }
                 true
-            } else { showCenteredPillToast("Fullscreen only"); true }
+            } else { showCenteredPillToast(getSafeString("toast_fullscreen_only", "Nur im Vollbildmodus verfügbar")); true }
         }
 
         btnToggle.setOnClickListener {
@@ -787,7 +811,7 @@ class WebViewActivity : AppCompatActivity() {
                 startOsdPolling()
             }
 
-            if (isThumbnailEnabled && isCameraMode && thumbnailBitmap != null) {
+            if (isThumbnailEnabled && isCameraMode) {
                 findViewById<FrameLayout>(thumbContainerId)?.visibility = View.VISIBLE
             }
 
@@ -931,7 +955,7 @@ class WebViewActivity : AppCompatActivity() {
             if (osdStyle == "banner") layoutOsdBanner.visibility = View.VISIBLE else layoutOsd.visibility = View.VISIBLE
         }
         if (!isCameraMode) layoutScrollRight.visibility = View.VISIBLE
-        if (isThumbnailEnabled && isCameraMode && thumbnailBitmap != null) {
+        if (isThumbnailEnabled && isCameraMode) {
             findViewById<FrameLayout>(thumbContainerId)?.visibility = View.VISIBLE
         }
         showButtons()
@@ -1038,8 +1062,10 @@ class WebViewActivity : AppCompatActivity() {
     private fun hideButtons() { layoutWebButtons.animate().alpha(0f).setDuration(500).start() }
 
     private fun applySeichterOsdBackground() {
-        val mainBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
-        val borderStrokeColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+        val mainBgColor = if (isNight) Color.parseColor("#BF1C1C1E") else Color.parseColor("#A6FFFFFF")
+        val borderStrokeColor = if (isNight) Color.parseColor("#40FFFFFF") else Color.parseColor("#66888888")
 
         val bg = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
@@ -1047,8 +1073,12 @@ class WebViewActivity : AppCompatActivity() {
             setColor(mainBgColor)
             setStroke(3, borderStrokeColor)
         }
+
         layoutOsd.background = bg
         layoutOsdBanner.background = bg
+
+        layoutOsd.elevation = 16f
+        layoutOsdBanner.elevation = 16f
     }
 
     private fun resetPrintTriggers() {
@@ -1062,6 +1092,9 @@ class WebViewActivity : AppCompatActivity() {
         clipDrawable = null
         ivThumbBackground?.setImageBitmap(null)
         ivThumbForeground?.setImageDrawable(null)
+        webView3D?.visibility = View.GONE
+        webView3D?.loadUrl("about:blank")
+        isBenchyShowing = false
     }
 
     private fun sendLightCommand(turnOn: Boolean) {
@@ -1127,6 +1160,9 @@ class WebViewActivity : AppCompatActivity() {
             btnToggle.text = "⇄"
             val lp = webView?.layoutParams as? ConstraintLayout.LayoutParams
             if (lp != null) { lp.dimensionRatio = when (paddingTopPercent) { 75.0f -> "H,4:3"; 100.0f -> "H,1:1"; else -> "H,16:9" }; lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT; lp.height = 0; lp.topToTop = ConstraintLayout.LayoutParams.PARENT_ID; lp.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID; webView?.layoutParams = lp }
+            if (isThumbnailEnabled) {
+                setupProgressThumbnailDrawables(thumbnailBitmap)
+            }
         } else {
             layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE; stopOsdPolling()
             findViewById<FrameLayout>(thumbContainerId)?.visibility = View.GONE
@@ -1137,6 +1173,55 @@ class WebViewActivity : AppCompatActivity() {
             if (lp != null) { lp.dimensionRatio = null; lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT; lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT; webView?.layoutParams = lp }
         }
         webView?.loadUrl(url)
+    }
+
+    private fun setupProgressThumbnailDrawables(bitmap: android.graphics.Bitmap?) {
+        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+        val tView = findViewById<FrameLayout>(thumbContainerId)
+
+        if (bitmap != null) {
+            isBenchyShowing = false
+            webView3D?.visibility = View.GONE
+            webView3D?.loadUrl("about:blank")
+
+            ivThumbBackground?.visibility = View.VISIBLE
+            ivThumbForeground?.visibility = View.VISIBLE
+            ivThumbBackground?.setImageBitmap(bitmap)
+            ivThumbBackground?.alpha = 0.35f
+            ivThumbBackground?.rotation = 0f
+            ivThumbBackground?.rotationY = 0f
+
+            val tintedDrawable = BitmapDrawable(resources, bitmap).apply {
+                setColorFilter(Color.argb(140, 33, 150, 243), PorterDuff.Mode.SRC_ATOP)
+            }
+            val clip = ClipDrawable(tintedDrawable, Gravity.BOTTOM, ClipDrawable.VERTICAL)
+            ivThumbForeground?.setImageDrawable(clip)
+            this.clipDrawable = clip
+
+            val progress = lastProgressPercent.coerceIn(0.0, 1.0)
+            clip.level = (progress * 10000).toInt()
+
+            if (isThumbnailEnabled && isCameraMode && !isInPiP) {
+                tView?.visibility = View.VISIBLE
+            }
+        } else {
+            ivThumbBackground?.visibility = View.GONE
+            ivThumbForeground?.visibility = View.GONE
+            ivThumbBackground?.setImageDrawable(null)
+            ivThumbForeground?.setImageDrawable(null)
+            this.clipDrawable = null
+
+            webView3D?.visibility = View.VISIBLE
+            if (!isBenchyShowing) {
+                isBenchyShowing = true
+                webView3D?.loadUrl("file:///android_asset/benchy.html")
+            }
+
+            if (isThumbnailEnabled && isCameraMode && !isInPiP) {
+                tView?.visibility = View.VISIBLE
+            }
+        }
+        applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
     }
 
     private fun handleMoonrakerResponse(responseText: String) {
@@ -1186,7 +1271,22 @@ class WebViewActivity : AppCompatActivity() {
             if (status.has("temperature_fan chamber_fan")) { val obj = status.optJSONObject("temperature_fan chamber_fan"); if (obj != null) fanChamberSpeed = (if (obj.has("speed")) obj.optDouble("speed", 0.0) else obj.optDouble("value", 0.0)) * 100.0 }
             else if (status.has("heater_fan chamber_fan")) { val obj = status.optJSONObject("heater_fan chamber_fan"); if (obj != null) fanChamberSpeed = (if (obj.has("value")) obj.optDouble("value", 0.0) else obj.optDouble("speed", 0.0)) * 100.0 }
 
-            val progress = status.optJSONObject("display_status")?.optDouble("progress", 0.0) ?: 0.0
+            val displayStatus = status.optJSONObject("display_status")
+            var progress = displayStatus?.optDouble("progress", 0.0) ?: 0.0
+            val displayMessage = displayStatus?.optString("message", "") ?: ""
+
+            if (progress == 0.0 && !displayMessage.isNullOrEmpty()) {
+                try {
+                    val match = java.util.regex.Pattern.compile("(\\d+(?:\\.\\d+)?)").matcher(displayMessage)
+                    if (match.find()) {
+                        val parsedNum = match.group(1)?.toDoubleOrNull()
+                        if (parsedNum != null && parsedNum <= 100.0) {
+                            progress = parsedNum / 100.0
+                        }
+                    }
+                } catch (_: Exception) {}
+            }
+
             val printStats = status.optJSONObject("print_stats")
             val currentState = printStats?.optString("state", "") ?: ""
             val filename = printStats?.optString("filename", "") ?: ""
@@ -1199,7 +1299,10 @@ class WebViewActivity : AppCompatActivity() {
             }
 
             if (currentState == "printing" && (lastPrintState in listOf("standby", "complete") || lastPrintState.isEmpty())) { hasTrigFirstLayer = false; hasTrig50 = false; hasTrig75 = false; hasTrig90 = false; hasTrig100 = false }
+
+            val stateChanged = (lastPrintState != currentState)
             lastPrintState = currentState
+
             if (currentState == "printing" || currentState == "complete") {
                 if (!hasTrigFirstLayer && (progress >= 0.015 || duration >= 90)) { hasTrigFirstLayer = true; triggerPopup("first_layer", "First Layer", "First Layer") }
                 if (!hasTrig50 && progress >= 0.50) { hasTrig50 = true; triggerPopup("50", "50%", "50%") }
@@ -1208,17 +1311,29 @@ class WebViewActivity : AppCompatActivity() {
                 if (!hasTrig100 && (currentState == "complete" || progress >= 0.999)) { hasTrig100 = true; triggerPopup("100", "100%", "100%") }
             }
 
+            val tView = findViewById<FrameLayout>(thumbContainerId)
+            val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+            val shouldShowThumb = isThumbnailEnabled && isCameraMode && !isInPiP
+
             if (currentState == "printing" || currentState == "complete") {
-                clipDrawable?.level = (progress * 10000).toInt()
-                val tView = findViewById<FrameLayout>(thumbContainerId)
+                if (thumbnailBitmap != null) {
+                    clipDrawable?.level = (progress * 10000).toInt()
+                }
                 if (tView != null) {
-                    val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
-                    tView.visibility = if (isThumbnailEnabled && isCameraMode && thumbnailBitmap != null && !isInPiP) View.VISIBLE else View.GONE
+                    tView.visibility = if (shouldShowThumb) View.VISIBLE else View.GONE
+                    if (stateChanged && thumbnailBitmap == null) {
+                        setupProgressThumbnailDrawables(null)
+                    }
                 }
             } else {
                 currentGCodeFilename = ""
-                thumbnailBitmap = null
-                findViewById<FrameLayout>(thumbContainerId)?.visibility = View.GONE
+                if (thumbnailBitmap != null || !isBenchyShowing) {
+                    thumbnailBitmap = null
+                    setupProgressThumbnailDrawables(null)
+                }
+                if (tView != null) {
+                    tView.visibility = if (shouldShowThumb) View.VISIBLE else View.GONE
+                }
             }
 
             if (!isInPictureInPictureMode && isActivityInForeground) {
@@ -1324,9 +1439,23 @@ class WebViewActivity : AppCompatActivity() {
                             }
                         }
                     }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        if (!isFinishing && !isDestroyed) {
+                            thumbnailBitmap = null
+                            setupProgressThumbnailDrawables(null)
+                        }
+                    }
                 }
             }
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+            withContext(Dispatchers.Main) {
+                if (!isFinishing && !isDestroyed) {
+                    thumbnailBitmap = null
+                    setupProgressThumbnailDrawables(null)
+                }
+            }
+        }
     }
 
     private suspend fun downloadThumbnailBitmap(urlString: String): android.graphics.Bitmap? {
@@ -1336,27 +1465,6 @@ class WebViewActivity : AppCompatActivity() {
             conn.doInput = true; conn.connectTimeout = 3000; conn.connect()
             conn.inputStream.use { android.graphics.BitmapFactory.decodeStream(it) }
         } catch (_: Exception) { null }
-    }
-
-    private fun setupProgressThumbnailDrawables(bitmap: android.graphics.Bitmap) {
-        ivThumbBackground?.setImageBitmap(bitmap)
-        ivThumbBackground?.alpha = 0.35f
-
-        val tintedDrawable = BitmapDrawable(resources, bitmap).apply {
-            setColorFilter(Color.argb(140, 33, 150, 243), PorterDuff.Mode.SRC_ATOP)
-        }
-        val clip = ClipDrawable(tintedDrawable, Gravity.BOTTOM, ClipDrawable.VERTICAL)
-        ivThumbForeground?.setImageDrawable(clip)
-        this.clipDrawable = clip
-
-        val progress = lastProgressPercent.coerceIn(0.0, 1.0)
-        clip.level = (progress * 10000).toInt()
-
-        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
-        if (isThumbnailEnabled && isCameraMode && !isInPiP) {
-            findViewById<FrameLayout>(thumbContainerId)?.visibility = View.VISIBLE
-        }
-        applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
     }
 
     private fun applyOsdPositionAndStyle(position: String) {
@@ -1399,7 +1507,7 @@ class WebViewActivity : AppCompatActivity() {
             }
         }
 
-        if (isThumbnailEnabled && isCameraMode && thumbnailBitmap != null) {
+        if (isThumbnailEnabled && isCameraMode && (thumbnailBitmap != null || lastPrintState == "printing" || lastPrintState != "printing")) {
             constraintSet.constrainWidth(thumbContainerId, (120 * resources.displayMetrics.density).toInt())
             constraintSet.constrainHeight(thumbContainerId, (120 * resources.displayMetrics.density).toInt())
             if (osdStyle == "banner") {
@@ -1451,7 +1559,10 @@ class WebViewActivity : AppCompatActivity() {
             val btn = MaterialButton(this).apply {
                 text = itemText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
                 if (customHex != null) { backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex)); setTextColor(Color.WHITE) }
-                else { backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888")) }
+                else {
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
+                    setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+                }
                 isFocusable = true; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
                 onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
                     if (hasFocus) {
@@ -1702,6 +1813,12 @@ class WebViewActivity : AppCompatActivity() {
             pipReceiver?.let { unregisterReceiver(it) }
         } catch (_: Exception) {}
         pipReceiver = null
+        webView3D?.let {
+            (it.parent as? ViewGroup)?.removeView(it)
+            it.removeAllViews()
+            it.destroy()
+        }
+        webView3D = null
         webView?.let {
             (it.parent as? ViewGroup)?.removeView(it)
             it.removeAllViews()

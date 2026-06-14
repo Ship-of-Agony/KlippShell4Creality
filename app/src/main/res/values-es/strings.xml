@@ -261,4 +261,11 @@ Algunos fabricantes de televisores bloquean Picture-in-Picture (PiP) de forma pr
     <string name="remote_connected_printer">Impresora conectada: %1$s</string>
 
     <string name="menu_thumbnail_progress">Progreso del modelo</string>
+
+    <string name="toast_saved">Guardado ✓</string>
+    <string name="toast_fullscreen_only">Solo disponible en modo de pantalla completa</string>
+
+    <string name="remote_footer_offline">TV fuera de línea • Predeterminado: %s</string>
+    <string name="remote_footer_connecting">Buscando perfil de impresora en TV…</string>
+    <string name="remote_footer_online">Conectado en vivo: %s</string>
 </resources>

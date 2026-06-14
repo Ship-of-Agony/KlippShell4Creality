@@ -262,4 +262,11 @@ Niektórzy producenci telewizorów domyślnie blokują funkcję Picture-in-Pictu
 
     <string name="menu_thumbnail_progress">Postęp modelu</string>
 
+    <string name="toast_saved">Zapisano ✓</string>
+    <string name="toast_fullscreen_only">Dostępne tylko w trybie pełnoekranowym</string>
+
+    <string name="remote_footer_offline">TV offline • Domyślny: %s</string>
+    <string name="remote_footer_connecting">Szukanie profilu drukarki w TV…</string>
+    <string name="remote_footer_online">Połączono na żywo: %s</string>
+
 </resources>

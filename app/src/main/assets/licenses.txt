@@ -41,13 +41,20 @@ URL: https://github.com/CrealityOfficial/CrealityPrint
 
 ---
 
-6. Core Inspiration & Acknowledgements
-This application is heavily inspired by the great project "KlippHub" by DnG Crafts. This sparked the vision of being able to conveniently monitor a 3D printer on the TV right from the comfort of the couch. 
+6. 3D Model Assets ("Benchy in a Storm")
+The 3D Benchy placeholder model used in this application is based on the "Benchy in a storm" design from Printables. The original file format was converted into the optimized GLB format using the ImageToStl platform.
+Model URL: https://www.printables.com/model/612012-benchy-in-a-storm/files
+Conversion Tool URL: https://imagetostl.com/
+
+---
+
+7. Core Inspiration & Acknowledgements
+This application is heavily inspired by the great project "KlippHub" by DnG Crafts. This sparked the vision of being able to conveniently monitor a 3D printer on the TV right from the comfort of the couch.
 Special thanks go to DnG for the tireless support, as well as for all the other valuable contributions (such as the "Cfs RFID" application) for the entire 3D printing community!
 
 ---
 
-7. Development Support
+8. Development Support
 Google Gemini (AI) - for assistance in error analysis, code refactoring, and resolving complex crashes.
 
 ---

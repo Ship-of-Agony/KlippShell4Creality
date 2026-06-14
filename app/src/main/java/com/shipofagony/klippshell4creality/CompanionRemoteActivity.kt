@@ -31,6 +31,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.ShapeAppearanceModel
 import kotlinx.coroutines.*
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -69,7 +70,6 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private lateinit var btnRemoteBar: MaterialButton
     private lateinit var btnRemoteBox: MaterialButton
 
-    // Referenzen für das kleine OSD-D-Pad zur dynamischen Kaskaden-Sperrung
     private var btnRemoteSecUp: MaterialButton? = null
     private var btnRemoteSecDown: MaterialButton? = null
     private var btnRemoteSecLeft: MaterialButton? = null
@@ -112,7 +112,6 @@ class CompanionRemoteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Blockiert das automatische Drehen und fixiert das Layout stabil im Portrait-Modus
         requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         setContentView(R.layout.activity_companion_remote)
@@ -131,11 +130,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
         applyUnifiedButtonShapesAndFocus()
 
         refreshOsdDependentUi()
-
-        // Aktiviert den fliegenden und spiegelnden Benchy-Hintergrund (Index 0)
         applyFloatingBenchyBackground()
-
-        // Aktiviert den vergrößerten Vignette-Hintergrundschatten im Vordergrund
         applyDynamicVignetteBorder()
 
         if (targetMasterIp.isNotEmpty()) {
@@ -175,7 +170,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteSecRight = findViewById(resources.getIdentifier("btnRemoteSecRight", "id", packageName))
 
         etTargetTvIp.keyListener = DigitsKeyListener.getInstance("0123456789.")
-        tvFooterInfo.text = getString(R.string.remote_connected_printer, "K2")
+
+        // FIX: Startet initial immer sauber im ausgelagerten, übersetzten Offline-Status
+        updatePrinterNameDisplay("offline")
 
         try {
             val bubbleContainer = etTargetTvIp.parent as? ViewGroup
@@ -233,7 +230,43 @@ class CompanionRemoteActivity : AppCompatActivity() {
         }
     }
 
-    // UPDATE: Geschwindigkeit entkoppelt und auf super-sanften Zeitlupen-Modus gedrosselt
+    // FIX: Komplett überarbeitete, ausgelagerte und symbolfreie Status-Zuweisung
+    private fun updatePrinterNameDisplay(state: String, fetchedModel: String? = null, fetchedName: String? = null) {
+        var localModelName = "K2"
+        var localPrinterName = ""
+
+        // Ermittle pauschal das allererste angelegte Profil aus der Haupt-App als stabilen Standby-Namen
+        try {
+            val printersJson = prefs.getString("printers_list", "[]") ?: "[]"
+            val arr = JSONArray(printersJson)
+            if (arr.length() > 0) {
+                val obj = arr.getJSONObject(0)
+                localModelName = obj.optString("model", "K2")
+                localPrinterName = obj.optString("name", "")
+            }
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Fehler beim Laden des Offline-Druckers", e)
+        }
+
+        val localDisplay = if (localPrinterName.isNotEmpty()) "$localPrinterName ($localModelName)" else localModelName
+
+        // Schalte die ausgelagerten Strings präzise anhand des aktuellen Verbindungs-Zustands um
+        when (state) {
+            "connecting" -> {
+                tvFooterInfo.text = getString(R.string.remote_footer_connecting)
+            }
+            "online" -> {
+                val model = fetchedModel ?: localModelName
+                val name = fetchedName ?: localPrinterName
+                val liveDisplay = if (!name.isNullOrEmpty()) "$name ($model)" else model
+                tvFooterInfo.text = getString(R.string.remote_footer_online, liveDisplay)
+            }
+            else -> { // offline
+                tvFooterInfo.text = getString(R.string.remote_footer_offline, localDisplay)
+            }
+        }
+    }
+
     private fun applyFloatingBenchyBackground() {
         try {
             val rootContent = findViewById<ViewGroup>(android.R.id.content)
@@ -261,14 +294,12 @@ class CompanionRemoteActivity : AppCompatActivity() {
                     val containerW = rootContent.width
                     val containerH = rootContent.height
 
-                    // Boot füllt exakt 45% der Bildschirmbreite aus (Perfekt balanciert auf jedem Smartphone)
                     val boatSize = (containerW * 0.45f).toInt()
                     benchyView.layoutParams = FrameLayout.LayoutParams(boatSize, boatSize)
 
                     var posX = (containerW - boatSize) / 2f
                     var posY = containerH * 0.35f
 
-                    // MAXIMUM DEZENT: Absolute, minimale Fließkommawandel verhindern jegliches Rasen auf High-Res-Displays
                     var speedX = 0.06f
                     var speedY = 0.045f
 
@@ -635,22 +666,50 @@ class CompanionRemoteActivity : AppCompatActivity() {
         tvRemoteStatus.text = getString(R.string.toast_loading_dashboard)
         tvRemoteStatus.setTextColor(Color.parseColor("#FFD54F"))
 
+        // FIX: Aktualisiert die Leiste sofort beim Klick auf "Suche..."
+        updatePrinterNameDisplay("connecting")
+
         connectionJob = lifecycleScope.launch(Dispatchers.IO) {
             var socket: Socket? = null
             try {
                 socket = Socket()
                 socket.connect(InetSocketAddress(ip, 9999), 3000)
+
+                val writer = BufferedWriter(OutputStreamWriter(socket.getOutputStream(), "UTF-8"))
+                writer.write("REQUEST_PRINTER_INFO\n")
+                writer.flush()
+
+                val reader = BufferedReader(InputStreamReader(socket.getInputStream(), "UTF-8"))
+                val response = reader.readLine()
+
+                var liveModel: String? = null
+                var liveName: String? = null
+
+                if (!response.isNullOrEmpty()) {
+                    try {
+                        val json = JSONObject(response)
+                        liveModel = json.optString("model", null)
+                        liveName = json.optString("name", null)
+                    } catch (e: Exception) {}
+                }
+
                 withContext(Dispatchers.Main) {
                     isConnected = true
                     targetMasterIp = ip
                     tvRemoteStatus.text = getString(R.string.remote_status_connected)
                     tvRemoteStatus.setTextColor(Color.parseColor("#4CAF50"))
+
+                    // FIX: Setzt bei erfolgreichem Handshake die übersetzte Live-Meldung
+                    updatePrinterNameDisplay("online", liveModel, liveName)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     isConnected = false
                     tvRemoteStatus.text = getString(R.string.toast_no_connection)
                     tvRemoteStatus.setTextColor(Color.parseColor("#E53935"))
+
+                    // FIX: Setzt bei Fehlgeschlagen oder TV aus die übersetzte Offline-Meldung samt erstem Druckerprofil
+                    updatePrinterNameDisplay("offline")
                 }
             } finally {
                 try { socket?.close() } catch (_: Exception) {}
@@ -682,6 +741,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
                     isConnected = false
                     tvRemoteStatus.text = getString(R.string.remote_status_disconnected)
                     tvRemoteStatus.setTextColor(Color.parseColor("#E53935"))
+
+                    // FIX: Schaltet die Fußzeile bei plötzlichem Verbindungsabbruch sofort wieder auf den Offline-String um
+                    updatePrinterNameDisplay("offline")
                 }
             } finally {
                 try { socket?.close() } catch (_: Exception) {}

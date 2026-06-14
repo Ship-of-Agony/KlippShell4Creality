@@ -262,4 +262,11 @@ Certains fabricants de téléviseurs bloquent par défaut le Picture-in-Picture 
 
     <string name="menu_thumbnail_progress">Progression du modèle</string>
 
+    <string name="toast_saved">Enregistré ✓</string>
+    <string name="toast_fullscreen_only">Disponible uniquement en mode plein écran</string>
+
+    <string name="remote_footer_offline">TV hors ligne • Par défaut : %s</string>
+    <string name="remote_footer_connecting">Recherche du profil d\'imprimante TV…</string>
+    <string name="remote_footer_online">Connecté en direct : %s</string>
+
 </resources>

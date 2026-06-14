@@ -626,6 +626,21 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettingsFaq"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
+                android:text="FAQ"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:backgroundTint="#2196F3"
+                app:cornerRadius="100dp" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCheckUpdates"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="match_parent"

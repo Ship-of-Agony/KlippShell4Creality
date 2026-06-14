@@ -262,4 +262,10 @@ Někteří výrobci televizorů standardně blokují funkci Obraz v obraze (PiP)
 
     <string name="menu_thumbnail_progress">Průběh modelu</string>
 
+    <string name="toast_saved">Uloženo ✓</string>
+    <string name="toast_fullscreen_only">Dostupné pouze v režimu celé obrazovky</string>
+
+    <string name="remote_footer_offline">TV offline • Výchozí: %s</string>
+    <string name="remote_footer_connecting">Hledání profilu tiskárny v TV…</string>
+    <string name="remote_footer_online">Živě připojeno: %s</string>
 </resources>

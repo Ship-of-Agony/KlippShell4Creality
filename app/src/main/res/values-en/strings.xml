@@ -262,4 +262,11 @@ Some TV manufacturers block Picture-in-Picture (PiP) by default. Follow these st
 
     <string name="menu_thumbnail_progress">Model Progress</string>
 
+    <string name="toast_saved">Saved ✓</string>
+    <string name="toast_fullscreen_only">Only available in fullscreen mode</string>
+
+    <string name="remote_footer_offline">TV offline • Default: %s</string>
+    <string name="remote_footer_connecting">Searching for TV printer profile…</string>
+    <string name="remote_footer_online">Live connected: %s</string>
+
 </resources>

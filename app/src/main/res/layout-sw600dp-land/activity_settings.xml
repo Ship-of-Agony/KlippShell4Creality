@@ -216,8 +216,6 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
             android:visibility="gone"
             tools:visibility="visible">
 
@@ -290,8 +288,6 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
             android:visibility="gone">
 
             <LinearLayout
@@ -331,8 +327,6 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
@@ -393,8 +387,6 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
@@ -490,8 +482,6 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
@@ -563,8 +553,6 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
             android:visibility="gone">
 
             <TextView
@@ -664,6 +652,21 @@
                     android:background="?android:attr/selectableItemBackground"
                     android:padding="6dp" />
             </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettingsFaq"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
+                android:text="FAQ"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:backgroundTint="#2196F3"
+                app:cornerRadius="100dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCheckUpdates"

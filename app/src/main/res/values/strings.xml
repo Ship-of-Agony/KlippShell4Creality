@@ -262,4 +262,11 @@ Einige TV-Hersteller blockieren Picture-in-Picture (PiP) standardmäßig. Führe
 
     <string name="menu_thumbnail_progress">Modell-Fortschritt</string>
 
+    <string name="toast_saved">Gespeichert ✓</string>
+    <string name="toast_fullscreen_only">Nur im Vollbildmodus verfügbar</string>
+
+    <string name="remote_footer_offline">TV offline • Standard: %s</string>
+    <string name="remote_footer_connecting">Suche TV-Druckerprofil…</string>
+    <string name="remote_footer_online">Live verbunden: %s</string>
+
 </resources>

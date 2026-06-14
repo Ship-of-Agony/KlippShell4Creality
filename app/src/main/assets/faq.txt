@@ -1,0 +1,62 @@
+=======================================================
+KLIPPSHELL - FREQUENTLY ASKED QUESTIONS (FAQ)
+=======================================================
+
+Problem: No progress display / Progress indicator not showing
+-------------------------------------------------------
+Solution:
+Add a short macro to your printer.cfg (or gcode_macro.cfg) so Klipper understands the M73 command and passes it correctly to the system:
+
+[gcode_macro M73]
+rename_existing: M73.1
+gcode:
+    # Catch parameters: P = percentage
+    {% set P = params.P|default(-1)|int %}
+    {% if P >= 0 %}
+        # Updates the internal Klipper status queried by the app
+        M117 Progress: {P}%
+    {% endif %}
+
+-------------------------------------------------------
+
+Problem: No video signal / Webcam stream not showing
+-------------------------------------------------------
+Solution:
+1. In the KlippShell camera settings, cycle through the following 3 display modes to find the one compatible with your stream type:
+   - Web View
+   - Stream Port (8080)
+   - Webcam Path
+
+2. Apply the camera fix from DnG Crafts:
+   For more details and installation instructions, visit:
+   https://github.com/DnG-Crafts/K2-Camera
+   This patch restores the printer's camera stream inside OrcaSlicer and third-party apps. (Note: This fix requires #root privileges on the printer).
+
+-------------------------------------------------------
+
+Problem: Connection to printer failed
+-------------------------------------------------------
+Solution:
+1. Depending on your printer model and internal network configuration, you may need to manually adjust your port settings and camera sub-paths to guarantee a flawless connection.
+
+-------------------------------------------------------
+
+Problem: No Picture-in-Picture (PiP) available on the TV
+-------------------------------------------------------
+Solution:
+While KlippShell fully supports PiP, some Android TV manufacturers block or refuse to support this feature natively. You can manually unlock it using the following advanced developer steps:
+
+1. Enable Developer Options on your TV (Go to TV System Settings -> About -> Click "Build Number" 7 times).
+2. Enable "ADB Debugging" inside the newly unlocked Developer Options.
+3. Open a command prompt (CMD / Terminal) on your PC and connect to your TV via network:
+   adb connect [YOUR_TV_IP]:5555
+4. Execute the following permission command exactly as written:
+   adb shell appops set com.shipofagony.klippshell4creality PICTURE_IN_PICTURE allow
+5. Restart the KlippShell app!
+
+-------------------------------------------------------
+
+Problem: No "Now Live" tile showing on the TV dashboard
+-------------------------------------------------------
+Solution:
+The "Now Live" Android TV channels feature can be restricted by the stock TV manufacturer launcher. In this case, we highly recommend using an alternative, clean TV launcher like "Projectivity Launcher", which fully supports and displays live app channels.

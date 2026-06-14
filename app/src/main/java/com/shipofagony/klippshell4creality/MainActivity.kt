@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         "Ender 3 Max Neo" to "ender_3maxneo", "Ender 3 Neo" to "ender_3neo", "Ender 3 S1" to "ender_3s1",
         "Ender 3 S1 Plus" to "ender_3s1plus", "Ender 3 S1 Pro" to "ender_3s1pro", "Ender 3 V2" to "ender_3v2",
         "Ender 3 V3" to "ender_3v3", "Ender 3 V3 KE" to "ender_3v3ke", "Ender 3 V3 Plus" to "ender_3v3plus",
-        "Ender 3 V3 SE" to "ender_3v3se", "Ender 4" to "ender_4", "Ender 5 Max" to "ender_5max",
+        "Ender 3 V3 SE" to "ender_3v3se", "Ender 4" to "ender_3v4", "Ender 5 Max" to "ender_5max",
         "Ender 5 Plus" to "ender_5plus", "Ender 5 S1" to "ender_5s1", "GS-01" to "gs_01",
         "GS-02" to "gs_02", "GS-03" to "gs_03", "GS-04" to "gs_04", "HI" to "hi",
         "K1" to "k1", "K1C" to "k1c", "K1 Max" to "k1max", "K1 SE" to "k1se",
