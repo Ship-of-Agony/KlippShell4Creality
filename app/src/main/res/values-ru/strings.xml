@@ -260,4 +260,6 @@
     <string name="remote_no_printer_connected">Принтер не подключен</string>
     <string name="remote_connected_printer">Подключенный принтер: %1$s</string>
 
+    <string name="menu_thumbnail_progress">Прогресс модели</string>
+
 </resources>

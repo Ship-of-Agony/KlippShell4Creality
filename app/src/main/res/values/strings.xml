@@ -260,4 +260,6 @@ Einige TV-Hersteller blockieren Picture-in-Picture (PiP) standardmäßig. Führe
     <string name="remote_no_printer_connected">Kein Drucker verbunden</string>
     <string name="remote_connected_printer">Verbundener Drucker: %1$s</string>
 
+    <string name="menu_thumbnail_progress">Modell-Fortschritt</string>
+
 </resources>

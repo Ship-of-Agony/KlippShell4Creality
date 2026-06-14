@@ -260,4 +260,6 @@ Niektórzy producenci telewizorów domyślnie blokują funkcję Picture-in-Pictu
     <string name="remote_no_printer_connected">Brak połączonej drukarki</string>
     <string name="remote_connected_printer">Połączona drukarka: %1$s</string>
 
+    <string name="menu_thumbnail_progress">Postęp modelu</string>
+
 </resources>

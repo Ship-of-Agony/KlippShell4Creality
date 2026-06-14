@@ -260,4 +260,6 @@ Some TV manufacturers block Picture-in-Picture (PiP) by default. Follow these st
     <string name="remote_no_printer_connected">No printer connected</string>
     <string name="remote_connected_printer">Connected printer: %1$s</string>
 
+    <string name="menu_thumbnail_progress">Model Progress</string>
+
 </resources>

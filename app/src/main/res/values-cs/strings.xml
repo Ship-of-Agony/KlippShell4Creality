@@ -260,4 +260,6 @@ Někteří výrobci televizorů standardně blokují funkci Obraz v obraze (PiP)
     <string name="remote_no_printer_connected">Žádná tiskárna není připojena</string>
     <string name="remote_connected_printer">Připojená tiskárna: %1$s</string>
 
+    <string name="menu_thumbnail_progress">Průběh modelu</string>
+
 </resources>

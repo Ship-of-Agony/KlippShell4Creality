@@ -19,6 +19,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -26,6 +28,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.shape.CornerFamily
+import com.google.android.material.shape.ShapeAppearanceModel
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -35,6 +39,8 @@ import java.io.OutputStreamWriter
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.Locale
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 class CompanionRemoteActivity : AppCompatActivity() {
 
@@ -63,6 +69,12 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private lateinit var btnRemoteBar: MaterialButton
     private lateinit var btnRemoteBox: MaterialButton
 
+    // Referenzen für das kleine OSD-D-Pad zur dynamischen Kaskaden-Sperrung
+    private var btnRemoteSecUp: MaterialButton? = null
+    private var btnRemoteSecDown: MaterialButton? = null
+    private var btnRemoteSecLeft: MaterialButton? = null
+    private var btnRemoteSecRight: MaterialButton? = null
+
     private var targetMasterIp: String = ""
     private var connectionJob: Job? = null
     private var isConnected = false
@@ -72,7 +84,6 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private var isPipMode = false
     private var currentOsdStyle = "box"
 
-    // Erzwingt die korrekte Lokalisierung basierend auf SharedPreferences
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedLang = prefs.getString("app_lang", "system") ?: "system"
@@ -100,6 +111,10 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Blockiert das automatische Drehen und fixiert das Layout stabil im Portrait-Modus
+        requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         setContentView(R.layout.activity_companion_remote)
 
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -113,6 +128,15 @@ class CompanionRemoteActivity : AppCompatActivity() {
         initViews()
         setupListeners()
         setupSpecialToggles()
+        applyUnifiedButtonShapesAndFocus()
+
+        refreshOsdDependentUi()
+
+        // Aktiviert den fliegenden und spiegelnden Benchy-Hintergrund (Index 0)
+        applyFloatingBenchyBackground()
+
+        // Aktiviert den vergrößerten Vignette-Hintergrundschatten im Vordergrund
+        applyDynamicVignetteBorder()
 
         if (targetMasterIp.isNotEmpty()) {
             etTargetTvIp.setText(targetMasterIp)
@@ -145,10 +169,178 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteBar = findViewById(R.id.btnRemoteBar)
         btnRemoteBox = findViewById(R.id.btnRemoteBox)
 
-        etTargetTvIp.keyListener = DigitsKeyListener.getInstance("0123456789.")
+        btnRemoteSecUp = findViewById(resources.getIdentifier("btnRemoteSecUp", "id", packageName))
+        btnRemoteSecDown = findViewById(resources.getIdentifier("btnRemoteSecDown", "id", packageName))
+        btnRemoteSecLeft = findViewById(resources.getIdentifier("btnRemoteSecLeft", "id", packageName))
+        btnRemoteSecRight = findViewById(resources.getIdentifier("btnRemoteSecRight", "id", packageName))
 
-        // Dynamisch übersetzten Text mit Argument setzen
+        etTargetTvIp.keyListener = DigitsKeyListener.getInstance("0123456789.")
         tvFooterInfo.text = getString(R.string.remote_connected_printer, "K2")
+
+        try {
+            val bubbleContainer = etTargetTvIp.parent as? ViewGroup
+            if (bubbleContainer != null) {
+                val grandParent = bubbleContainer.parent as? ViewGroup
+                if (grandParent != null && bubbleContainer.id != android.R.id.content) {
+                    val density = resources.displayMetrics.density
+                    val originalIndex = grandParent.indexOfChild(bubbleContainer)
+                    val originalParams = bubbleContainer.layoutParams
+                    val originalId = bubbleContainer.id
+
+                    val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+                    val tvIpLabel = TextView(this).apply {
+                        text = "TV IP"
+                        textSize = 14f
+                        setTextColor(if (isNightMode) Color.parseColor("#B0FFFFFF") else Color.parseColor("#8A000000"))
+                        gravity = Gravity.CENTER
+                        setTypeface(null, android.graphics.Typeface.BOLD)
+                    }
+
+                    val wrapperLayout = LinearLayout(this).apply {
+                        orientation = LinearLayout.VERTICAL
+                        gravity = Gravity.CENTER_HORIZONTAL
+                        layoutParams = originalParams
+                        if (originalId != View.NO_ID) {
+                            id = originalId
+                        }
+                    }
+
+                    bubbleContainer.id = View.generateViewId()
+                    grandParent.removeView(bubbleContainer)
+
+                    val labelParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        topMargin = (24 * density).toInt()
+                        bottomMargin = (10 * density).toInt()
+                    }
+                    tvIpLabel.layoutParams = labelParams
+
+                    bubbleContainer.layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+
+                    wrapperLayout.addView(tvIpLabel)
+                    wrapperLayout.addView(bubbleContainer)
+                    grandParent.addView(wrapperLayout, originalIndex)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Wrapper Label Injektion fehlgeschlagen", e)
+        }
+    }
+
+    // UPDATE: Geschwindigkeit entkoppelt und auf super-sanften Zeitlupen-Modus gedrosselt
+    private fun applyFloatingBenchyBackground() {
+        try {
+            val rootContent = findViewById<ViewGroup>(android.R.id.content)
+            val inflatedLayout = rootContent?.getChildAt(0) as? ViewGroup
+
+            if (rootContent != null && inflatedLayout != null) {
+                val benchyView = ImageView(this).apply {
+                    setImageResource(R.drawable.benchy_boat)
+                    alpha = 0.06f
+                }
+
+                val originalXmlBg = inflatedLayout.background
+                if (originalXmlBg != null) {
+                    rootContent.background = originalXmlBg
+                    inflatedLayout.background = null
+                }
+
+                rootContent.addView(benchyView, 0)
+
+                lifecycleScope.launch(Dispatchers.Main) {
+                    while (rootContent.width == 0 || rootContent.height == 0) {
+                        delay(30)
+                    }
+
+                    val containerW = rootContent.width
+                    val containerH = rootContent.height
+
+                    // Boot füllt exakt 45% der Bildschirmbreite aus (Perfekt balanciert auf jedem Smartphone)
+                    val boatSize = (containerW * 0.45f).toInt()
+                    benchyView.layoutParams = FrameLayout.LayoutParams(boatSize, boatSize)
+
+                    var posX = (containerW - boatSize) / 2f
+                    var posY = containerH * 0.35f
+
+                    // MAXIMUM DEZENT: Absolute, minimale Fließkommawandel verhindern jegliches Rasen auf High-Res-Displays
+                    var speedX = 0.06f
+                    var speedY = 0.045f
+
+                    while (isActive) {
+                        val currentW = rootContent.width
+                        val currentH = rootContent.height
+
+                        posX += speedX
+                        posY += speedY
+
+                        if (posX <= 0f) {
+                            speedX = abs(speedX)
+                            posX = 0f
+                            benchyView.scaleX = 1f
+                        } else if (posX + boatSize >= currentW) {
+                            speedX = -abs(speedX)
+                            posX = (currentW - boatSize).toFloat()
+                            benchyView.scaleX = -1f
+                        }
+
+                        if (posY <= 0f) {
+                            speedY = abs(speedY)
+                            posY = 0f
+                        } else if (posY + boatSize >= currentH) {
+                            speedY = -abs(speedY)
+                            posY = (currentH - boatSize).toFloat()
+                        }
+
+                        benchyView.x = posX
+                        benchyView.y = posY
+
+                        delay(16)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Benchy Live-Background fehlgeschlagen", e)
+        }
+    }
+
+    private fun applyDynamicVignetteBorder() {
+        try {
+            val rootContent = findViewById<ViewGroup>(android.R.id.content)
+            if (rootContent != null) {
+                val vignetteView = View(this).apply {
+                    isClickable = false
+                    isFocusable = false
+                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                }
+
+                vignetteView.addOnLayoutChangeListener { v, left, top, right, bottom, _, _, _, _ ->
+                    val w = right - left
+                    val h = bottom - top
+                    if (w > 0 && h > 0) {
+                        val radius = sqrt((w * w + h * h).toDouble()).toFloat() * 0.72f
+                        v.background = GradientDrawable().apply {
+                            gradientType = GradientDrawable.RADIAL_GRADIENT
+                            setColors(intArrayOf(
+                                Color.TRANSPARENT,
+                                Color.parseColor("#1F000000"),
+                                Color.parseColor("#D9000000")
+                            ))
+                            gradientRadius = radius
+                            setGradientCenter(0.5f, 0.5f)
+                        }
+                    }
+                }
+                rootContent.addView(vignetteView, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            }
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Vignette Optimierung fehlgeschlagen", e)
+        }
     }
 
     private fun setupListeners() {
@@ -168,19 +360,118 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteDown.setOnClickListener { sendCommandToTv("DPAD_DOWN") }
         btnRemoteLeft.setOnClickListener { sendCommandToTv("DPAD_LEFT") }
         btnRemoteRight.setOnClickListener { sendCommandToTv("DPAD_RIGHT") }
-        btnRemoteOk.setOnClickListener { sendCommandToTv("DPAD_CENTER") }
+        btnRemoteOk.setOnClickListener { sendCommandToTv("DPAD_OK") }
 
         btnRemoteHome.setOnClickListener { sendCommandToTv("BACK") }
-        btnRemoteZoomIn.setOnClickListener { sendCommandToTv("ZOOM_OUT") }
-        btnRemoteZoomOut.setOnClickListener { sendCommandToTv("ZOOM_IN") }
+        btnRemoteZoomIn.setOnClickListener { sendCommandToTv("ZOOM_IN") }
+        btnRemoteZoomOut.setOnClickListener { sendCommandToTv("ZOOM_OUT") }
 
         btnRemoteEstop.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle(getString(R.string.menu_emergency_stop))
-                .setMessage(getString(R.string.dialog_stop_title))
-                .setPositiveButton(getString(R.string.dialog_stop_confirm)) { _, _ -> sendCommandToTv("ESTOP") }
-                .setNegativeButton(getString(R.string.cancel), null)
-                .show()
+            vibrateFeedback()
+
+            val dialogContainer = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER_HORIZONTAL
+                val pad = (24 * resources.displayMetrics.density).toInt()
+                setPadding(pad, pad, pad, pad)
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    cornerRadius = 48f
+                    setColor(Color.parseColor("#E53935"))
+                }
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            }
+
+            val tvTitle = TextView(this).apply {
+                text = getString(R.string.menu_emergency_stop)
+                textSize = 22f
+                setTextColor(Color.WHITE)
+                gravity = Gravity.CENTER
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            }
+
+            val tvMessage = TextView(this).apply {
+                text = getString(R.string.dialog_stop_title)
+                textSize = 16f
+                setTextColor(Color.WHITE)
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                    topMargin = (16 * resources.displayMetrics.density).toInt()
+                }
+            }
+
+            val buttonRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                weightSum = 2f
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    topMargin = (24 * resources.displayMetrics.density).toInt()
+                }
+            }
+
+            val pVert = (12 * resources.displayMetrics.density).toInt()
+
+            val btnCancel = MaterialButton(this).apply {
+                text = getString(R.string.cancel)
+                isAllCaps = false
+                textSize = 15f
+                isFocusable = true
+                setTextColor(Color.parseColor("#E53935"))
+                backgroundTintList = ColorStateList.valueOf(Color.WHITE)
+                shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+                setPadding(0, pVert, 0, pVert)
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginEnd = (8 * resources.displayMetrics.density).toInt()
+                }
+            }
+
+            val btnConfirm = MaterialButton(this).apply {
+                text = getString(R.string.dialog_stop_confirm)
+                isAllCaps = false
+                textSize = 15f
+                isFocusable = true
+                setTextColor(Color.WHITE)
+                backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B71C1C"))
+                shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+                setPadding(0, pVert, 0, pVert)
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginStart = (8 * resources.displayMetrics.density).toInt()
+                }
+            }
+
+            buttonRow.addView(btnCancel)
+            buttonRow.addView(btnConfirm)
+            dialogContainer.addView(tvTitle)
+            dialogContainer.addView(tvMessage)
+            buttonRow.let { dialogContainer.addView(it) }
+
+            val dialog = AlertDialog.Builder(this)
+                .setView(dialogContainer)
+                .create()
+
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val borderHighlight = if (isNight) Color.parseColor("#FFFFFF") else Color.parseColor("#424242")
+
+            arrayOf(btnCancel, btnConfirm).forEach { btn ->
+                btn.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                    v.animate().scaleX(if (hasFocus) 1.05f else 1.0f).scaleY(if (hasFocus) 1.05f else 1.0f).setDuration(100).start()
+                    if (v is MaterialButton) {
+                        v.strokeWidth = if (hasFocus) 6 else 0
+                        v.strokeColor = if (hasFocus) ColorStateList.valueOf(borderHighlight) else null
+                    }
+                }
+            }
+
+            btnCancel.setOnClickListener { dialog.dismiss() }
+            btnConfirm.setOnClickListener {
+                dialog.dismiss()
+                sendCommandToTv("ESTOP")
+            }
+
+            dialog.show()
+            btnCancel.requestFocus()
         }
 
         etTargetTvIp.addTextChangedListener(object : TextWatcher {
@@ -196,6 +487,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private fun setupSpecialToggles() {
         updateButtonColorState(btnRemoteStream, isVideoMode)
         btnRemoteStream.setOnClickListener {
+            vibrateFeedback()
             isVideoMode = !isVideoMode
             prefs.edit().putBoolean("remote_state_video", isVideoMode).apply()
             updateButtonColorState(btnRemoteStream, isVideoMode)
@@ -204,36 +496,38 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
         updateButtonColorState(btnRemotePip, isOsdOn)
         btnRemotePip.setOnClickListener {
+            vibrateFeedback()
             isOsdOn = !isOsdOn
             prefs.edit().putBoolean("remote_state_osd", isOsdOn).apply()
             updateButtonColorState(btnRemotePip, isOsdOn)
+
+            refreshOsdDependentUi()
+
             sendCommandToTv("TOGGLE_OSD")
         }
 
         updateButtonColorState(btnRemoteLayout, isPipMode)
         btnRemoteLayout.setOnClickListener {
+            vibrateFeedback()
             isPipMode = !isPipMode
             prefs.edit().putBoolean("remote_state_pip", isPipMode).apply()
             updateButtonColorState(btnRemoteLayout, isPipMode)
             sendCommandToTv("PIP_TOGGLE")
         }
 
-        updateButtonColorState(btnRemoteBox, currentOsdStyle == "box")
-        updateButtonColorState(btnRemoteBar, currentOsdStyle == "banner")
-
         btnRemoteBox.setOnClickListener {
+            vibrateFeedback()
             currentOsdStyle = "box"
             prefs.edit().putString("remote_state_style", "box").apply()
-            updateButtonColorState(btnRemoteBox, true)
-            updateButtonColorState(btnRemoteBar, false)
+            refreshOsdDependentUi()
             sendCommandToTv("STYLE_BOX")
         }
 
         btnRemoteBar.setOnClickListener {
+            vibrateFeedback()
             currentOsdStyle = "banner"
             prefs.edit().putString("remote_state_style", "banner").apply()
-            updateButtonColorState(btnRemoteBox, false)
-            updateButtonColorState(btnRemoteBar, true)
+            refreshOsdDependentUi()
             sendCommandToTv("STYLE_BANNER")
         }
 
@@ -247,12 +541,47 @@ class CompanionRemoteActivity : AppCompatActivity() {
             val resId = resources.getIdentifier(resName, "id", packageName)
             if (resId != 0) {
                 findViewById<MaterialButton>(resId)?.setOnClickListener {
-                    if (isOsdOn) sendCommandToTv(token) else sendCommandToTv(token.replace("SEC_", "DPAD_"))
+                    vibrateFeedback()
+                    if (isOsdOn) sendCommandToTv(token)
                 }
             }
         }
 
         btnRemoteCamera.setOnClickListener { sendCommandToTv("CAMERA_CYCLE") }
+    }
+
+    private fun refreshOsdDependentUi() {
+        val smallDpad = arrayOf(btnRemoteSecUp, btnRemoteSecDown, btnRemoteSecLeft, btnRemoteSecRight)
+
+        if (isOsdOn) {
+            smallDpad.forEach { btn ->
+                btn?.isEnabled = true
+                btn?.alpha = 1.0f
+            }
+            btnRemoteBox.isEnabled = true
+            btnRemoteBar.isEnabled = true
+            btnRemoteBox.alpha = 1.0f
+            btnRemoteBar.alpha = 1.0f
+
+            updateButtonColorState(btnRemoteBox, currentOsdStyle == "box")
+            updateButtonColorState(btnRemoteBar, currentOsdStyle == "banner")
+        } else {
+            smallDpad.forEach { btn ->
+                btn?.isEnabled = false
+                btn?.alpha = 0.35f
+            }
+
+            btnRemoteBox.isEnabled = false
+            btnRemoteBar.isEnabled = false
+            btnRemoteBox.alpha = 0.35f
+            btnRemoteBar.alpha = 0.35f
+
+            val darkGrey = ColorStateList.valueOf(Color.parseColor("#424242"))
+            btnRemoteBox.backgroundTintList = darkGrey
+            btnRemoteBar.backgroundTintList = darkGrey
+            btnRemoteBox.setTextColor(Color.parseColor("#80FFFFFF"))
+            btnRemoteBar.setTextColor(Color.parseColor("#80FFFFFF"))
+        }
     }
 
     private fun updateButtonColorState(button: MaterialButton, isActive: Boolean) {
@@ -262,6 +591,43 @@ class CompanionRemoteActivity : AppCompatActivity() {
             button.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
         }
         button.setTextColor(Color.WHITE)
+    }
+
+    private fun applyUnifiedButtonShapesAndFocus() {
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val borderHighlight = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
+
+        val allRemoteButtons = arrayOf(
+            btnSearchTv, btnLeaveRemote, btnRemoteUp, btnRemoteDown, btnRemoteLeft, btnRemoteRight, btnRemoteOk,
+            btnRemoteHome, btnRemoteStream, btnRemoteCamera, btnRemoteEstop, btnRemoteZoomIn, btnRemoteZoomOut,
+            btnRemoteLayout, btnRemotePip, btnRemoteBar, btnRemoteBox
+        )
+
+        val combinedButtons = allRemoteButtons.toMutableList()
+        val smallDpad = arrayOf(btnRemoteSecUp, btnRemoteSecDown, btnRemoteSecLeft, btnRemoteSecRight)
+        smallDpad.forEach { btn -> btn?.let { combinedButtons.add(it) } }
+
+        combinedButtons.forEach { btn ->
+            if (btn == null) return@forEach
+            btn.shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+
+            if (btn == btnRemoteEstop) {
+                btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
+                btn.setTextColor(Color.WHITE)
+            }
+
+            val oldListener = btn.onFocusChangeListener
+            btn.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                oldListener?.onFocusChange(v, hasFocus)
+                if (v.isEnabled) {
+                    v.animate().scaleX(if (hasFocus) 1.05f else 1.0f).scaleY(if (hasFocus) 1.05f else 1.0f).setDuration(120).start()
+                    if (v is MaterialButton) {
+                        v.strokeWidth = if (hasFocus) 6 else 0
+                        v.strokeColor = if (hasFocus) ColorStateList.valueOf(borderHighlight) else null
+                    }
+                }
+            }
+        }
     }
 
     private fun triggerConnectionCheck(ip: String) {

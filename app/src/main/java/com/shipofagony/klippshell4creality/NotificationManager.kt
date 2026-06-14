@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Bitmap
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -21,15 +22,13 @@ object NotificationManager {
 
     private var activePopupViewRef: WeakReference<View>? = null
     private var activeContainerRef: WeakReference<ViewGroup>? = null
-
-    // Speicher für die Rückkehr-Aktion in die Einstellungen
     private var currentDismissCallback: (() -> Unit)? = null
 
     /**
-     * Schiebt eine unübersehbare Kachel in den Bildschirm (Erzwungen über das native Layout).
-     * Unterstützt jetzt ein optionales Lambda-Callback beim Schließen.
+     * Schiebt eine unübersehbare Kachel in den Bildschirm.
+     * JETZT ERWEITERT: Unterstützt die direkte Injektion des 3D-Modell-Vorschaubildes (Thumbnail)
      */
-    fun showLivePopup(context: Context, prefKey: String, titleResId: Int, messageResId: Int, onDismiss: (() -> Unit)? = null) {
+    fun showLivePopup(context: Context, prefKey: String, titleResId: Int, messageResId: Int, thumbnail: Bitmap? = null, onDismiss: (() -> Unit)? = null) {
         if (context is Activity && (context.isFinishing || context.isDestroyed)) {
             return
         }
@@ -42,10 +41,7 @@ object NotificationManager {
 
         if (!isPopupAllowed) return
 
-        // Schließt ein eventuell altes Popup und löscht dessen Callback, ohne es abzufeuern
         dismissActivePopup()
-
-        // Sichert das neue Callback für den Schließen-Button
         this.currentDismissCallback = onDismiss
 
         try {
@@ -59,7 +55,7 @@ object NotificationManager {
                     activePopupViewRef = WeakReference(notifyView)
                     activeContainerRef = WeakReference(webContainer)
 
-                    setupPopupContent(context, notifyView, prefKey, titleResId, messageResId)
+                    setupPopupContent(context, notifyView, prefKey, titleResId, messageResId, thumbnail)
 
                     webContainer.removeAllViews()
                     webContainer.addView(notifyView)
@@ -88,7 +84,7 @@ object NotificationManager {
                 activePopupViewRef = WeakReference(notifyView)
                 activeContainerRef = null
 
-                setupPopupContent(context, notifyView, prefKey, titleResId, messageResId)
+                setupPopupContent(context, notifyView, prefKey, titleResId, messageResId, thumbnail)
 
                 val lp = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
@@ -117,7 +113,7 @@ object NotificationManager {
         }
     }
 
-    private fun setupPopupContent(context: Context, view: View, prefKey: String, titleResId: Int, messageResId: Int) {
+    private fun setupPopupContent(context: Context, view: View, prefKey: String, titleResId: Int, messageResId: Int, thumbnail: Bitmap?) {
         val container = view.findViewById<LinearLayout>(R.id.containerNotification)
         val ivIcon = view.findViewById<ImageView>(R.id.ivNotifyIcon)
         val tvTitle = view.findViewById<TextView>(R.id.tvNotifyTitle)
@@ -127,26 +123,36 @@ object NotificationManager {
         tvTitle.text = context.getString(titleResId)
         tvMessage.text = context.getString(messageResId)
 
-        when {
-            prefKey.contains("error") -> {
-                container.setBackgroundColor(Color.parseColor("#B71C1C"))
-                ivIcon.setImageResource(android.R.drawable.ic_delete)
-                btnDismiss.text = context.getString(R.string.notify_btn_error)
-            }
-            prefKey.contains("offline") -> {
-                container.setBackgroundColor(Color.parseColor("#F57C00"))
-                ivIcon.setImageResource(android.R.drawable.ic_dialog_alert)
-                btnDismiss.text = context.getString(R.string.notify_btn_offline)
-            }
-            prefKey.contains("100") -> {
-                container.setBackgroundColor(Color.parseColor("#1B5E20"))
-                ivIcon.setImageResource(android.R.drawable.ic_dialog_info)
-                btnDismiss.text = context.getString(R.string.notify_btn_success)
-            }
-            else -> {
-                container.setBackgroundColor(Color.parseColor("#0D47A1"))
-                ivIcon.setImageResource(android.R.drawable.ic_dialog_info)
-                btnDismiss.text = context.getString(R.string.notify_btn_default)
+        // ZUWEISUNG: Wenn ein Modell-Thumbnail existiert und es ein Fortschritts-Popup ist, zeige das echte Bild an!
+        if (thumbnail != null && (prefKey.contains("50") || prefKey.contains("75") || prefKey.contains("90") || prefKey.contains("100") || prefKey.contains("first_layer"))) {
+            ivIcon.setImageBitmap(thumbnail)
+            // Optional: Die quadratische Form für Modellbilder optimieren
+            ivIcon.scaleType = ImageView.ScaleType.CENTER_CROP
+            container.setBackgroundColor(Color.parseColor("#0D47A1")) // Edles Klipper-Blau für Modellbenachrichtigungen
+            btnDismiss.text = context.getString(R.string.notify_btn_default)
+        } else {
+            // Fallback auf die klassischen System-Icons für Offline- oder Fehlermeldungen
+            when {
+                prefKey.contains("error") -> {
+                    container.setBackgroundColor(Color.parseColor("#B71C1C"))
+                    ivIcon.setImageResource(android.R.drawable.ic_delete)
+                    btnDismiss.text = context.getString(R.string.notify_btn_error)
+                }
+                prefKey.contains("offline") -> {
+                    container.setBackgroundColor(Color.parseColor("#F57C00"))
+                    ivIcon.setImageResource(android.R.drawable.ic_dialog_alert)
+                    btnDismiss.text = context.getString(R.string.notify_btn_offline)
+                }
+                prefKey.contains("100") -> {
+                    container.setBackgroundColor(Color.parseColor("#1B5E20"))
+                    ivIcon.setImageResource(android.R.drawable.ic_dialog_info)
+                    btnDismiss.text = context.getString(R.string.notify_btn_success)
+                }
+                else -> {
+                    container.setBackgroundColor(Color.parseColor("#0D47A1"))
+                    ivIcon.setImageResource(android.R.drawable.ic_dialog_info)
+                    btnDismiss.text = context.getString(R.string.notify_btn_default)
+                }
             }
         }
 
@@ -154,7 +160,6 @@ object NotificationManager {
         btnDismiss.setTextColor(Color.WHITE)
         btnDismiss.cornerRadius = 100
 
-        // TIMING-INVERSION: Sichert die Aktion, räumt die View ab und triggert erst dann die Rückkehr!
         btnDismiss.setOnClickListener {
             val callback = currentDismissCallback
             dismissActivePopup()
@@ -180,7 +185,7 @@ object NotificationManager {
         } finally {
             activePopupViewRef = null
             activeContainerRef = null
-            currentDismissCallback = null // Setzt den Schalter verlässlich zurück
+            currentDismissCallback = null
         }
     }
 

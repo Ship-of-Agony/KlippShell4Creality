@@ -260,4 +260,6 @@ Certains fabricants de téléviseurs bloquent par défaut le Picture-in-Picture 
     <string name="remote_no_printer_connected">Aucune imprimante connectée</string>
     <string name="remote_connected_printer">Imprimante connectée : %1$s</string>
 
+    <string name="menu_thumbnail_progress">Progression du modèle</string>
+
 </resources>
