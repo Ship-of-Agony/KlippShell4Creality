@@ -1,6 +1,8 @@
 package com.shipofagony.klippshell4creality
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager as AndroidNotificationManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -42,6 +44,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -68,12 +71,10 @@ class WebViewActivity : AppCompatActivity() {
     private lateinit var btnToggle: MaterialButton
     private lateinit var btnClose: MaterialButton
 
-    // Rechte Scroll-Leiste (Steuert die neuen Kapsel-Buttons)
     private lateinit var layoutScrollRight: LinearLayout
     private lateinit var btnScrollRightUp: MaterialButton
     private lateinit var btnScrollRightDown: MaterialButton
 
-    // Box-Modus Textviews (Original)
     private var tvOsdExtruder: TextView? = null
     private var tvOsdBed: TextView? = null
     private var tvOsdChamberSensor: TextView? = null
@@ -84,7 +85,6 @@ class WebViewActivity : AppCompatActivity() {
     private var tvOsdProgress: TextView? = null
     private var tvOsdTime: TextView? = null
 
-    // Banner-Modus Textviews (Neu)
     private var tvOsdExtruderBanner: TextView? = null
     private var tvOsdBedBanner: TextView? = null
     private var tvOsdChamberSensorBanner: TextView? = null
@@ -159,11 +159,15 @@ class WebViewActivity : AppCompatActivity() {
     private val PIP_ACTION_RESIZE = "com.shipofagony.klippshell4creality.PIP_ACTION_RESIZE"
     private var pipReceiver: BroadcastReceiver? = null
 
-    // NEU: Netzwerk-Empfänger-Infrastruktur für den Companion Remote-Modus
     private var remoteServerJob: Job? = null
     private var remoteServerSocket: java.net.ServerSocket? = null
 
     private lateinit var prefs: SharedPreferences
+    private var isActivityInForeground = false
+
+    private val channelErrorsId = "klippshell_errors_channel"
+    private val channelInfoId = "klippshell_info_channel"
+
     private val hostIp: String
         get() = Uri.parse(currentActiveUrl).host ?: ""
 
@@ -178,9 +182,83 @@ class WebViewActivity : AppCompatActivity() {
         try {
             val tId = resources.getIdentifier("notify_title_$key", "string", packageName).takeIf { it != 0 } ?: resources.getIdentifier("osd_position_title", "string", packageName)
             val mId = resources.getIdentifier("notify_msg_$key", "string", packageName).takeIf { it != 0 } ?: tId
+
+            val finalizedTitle = getString(tId)
+            val finalizedMessage = getString(mId)
+
             NotificationManager.showLivePopup(this, "popup_$key", tId, mId)
-        } catch (_: Exception) {}
+
+            val targetChannelId = if (key == "offline" || key == "error") channelErrorsId else channelInfoId
+            sendNativeSystemNotification(finalizedTitle, finalizedMessage, targetChannelId)
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Error triggering alerts", e)
+        }
         SoundManager.playLiveNotification("sound_$key")
+    }
+
+    private fun registerNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as AndroidNotificationManager
+            val currentLang = prefs.getString("app_lang", "de") ?: "de"
+
+            val errorChannelName = when(currentLang) {
+                "de" -> "Fehler & Statusmeldungen"
+                "es" -> "Errores y estado"
+                "fr" -> "Erreurs et statut"
+                "pl" -> "Błędy i status"
+                "cs" -> "Chyby a stav"
+                "ru" -> "Ошибки и статус"
+                else -> "Errors & Status Alerts"
+            }
+
+            val infoChannelName = when(currentLang) {
+                "de" -> "Informationen & Meilensteine"
+                "es" -> "Información y hitos"
+                "fr" -> "Informations et étapes"
+                "pl" -> "Informacje i kamienie milowe"
+                "cs" -> "Informace a milníky"
+                "ru" -> "Информация и этапы"
+                else -> "Information & Milestones"
+            }
+
+            val errorChannel = NotificationChannel(channelErrorsId, errorChannelName, AndroidNotificationManager.IMPORTANCE_HIGH).apply {
+                description = "Critical printer errors and connection loss alerts"
+                enableLights(true)
+                lightColor = Color.RED
+                enableVibration(true)
+            }
+
+            val infoChannel = NotificationChannel(channelInfoId, infoChannelName, AndroidNotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = "Printer progress updates and milestone completion alerts"
+                enableLights(true)
+                lightColor = Color.GREEN
+                enableVibration(true)
+            }
+
+            notificationManager.createNotificationChannel(errorChannel)
+            notificationManager.createNotificationChannel(infoChannel)
+        }
+    }
+
+    private fun sendNativeSystemNotification(title: String, message: String, targetChannelId: String) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as AndroidNotificationManager
+        registerNotificationChannels()
+
+        val intent = Intent(this, WebViewActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        val builder = NotificationCompat.Builder(this, targetChannelId)
+            .setSmallIcon(android.R.drawable.stat_sys_warning)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(if (targetChannelId == channelErrorsId) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(if (targetChannelId == channelErrorsId) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_STATUS)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
     }
 
     override fun attachBaseContext(newBase: Context) {
@@ -198,6 +276,7 @@ class WebViewActivity : AppCompatActivity() {
         setContentView(R.layout.activity_webview)
 
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+        registerNotificationChannels()
 
         val rootLayout = findViewById<ConstraintLayout>(R.id.rootLayout)
         webView = findViewById(R.id.webView)
@@ -267,10 +346,35 @@ class WebViewActivity : AppCompatActivity() {
 
         webView?.isFocusable = true
         webView?.setOnKeyListener { _, keyCode, event ->
-            if (event.action == MotionEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                btnToggle.requestFocus()
-                showButtons()
-                true
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        webView?.evaluateJavascript("window.scrollBy(0, 150);", null)
+                        showButtons()
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        if (webView?.scrollY == 0) {
+                            btnToggle.requestFocus()
+                            showButtons()
+                        } else {
+                            webView?.evaluateJavascript("window.scrollBy(0, -150);", null)
+                            showButtons()
+                        }
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_LEFT -> {
+                        webView?.evaluateJavascript("window.scrollBy(-150, 0);", null)
+                        showButtons()
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        webView?.evaluateJavascript("window.scrollBy(150, 0);", null)
+                        showButtons()
+                        true
+                    }
+                    else -> false
+                }
             } else {
                 false
             }
@@ -509,8 +613,9 @@ class WebViewActivity : AppCompatActivity() {
 
         btnToggle.setOnClickListener {
             val sPort = prefs.getInt("saved_dashboard_port_$hostIp", Uri.parse(currentActiveUrl).port.takeIf { it != -1 } ?: 7125)
-            if (isCameraMode) { loadStreamOrUrl("http://$hostIp:$sPort", 56.25f); showCenteredPillToast("Dashboard...") }
-            else { loadStreamOrUrl(if (lastCameraUrl.isNotEmpty()) lastCameraUrl else "http://$hostIp:$sPort/camera.html", prefs.getFloat("camera_ratio_$hostIp", 56.25f)); showCenteredPillToast("Livestream...") }
+            // KORREKTUR: Toasts sauber i18n-konform übersetzt geladen
+            if (isCameraMode) { loadStreamOrUrl("http://$hostIp:$sPort", 56.25f); showCenteredPillToast(getString(R.string.toast_loading_dashboard)) }
+            else { loadStreamOrUrl(if (lastCameraUrl.isNotEmpty()) lastCameraUrl else "http://$hostIp:$sPort/camera.html", prefs.getFloat("camera_ratio_$hostIp", 56.25f)); showCenteredPillToast(getString(R.string.toast_loading_livestream)) }
         }
 
         btnToggle.setOnLongClickListener {
@@ -542,7 +647,6 @@ class WebViewActivity : AppCompatActivity() {
         setPictureInPictureParams(PictureInPictureParams.Builder().setActions(actions).setAspectRatio(if (isPipWideRatio) Rational(16, 9) else Rational(1, 1)).build())
     }
 
-    // KORREKTUR/BYPASS: hasSystemFeature-Prüfung ausgebaut für reibungslose ADB-Erzwingung via AppOps
     private fun enterPipMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
@@ -637,6 +741,14 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        isActivityInForeground = true
+        if (isOsdEnabled && isCameraMode && (pollingJob == null || !pollingJob!!.isActive)) {
+            startOsdPolling()
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         if (!isInPictureInPictureMode) {
@@ -644,6 +756,16 @@ class WebViewActivity : AppCompatActivity() {
             resetInactivityTimer()
             btnToggle.post { btnToggle.requestFocus() }
         }
+    }
+
+    override fun onPause() {
+        screensaverHandler.removeCallbacks(startScreensaverRunnable)
+        super.onPause()
+    }
+
+    override fun onStop() {
+        isActivityInForeground = false
+        super.onStop()
     }
 
     override fun onUserInteraction() {
@@ -720,6 +842,17 @@ class WebViewActivity : AppCompatActivity() {
         } catch (e: Exception) { cachedMoonrakerUrl = null }
     }
 
+    private suspend fun fetchMoonrakerData() {
+        val targetUrl = cachedMoonrakerUrl ?: return
+        var conn: HttpURLConnection? = null
+        val responseText = try {
+            conn = targetUrl.openConnection() as HttpURLConnection
+            conn.connectTimeout = 2000; conn.readTimeout = 2000
+            if (conn.responseCode == 200) conn.inputStream.bufferedReader().use { it.readText() } else ""
+        } catch (_: Exception) { "" } finally { conn?.disconnect() }
+        withContext(Dispatchers.Main) { if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) handleMoonrakerResponse(responseText) }
+    }
+
     private fun startOsdPolling() {
         val hostIp = Uri.parse(currentActiveUrl).host ?: return
         updateMoonrakerUrl(hostIp)
@@ -729,7 +862,11 @@ class WebViewActivity : AppCompatActivity() {
         }
         pollingJob?.cancel()
         pollingJob = lifecycleScope.launch(Dispatchers.IO) {
-            while (isActive) { fetchMoonrakerData(); delay(3000) }
+            while (isActive) {
+                fetchMoonrakerData()
+                val currentDelay = if (isActivityInForeground || isInPictureInPictureMode) 3000L else 30000L
+                delay(currentDelay)
+            }
         }
     }
 
@@ -764,10 +901,15 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun showCenteredPillToast(message: String) {
         val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+        val backgroundColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
+        val textColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
+
         val pillView = TextView(this).apply {
-            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(if (isNight) Color.WHITE else Color.BLACK)
-            background = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 100f; setColor(Color.parseColor(if (isNight) "#252B2E" else "#FFFFFF")); setStroke(4, Color.parseColor(if (isNight) "#FFFFFF" else "#BDBDBD")) }
+            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(textColor)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE; cornerRadius = 100f; setColor(backgroundColor); setStroke(4, textColor)
+            }
             setPadding(50, 35, 50, 35)
         }
         val container = FrameLayout(this).apply { addView(pillView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; setMargins(50, 0, 50, 240) }) }
@@ -786,16 +928,26 @@ class WebViewActivity : AppCompatActivity() {
     private fun hideButtons() { layoutWebButtons.animate().alpha(0f).setDuration(500).start() }
 
     private fun applySeichterOsdBackground() {
+        // KORREKTUR: Theme-Zuweisung statt hartkodiertem Farb-Hardcoding
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val bg = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 24f; setColor(Color.parseColor(if (isNight) "#B3212529" else "#73FAFAFA")); setStroke(3, Color.parseColor(if (isNight) "#40FFFFFF" else "#33000000")) }
-        layoutOsd.background = bg; layoutOsdBanner.background = bg
+        val mainBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
+        val borderStrokeColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
+
+        val bg = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 24f
+            setColor(mainBgColor)
+            setStroke(3, borderStrokeColor)
+        }
+        layoutOsd.background = bg
+        layoutOsdBanner.background = bg
     }
 
     private fun resetPrintTriggers() {
         hasTrigFirstLayer = false; hasTrig50 = false; hasTrig75 = false; hasTrig90 = false; hasTrig100 = false; hasTrigOffline = false
         lastPrintState = ""; lastExtruderTemp = -1.0; lastExtruderTarget = -1.0; lastBedTemp = -1.0; lastBedTarget = -1.0
         lastChamberTemp = -1.0; lastChamberHeaterTemp = -1.0; lastChamberHeaterTarget = -1.0; lastFanModelSpeed = -1.0; lastFanAuxSpeed = -1.0; lastFanChamberSpeed = -1.0
-        lastProgressPercent = -1.0; lastDurationSeconds = -1
+        lastProgressPercent = -1.0; heartbeatTick = 0
     }
 
     private fun sendLightCommand(turnOn: Boolean) {
@@ -872,20 +1024,9 @@ class WebViewActivity : AppCompatActivity() {
         webView?.loadUrl(url)
     }
 
-    private suspend fun fetchMoonrakerData() {
-        val targetUrl = cachedMoonrakerUrl ?: return
-        var conn: HttpURLConnection? = null
-        val responseText = try {
-            conn = targetUrl.openConnection() as HttpURLConnection
-            conn.connectTimeout = 2000; conn.readTimeout = 2000
-            if (conn.responseCode == 200) conn.inputStream.bufferedReader().use { it.readText() } else ""
-        } catch (_: Exception) { "" } finally { conn?.disconnect() }
-        withContext(Dispatchers.Main) { if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) handleMoonrakerResponse(responseText) }
-    }
-
     private fun handleMoonrakerResponse(responseText: String) {
         if (responseText.isEmpty()) {
-            if (!isInPictureInPictureMode) {
+            if (!isInPictureInPictureMode && isActivityInForeground) {
                 if (tvOsdProgress?.text != getString(R.string.osd_printer_offline)) {
                     tvOsdProgress?.text = getString(R.string.osd_printer_offline); tvOsdProgress?.setTextColor(Color.parseColor("#E53935")); tvOsdTime?.text = ""
                     tvOsdProgressBanner?.text = getString(R.string.osd_printer_offline); tvOsdProgressBanner?.setTextColor(Color.parseColor("#E53935")); tvOsdTimeBanner?.text = ""
@@ -940,7 +1081,7 @@ class WebViewActivity : AppCompatActivity() {
                 if (!hasTrig100 && (currentState == "complete" || progress >= 0.999)) { hasTrig100 = true; triggerPopup("100", "100%", "100%") }
             }
 
-            if (!isInPictureInPictureMode) {
+            if (!isInPictureInPictureMode && isActivityInForeground) {
                 val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
                 val savedPos = prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center"
                 val divider = if (osdStyle == "banner" && savedPos != "left" && savedPos != "right") "  •  " else ""
@@ -1131,7 +1272,6 @@ class WebViewActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    // GARANTIEERHALT: Volle, unberührte Integration des Background-Empfängers für die Smartphone-Remotesteuerung
     private fun startRemoteServerSocket() {
         val role = prefs.getString("app_device_role", "auto") ?: "auto"
         val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as? android.app.UiModeManager
@@ -1142,7 +1282,11 @@ class WebViewActivity : AppCompatActivity() {
 
         remoteServerJob = lifecycleScope.launch(Dispatchers.IO) {
             try {
-                remoteServerSocket = java.net.ServerSocket(9999)
+                val server = java.net.ServerSocket()
+                server.reuseAddress = true
+                server.bind(java.net.InetSocketAddress(9999))
+                remoteServerSocket = server
+
                 while (isActive) {
                     val socket = remoteServerSocket?.accept() ?: break
                     launch(Dispatchers.IO) {
@@ -1210,23 +1354,97 @@ class WebViewActivity : AppCompatActivity() {
             showButtons()
 
             when (command) {
-                "DPAD_UP" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_UP)
-                "DPAD_DOWN" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN)
-                "DPAD_LEFT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT)
-                "DPAD_RIGHT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT)
-                "DPAD_OK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER)
+                "DPAD_UP" -> { webView?.requestFocus(); webView?.evaluateJavascript("window.scrollBy(0, -120);", null) }
+                "DPAD_DOWN" -> { webView?.requestFocus(); webView?.evaluateJavascript("window.scrollBy(0, 120);", null) }
+                "DPAD_LEFT" -> { webView?.requestFocus(); webView?.evaluateJavascript("window.scrollBy(-120, 0);", null) }
+                "DPAD_RIGHT" -> { webView?.requestFocus(); webView?.evaluateJavascript("window.scrollBy(120, 0);", null) }
+                "DPAD_OK" -> { webView?.requestFocus(); sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER) }
                 "BACK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_BACK)
 
                 "ZOOM_IN" -> webView?.zoomIn()
                 "ZOOM_OUT" -> webView?.zoomOut()
-                "PIP" -> enterPipMode()
-                "LAYOUT" -> {
-                    val currentStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
-                    val nextStyle = if (currentStyle == "box") "banner" else "box"
-                    prefs.edit().putString("osd_style_$hostIp", nextStyle).apply()
+
+                "PIP_TOGGLE" -> {
+                    if (isInPictureInPictureMode) {
+                        val maxIntent = Intent(this@WebViewActivity, WebViewActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                        }
+                        startActivity(maxIntent)
+                    } else {
+                        enterPipMode()
+                    }
+                }
+
+                "TOGGLE_VIDEO" -> {
+                    btnToggle.performClick()
+                }
+
+                "TOGGLE_OSD" -> {
+                    isOsdEnabled = !isOsdEnabled
+                    prefs.edit().putBoolean("osd_enabled_$hostIp", isOsdEnabled).apply()
+                    if (isOsdEnabled) {
+                        val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+                        if (osdStyle == "banner") {
+                            layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.VISIBLE
+                        } else {
+                            layoutOsd.visibility = View.VISIBLE; layoutOsdBanner.visibility = View.GONE
+                        }
+                        startOsdPolling()
+                    } else {
+                        layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE; stopOsdPolling()
+                    }
+                }
+
+                "STYLE_BOX" -> {
+                    prefs.edit().putString("osd_style_$hostIp", "box").apply()
                     applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
                 }
-                "STREAM" -> btnToggle.performClick()
+                "STYLE_BANNER" -> {
+                    prefs.edit().putString("osd_style_$hostIp", "banner").apply()
+                    applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
+                }
+
+                "SEC_UP" -> {
+                    val style = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+                    val targetPos = if (style == "banner") "top" else "top_center"
+                    prefs.edit().putString("osd_position_$hostIp", targetPos).apply()
+                    applyOsdPositionAndStyle(targetPos)
+                }
+                "SEC_DOWN" -> {
+                    val style = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+                    val targetPos = if (style == "banner") "bottom" else "bottom_center"
+                    prefs.edit().putString("osd_position_$hostIp", targetPos).apply()
+                    applyOsdPositionAndStyle(targetPos)
+                }
+                "SEC_LEFT" -> {
+                    val style = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+                    val targetPos = if (style == "banner") "left" else "top_left"
+                    prefs.edit().putString("osd_position_$hostIp", targetPos).apply()
+                    applyOsdPositionAndStyle(targetPos)
+                }
+                "SEC_RIGHT" -> {
+                    val style = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+                    val targetPos = if (style == "banner") "right" else "top_right"
+                    prefs.edit().putString("osd_position_$hostIp", targetPos).apply()
+                    applyOsdPositionAndStyle(targetPos)
+                }
+
+                "CAMERA_CYCLE" -> {
+                    val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIp", 7125)
+                    val currentMode = when {
+                        currentActiveUrl.contains("action=stream") && currentActiveUrl.contains("8080") -> 1
+                        currentActiveUrl.contains("webcam/?action=stream") -> 2
+                        else -> 0
+                    }
+                    val nextMode = (currentMode + 1) % 3
+                    val nextUrl = when (nextMode) {
+                        1 -> "http://$hostIp:8080/?action=stream"
+                        2 -> "http://$hostIp:$savedDashboardPort/webcam/?action=stream"
+                        else -> "http://$hostIp:$savedDashboardPort/camera.html"
+                    }
+                    loadStreamOrUrl(nextUrl, 56.25f)
+                }
+
                 "LIGHT" -> {
                     isLightOn = !isLightOn
                     sendLightCommand(isLightOn)
@@ -1252,6 +1470,19 @@ class WebViewActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         stopRemoteServerSocket()
+        stopOsdPolling()
+        screensaverHandler.removeCallbacks(startScreensaverRunnable)
+        uiHandler.removeCallbacks(hideUiRunnable)
+        try {
+            pipReceiver?.let { unregisterReceiver(it) }
+        } catch (_: Exception) {}
+        pipReceiver = null
+        webView?.let {
+            (it.parent as? ViewGroup)?.removeView(it)
+            it.removeAllViews()
+            it.destroy()
+        }
+        webView = null
         super.onDestroy()
     }
 }

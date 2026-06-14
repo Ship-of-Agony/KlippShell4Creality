@@ -1,6 +1,8 @@
 package com.shipofagony.klippshell4creality
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager as AndroidNotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -8,6 +10,7 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -22,6 +25,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -56,9 +60,6 @@ import java.util.concurrent.TimeUnit
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
 class MainActivity : AppCompatActivity() {
 
-    // =======================================================
-    // KUGELSICHERE HILFSFUNKTION (Ganz oben, damit sie nie fehlt)
-    // =======================================================
     private fun toPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
     }
@@ -100,6 +101,15 @@ class MainActivity : AppCompatActivity() {
         "Sonic Pad (Ender 5 S1)" to "sonic_ender_5s1", "Spark Xi7" to "sparkxi7"
     )
 
+    private val requestNotificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (!isGranted) {
+            showCenteredPillToast(getString(R.string.autostart_disabled))
+        }
+        proceedWithAppInitialization()
+    }
+
     private fun isAndroidTV(): Boolean {
         val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as android.app.UiModeManager
         return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
@@ -110,6 +120,51 @@ class MainActivity : AppCompatActivity() {
         val resourceName = "printer_$mappedName"
         val resId = resources.getIdentifier(resourceName, "drawable", packageName)
         return if (resId != 0) resId else R.mipmap.ic_launcher
+    }
+
+    private fun registerNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as AndroidNotificationManager
+            val currentLang = prefs.getString("app_lang", "system") ?: "system"
+            val lang = if (currentLang == "system") Locale.getDefault().language else currentLang
+
+            val errorChannelName = when(lang) {
+                "de" -> "Fehler & Statusmeldungen"
+                "es" -> "Errores y estado"
+                "fr" -> "Erreurs et statut"
+                "pl" -> "Błędy i status"
+                "cs" -> "Chyby a stav"
+                "ru" -> "Ошибки и статус"
+                else -> "Errors & Status Alerts"
+            }
+
+            val infoChannelName = when(lang) {
+                "de" -> "Informationen & Meilensteine"
+                "es" -> "Información y hitos"
+                "fr" -> "Informations et étapes"
+                "pl" -> "Informacje i kamienie milowe"
+                "cs" -> "Informace a milníky"
+                "ru" -> "Информация и этапы"
+                else -> "Information & Milestones"
+            }
+
+            val errorChannel = NotificationChannel("klippshell_errors_channel", errorChannelName, AndroidNotificationManager.IMPORTANCE_HIGH).apply {
+                description = "Critical printer errors and connection loss alerts"
+                enableLights(true)
+                lightColor = Color.RED
+                enableVibration(true)
+            }
+
+            val infoChannel = NotificationChannel("klippshell_info_channel", infoChannelName, AndroidNotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = "Printer progress updates and milestone completion alerts"
+                enableLights(true)
+                lightColor = Color.GREEN
+                enableVibration(true)
+            }
+
+            notificationManager.createNotificationChannel(errorChannel)
+            notificationManager.createNotificationChannel(infoChannel)
+        }
     }
 
     override fun attachBaseContext(newBase: Context) {
@@ -141,6 +196,8 @@ class MainActivity : AppCompatActivity() {
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedTheme)
+
+        registerNotificationChannels()
 
         if (savedInstanceState != null) {
             shouldRecreateOnReturn = savedInstanceState.getBoolean("recreate_flag", false)
@@ -204,7 +261,12 @@ class MainActivity : AppCompatActivity() {
                     .setDuration(800)
                     .withEndAction {
                         startupVeil.visibility = View.GONE
-                        if (printerArray.length() == 0) actvMainPrinterModel.requestFocus() else findViewById<View>(R.id.btnSettings)?.requestFocus()
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            requestNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            proceedWithAppInitialization()
+                        }
                     }
                     .start()
             }
@@ -250,11 +312,11 @@ class MainActivity : AppCompatActivity() {
         headerAddPrinter.setOnClickListener {
             val isVisible = containerAddPrinterForm.visibility == View.VISIBLE
             containerAddPrinterForm.visibility = if (isVisible) View.GONE else View.VISIBLE
-            tvAddPrinterTitle.text = getString(if (isVisible) R.string.add_printer_down else R.string.add_printer_up)
+            tvAddPrinterTitle.text = getString(if (isVisible) R.string.add_printer_up else R.string.add_printer_down)
             if (!isVisible) actvMainPrinterModel.requestFocus()
         }
 
-        findViewById<Button>(R.id.btnSearchNetwork)?.setOnClickListener { searchNetworkForPrinters() }
+        findViewById<View>(R.id.btnSearchNetwork)?.setOnClickListener { searchNetworkForPrinters() }
 
         val btnExit = findViewById<Button>(R.id.btnExitApp)
         btnExit?.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
@@ -271,19 +333,12 @@ class MainActivity : AppCompatActivity() {
             when (params) {
                 is LinearLayout.LayoutParams -> params.gravity = Gravity.CENTER_HORIZONTAL
                 is FrameLayout.LayoutParams -> params.gravity = Gravity.CENTER_HORIZONTAL
-                else -> {
-                    if (params.javaClass.name.contains("ConstraintLayout")) {
-                        try {
-                            val clazz = params.javaClass
-                            clazz.getField("matchConstraintDefaultWidth").set(params, 0)
-                            clazz.getField("startToStart").set(params, 0)
-                            clazz.getField("endToEnd").set(params, 0)
-                            clazz.getField("leftToLeft").set(params, 0)
-                            clazz.getField("rightToRight").set(params, 0)
-                        } catch (e: Exception) {
-                            Log.e("KlippShell", "Fehler beim Zentrieren des Beenden-Buttons", e)
-                        }
-                    }
+                is androidx.constraintlayout.widget.ConstraintLayout.LayoutParams -> {
+                    params.matchConstraintDefaultWidth = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONSTRAINT_SPREAD
+                    params.startToStart = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+                    params.endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+                    params.leftToLeft = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+                    params.rightToRight = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
                 }
             }
             btnExit.layoutParams = params
@@ -363,6 +418,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun proceedWithAppInitialization() {
+        val printerArray = try { JSONArray(prefs.getString("printers_list", "[]")) } catch (e: Exception) { JSONArray() }
+        if (printerArray.length() == 0) {
+            actvMainPrinterModel.requestFocus()
+        } else {
+            findViewById<View>(R.id.btnSettings)?.requestFocus()
+        }
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("recreate_flag", shouldRecreateOnReturn)
         outState.putBoolean("auto_start_executed", autoStartExecuted)
@@ -415,7 +479,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val msg = TextView(this).apply {
-            text = try { getString(resources.getIdentifier("welcome_tile_msg", "string", packageName)) } catch(e: Exception) { "Schön, dass du da bist! Damit du das Beste aus deinem Drucker-Monitoring herausholen kannst, ist hier eine kurze Übersicht zu den Kernfunktionen von KlippShell und den Besonderheiten einiger TV-Geräte. KlippShell wurde so konzipiert, dass es auf dem Smartphone, dem Tablet oder bedienerfreundlich auf dem Android TV läuft.\n\n1️⃣ ERSTE SCHRITTE\nFüge unten deinen ersten 3D-Drucker hinzu. Aktuell sind fast alle auf dem Markt befindlichen Modelle eingepflegt. Falls du einen anderen Drucker auf Klipper-Basis nutzen möchtest, kannst du \"Custom Model\" wählen.\nHinweis: Je nach Druckermodell und Netzwerk-Konfiguration musst du eventuell deine Ports und Kamera-Zugänge manuell anpassen, um ein einwandfreies Monitoring zu garantieren. Der automatische Netzwerkscan sollte jedoch die meisten Konfigurationen selbstständig abdecken.\n⚠️ Falls du kein Livebild des Druckers bekommst, schau bitte unter https://github.com/DnG-Crafts/K2-Camera vorbei und installiere den FIX. Dies erfordert leider Root-Rechte auf dem Drucker!\n💡 Tipp: Ein langer Tastendruck im Hauptmenü auf einen deiner gespeicherten Drucker öffnet die Optionen, um die Standardansicht zwischen Live-Stream Monitoring und Klipper OS zu ändern oder diesen Drucker zu löschen.\n\n2️⃣ SMARTE LIVE-STEUERUNG\nIm Videostream-Modus steuerst du alles über drei untere Haupttasten:\n• Linke Taste: Öffnet das Menü für On-Screen-Display (OSD), Video-Zoom, PiP, Gehäuse-Beleuchtung, Bildschirmschoner und Bildformat.\n• Mittlere Taste: Wechselt nahtlos zwischen Klipper OS (Dashboard) und dem reinen Kamera-Livestream.\n• Rechte Taste: Bringt dich jederzeit sicher zum Hauptmenü zurück.\n\n3️⃣ DIREKTSTART-MODUS\nWenn du einen Drucker bereits erfolgreich konfiguriert hast, kannst du in den Einstellungen den Direktstart-Modus wählen. Dieser erlaubt dir, direkt beim App-Start in der Live-Stream-Ansicht zu beginnen.\n\n4️⃣ DER COMPANION-MODUS\nMit KlippShell kannst du dein Gerät als TV-Dashboard (Master) oder als Smartphone-Fernbedienung (Slave) nutzen. Aktiviere den Companion-Modus in den Einstellungen, um deinen Fernseher komfortabel von deinem Smartphone aus zu steuern.\n\n5️⃣ PICTURE-IN-PICTURE (PiP)\nObwohl KlippShell PiP vollständig unterstützt, weigern sich einige TV-Hersteller, dieses Feature nativ anzubieten. Keine Sorge: In den Einstellungen findest du eine erweiterte Funktion mit einer präzisen Anleitung, wie du PiP auf deinem TV-Gerät ganz einfach via ADB-Befehl freischalten kannst!\n\n6️⃣ TV \"NOW LIVE\" FUNKTION\nWenn du die \"Now Live\" TV-Funktion verwenden möchtest, kann es durch Hersteller-Restriktionen vorkommen, dass diese nicht nativ auf deinem TV-Dashboard angezeigt werden. In diesem Fall empfehlen wir, einen alternativen TV-Launcher wie den \"Projectivity Launcher\" auf dem TV-Gerät zu nutzen, um in den vollen Genuss dieser Funktion zu kommen." }
+            text = try { getString(resources.getIdentifier("welcome_tile_msg", "string", packageName)) } catch(e: Exception) { "Schön, dass du da bist!..." }
             textSize = 15f
             setTextColor(textColor)
             alpha = 0.85f
@@ -571,13 +635,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun showCenteredPillToast(message: String) {
         val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
-        val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+        // REPARATUR: Synchronisierte Theme-Farben über ContextCompat statt Farb-Hardcoding
+        val backgroundColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
+        val textColorResource = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
+
         val pillView = TextView(this).apply {
-            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(if (isNightMode) Color.WHITE else Color.BLACK)
+            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(textColorResource)
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE; cornerRadius = 100f
-                setColor(if (isNightMode) "#252B2E".toColorInt() else Color.WHITE)
-                setStroke(4, if (isNightMode) Color.WHITE else "#BDBDBD".toColorInt())
+                setColor(backgroundColor)
+                setStroke(4, textColorResource)
             }
             setPadding(toPx(50), toPx(35), toPx(50), toPx(35))
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
@@ -623,7 +691,9 @@ class MainActivity : AppCompatActivity() {
                         semaphore.withPermit {
                             var socket: Socket? = null
                             try {
-                                socket = Socket(); socket.connect(InetSocketAddress("$ipPrefix.$i", port), 350)
+                                socket = Socket()
+                                // REPARATUR: Auf sichere 750ms angehoben gegen Paketverluste auf TV-WLAN Antennen
+                                socket.connect(InetSocketAddress("$ipPrefix.$i", port), 750)
                                 foundPrinters.add("$ipPrefix.$i:$port")
                             } catch (_: Exception) {} finally { try { socket?.close() } catch (_: Exception) {} }
                         }
@@ -775,7 +845,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun downloadAndInstallApk(apkUrl: String) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
-        val dialog = AlertDialog.Builder(this).setView(dialogView).setCancelable(false).create()
+        val dialog = AlertDialog.Builder(this).setCancelable(false).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = "Download läuft..."
 
@@ -917,9 +987,14 @@ class MainActivity : AppCompatActivity() {
                 if (v is MaterialButton) { v.strokeWidth = if (hasFocus) 8 else 0; v.strokeColor = if (hasFocus) ColorStateList.valueOf(if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null }
             }
             setOnClickListener {
-                prefs.edit().putBoolean("has_shown_permissions", true).apply(); dialog.dismiss()
-                if (try { JSONArray(prefs.getString("printers_list", "[]")).length() } catch (_: Exception) { 0 } == 0) actvMainPrinterModel.requestFocus() else findViewById<View>(R.id.btnSettings)?.requestFocus()
-                if (try { JSONArray(prefs.getString("printers_list", "[]")).length() } catch (_: Exception) { 0 } > 0) startTvBackgroundWorker()
+                prefs.edit().putBoolean("has_shown_permissions", true).apply()
+                dialog.dismiss()
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    requestNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                } else {
+                    proceedWithAppInitialization()
+                }
             }
         }
 
