@@ -1,3 +1,14 @@
+v0.9.150626-rc
+
+Fine-tuned Three.js camera view and centering for optimal Benchy alignment
+• Updated third-party open-source credits with 3D model and conversion tool attributions
+• Added stylized blue FAQ button to smartphone and tablet settings panels
+• Implemented scrollable FAQ dialog reading dynamically from native text assets
+• Resolved compiler layout lifecycle crashes and brace syntax mismatches in SettingsActivity
+• Replaced hardcoded remote controller text with a dynamic multi-state connection footer
+• Implemented local printer profile fallback for offline remote control states
+• Multi-language string assets localized for international connection statuses (EN, CS, PL, RU, ES, FR, DE)
+
 v0.8.9.140626-rc
 
 • Discrete Multi-Channel Notifications & Proactive OS Registration: Implemented two separate, user-configurable notification channels (NotificationChannel) to comply with modern Android TV guidelines. Segregated alerts into high-priority heads-up banners for critical printer events ("Fehler & Statusmeldungen") and standard background notifications ("Informationen & Meilensteine"). Channels are now registered proactively during activity startup (onCreate), making them instantly visible and controllable within the Android system settings without requiring a prior event. The POST_NOTIFICATIONS runtime permission was anchored in the manifest and seamlessly coupled with the onboarding privacy disclosure dialog.
