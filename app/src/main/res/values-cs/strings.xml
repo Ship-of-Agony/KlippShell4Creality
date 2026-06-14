@@ -54,10 +54,12 @@
     <string name="toast_autostart_on">Výchozí start aktivován</string>
     <string name="toast_autostart_off">Auschozí start deaktivován</string>
 
-    <string name="settings_role_title">Režim Companion (Master-Slave)</string>
+    <string name="settings_role_title">Režim Companion</string>
     <string name="settings_role_auto">Automatické rozpoznání</string>
     <string name="settings_role_master">TV / Monitor (Master)</string>
     <string name="settings_role_slave">Dálkové ovládání (Slave)</string>
+    <string name="companion_toggle_on">Režim Companion: ZAPNUTO</string>
+    <string name="companion_toggle_off">Režim Companion: VYPNUTO</string>
 
     <string name="reset_app">Obnovit aplikaci</string>
     <string name="reset_app_title">Smazat všechna data?</string>

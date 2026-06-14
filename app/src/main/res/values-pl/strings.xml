@@ -54,10 +54,12 @@
     <string name="toast_autostart_on">Uruchamianie bezpośrednie włączone</string>
     <string name="toast_autostart_off">Uruchamianie bezpośrednie wyłączone</string>
 
-    <string name="settings_role_title">Tryb Companion (Master-Slave)</string>
+    <string name="settings_role_title">Tryb Companion</string>
     <string name="settings_role_auto">Automatyczne wykrywanie</string>
     <string name="settings_role_master">TV / Monitor (Master)</string>
     <string name="settings_role_slave">Pilot zdalnego sterowania (Slave)</string>
+    <string name="companion_toggle_on">Tryb Companion: WŁĄCZONY</string>
+    <string name="companion_toggle_off">Tryb Companion: WYŁĄCZONY</string>
 
     <string name="reset_app">Resetuj aplikację</string>
     <string name="reset_app_title">Usunąć wszystkie dane?</string>

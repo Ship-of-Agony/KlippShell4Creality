@@ -74,6 +74,15 @@ class SettingsActivity : AppCompatActivity() {
     private var advancedTvButton: MaterialButton? = null
     private var advancedTabletButton: MaterialButton? = null
 
+    private var btnCompanionToggleProgrammatic: MaterialButton? = null
+
+    // KUGELSICHERE ARCHITEKTUR: Klassenweite dynamische Randfarbe verhindert Scope-Fehler dauerhaft
+    private val targetBorderColor: Int
+        get() {
+            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            return if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
+        }
+
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedLang = prefs.getString("app_lang", "system") ?: "system"
@@ -100,6 +109,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
 
         val overrideMode = prefs.getInt("layout_mode_override", 0)
@@ -109,7 +119,6 @@ class SettingsActivity : AppCompatActivity() {
             else -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
 
-        super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
         isDualScreenMode = when (overrideMode) {
@@ -135,9 +144,11 @@ class SettingsActivity : AppCompatActivity() {
         containerLanguageButtons = findViewById(R.id.containerLanguageButtons)
 
         tvSettingsTitle = findViewById(R.id.tvSettingsTitle)
+        tvSettingsTitle.gravity = Gravity.CENTER
+        tvSettingsTitle.layoutParams?.width = ViewGroup.LayoutParams.MATCH_PARENT
+
         tvChangelogContent = findViewById(R.id.tvChangelogContent)
         scrollChangelogBox = findViewById(R.id.scrollChangelogBox)
-
         tvLicensesLink = findViewById(R.id.tvLicensesLink)
 
         tvAboutContactLink = findViewById(R.id.tvAboutContactLink)
@@ -168,6 +179,39 @@ class SettingsActivity : AppCompatActivity() {
 
         val btnCheckUpdates = findViewById<MaterialButton>(R.id.btnCheckUpdates)
         val ivAboutStudioLogo = findViewById<ImageView>(R.id.ivAboutStudioLogo)
+
+        val pVertPill = if (isDualScreenMode) toPx(30) else toPx(14)
+
+        val toggleBtn = MaterialButton(this).apply {
+            isAllCaps = false
+            textSize = 16f
+            isFocusable = true
+            shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+            setPadding(0, pVertPill, 0, pVertPill)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(0, toPx(8), 0, toPx(24))
+            }
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
+                if (v is MaterialButton) {
+                    v.strokeWidth = if (hasFocus) 8 else 0
+                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
+                }
+            }
+            setOnClickListener {
+                val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
+                if (currentRole == "disabled") {
+                    prefs.edit().putString("app_device_role", "auto").apply()
+                    showCenteredPillToast(getString(R.string.companion_toggle_on) + " ✓")
+                } else {
+                    prefs.edit().putString("app_device_role", "disabled").apply()
+                    showCenteredPillToast(getString(R.string.companion_toggle_off) + " ✓")
+                }
+                refreshCompanionToggleAndPills(this, btnPillRoleAuto, btnPillRoleMaster, btnPillRoleSlave)
+            }
+        }
+        btnCompanionToggleProgrammatic = toggleBtn
+        panelRole.addView(toggleBtn, 0)
 
         btnChangeLanguage.requestFocus()
 
@@ -228,16 +272,9 @@ class SettingsActivity : AppCompatActivity() {
 
         btnRoleSelect.setOnClickListener {
             showSubPanel(panelRole, 7, getString(R.string.settings_role_title))
-
-            val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
-            updateSubpagePillColor(btnPillRoleAuto, currentRole == "auto")
-            updateSubpagePillColor(btnPillRoleMaster, currentRole == "master")
-            updateSubpagePillColor(btnPillRoleSlave, currentRole == "slave")
-
-            when (currentRole) {
-                "auto" -> btnPillRoleAuto.requestFocus()
-                "master" -> btnPillRoleMaster.requestFocus()
-                "slave" -> btnPillRoleSlave.requestFocus()
+            btnCompanionToggleProgrammatic?.let { toggleBtn ->
+                refreshCompanionToggleAndPills(toggleBtn, btnPillRoleAuto, btnPillRoleMaster, btnPillRoleSlave)
+                toggleBtn.requestFocus()
             }
         }
 
@@ -248,19 +285,14 @@ class SettingsActivity : AppCompatActivity() {
                 else -> "auto"
             }
             prefs.edit().putString("app_device_role", targetRole).apply()
-            updateSubpagePillColor(btnPillRoleAuto, targetRole == "auto")
-            updateSubpagePillColor(btnPillRoleMaster, targetRole == "master")
-            updateSubpagePillColor(btnPillRoleSlave, targetRole == "slave")
+            btnCompanionToggleProgrammatic?.let { refreshCompanionToggleAndPills(it, btnPillRoleAuto, btnPillRoleMaster, btnPillRoleSlave) }
             showCenteredPillToast(getString(R.string.settings_role_title) + " ✓")
         }
         btnPillRoleAuto.setOnClickListener(roleClick)
         btnPillRoleMaster.setOnClickListener(roleClick)
         btnPillRoleSlave.setOnClickListener(roleClick)
 
-        btnPipAdbSelect.setOnClickListener {
-            showPipAdbGuideDialog()
-        }
-
+        btnPipAdbSelect.setOnClickListener { showPipAdbGuideDialog() }
         btnNotificationsMenu.setOnClickListener {
             showSubPanel(panelNotifySelect, 1, getString(R.string.settings_notify_title))
             btnSubMenuSounds.requestFocus()
@@ -277,9 +309,7 @@ class SettingsActivity : AppCompatActivity() {
 
         btnResetApp.setOnClickListener {
             val options = arrayOf(getString(R.string.reset_app_yes), getString(R.string.reset_app_cancel))
-            val resetColors = arrayOf("#E53935", null)
-
-            showTvDialog(getString(R.string.reset_app_title), options, resetColors) { index ->
+            showTvDialog(getString(R.string.reset_app_title), options, arrayOf("#E53935", null)) { index ->
                 if (index == 0) {
                     prefs.edit().clear().apply()
                     removeAdvancedMenuViews()
@@ -299,10 +329,8 @@ class SettingsActivity : AppCompatActivity() {
             if (easterEggClickCount >= 7) {
                 easterEggClickCount = 0
                 ivAboutStudioLogo.animate().rotationBy(360f).setDuration(800).start()
-
                 prefs.edit().putBoolean("is_advanced_mode", true).apply()
                 checkAndRenderAdvancedMenu()
-
                 showTvDialog(getString(R.string.studio_name), arrayOf(getString(R.string.easter_egg_success)), arrayOf("#4CAF50")) {}
             }
         }
@@ -312,35 +340,27 @@ class SettingsActivity : AppCompatActivity() {
 
         tvLicensesLink.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
             v.animate().scaleX(if (hasFocus) 1.08f else 1.0f).scaleY(if (hasFocus) 1.08f else 1.0f).setDuration(150).start()
-            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-            (v as TextView).setTextColor(if (hasFocus) (if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")) else Color.parseColor("#2196F3"))
+            (v as TextView).setTextColor(if (hasFocus) targetBorderColor else Color.parseColor("#2196F3"))
         }
 
         tvAboutContactLink.setOnClickListener {
-            // E-Mail Text wurde in "Kontakt" umbenannt
             val contactOptions = arrayOf("GitHub Repository", getString(R.string.about_contact_option))
             showTvDialog(getString(R.string.studio_name), contactOptions, arrayOf("#4CAF50", "#2196F3")) { choice ->
                 if (choice == 0) {
-                    val urlIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Ship-of-Agony/KlippShell4Creality"))
-                    startActivity(urlIntent)
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Ship-of-Agony/KlippShell4Creality")))
                 } else {
                     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                         data = Uri.parse("mailto:")
                         putExtra(Intent.EXTRA_EMAIL, arrayOf("klippshell@gmail.com"))
                         putExtra(Intent.EXTRA_SUBJECT, "KlippShell Support Request")
                     }
-                    try {
-                        startActivity(Intent.createChooser(emailIntent, "Send Mail..."))
-                    } catch (e: Exception) {
-                        showCenteredPillToast(getString(R.string.toast_email_error))
-                    }
+                    try { startActivity(Intent.createChooser(emailIntent, "Send Mail...")) } catch (e: Exception) { showCenteredPillToast(getString(R.string.toast_email_error)) }
                 }
             }
         }
         tvAboutContactLink.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
             v.animate().scaleX(if (hasFocus) 1.08f else 1.0f).scaleY(if (hasFocus) 1.08f else 1.0f).setDuration(150).start()
-            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-            (v as TextView).setTextColor(if (hasFocus) (if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")) else Color.parseColor("#2196F3"))
+            (v as TextView).setTextColor(if (hasFocus) targetBorderColor else Color.parseColor("#2196F3"))
         }
 
         setupSaverPagePill(R.id.btnPillSaver30, 30 * 60 * 1000L)
@@ -357,15 +377,12 @@ class SettingsActivity : AppCompatActivity() {
             if (bgDrawable != null) {
                 val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                 if (hasFocus) {
-                    bgDrawable.setStroke(8, if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242"))
+                    bgDrawable.setStroke(8, targetBorderColor)
                 } else {
                     bgDrawable.setStroke(3, Color.parseColor(if (isNight) "#40FFFFFF" else "#33000000"))
                 }
             }
         }
-
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         arrayOf(
             btnChangeLanguage, btnThemeSelect, btnNotificationsMenu, btnAutoStartToggle, btnGlobalScreensaver, btnRoleSelect, btnPipAdbSelect,
@@ -399,6 +416,37 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private fun refreshCompanionToggleAndPills(toggleBtn: MaterialButton, autoBtn: MaterialButton, masterBtn: MaterialButton, slaveBtn: MaterialButton) {
+        val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
+        val isEnabled = currentRole != "disabled"
+
+        if (isEnabled) {
+            toggleBtn.text = getString(R.string.companion_toggle_on)
+            toggleBtn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            toggleBtn.setTextColor(Color.WHITE)
+
+            autoBtn.isEnabled = true
+            masterBtn.isEnabled = true
+            slaveBtn.isEnabled = true
+
+            updateSubpagePillColor(autoBtn, currentRole == "auto")
+            updateSubpagePillColor(masterBtn, currentRole == "master")
+            updateSubpagePillColor(slaveBtn, currentRole == "slave")
+        } else {
+            toggleBtn.text = getString(R.string.companion_toggle_off)
+            toggleBtn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
+            toggleBtn.setTextColor(Color.WHITE)
+
+            autoBtn.isEnabled = false
+            masterBtn.isEnabled = false
+            slaveBtn.isEnabled = false
+
+            updateSubpagePillColor(autoBtn, false)
+            updateSubpagePillColor(masterBtn, false)
+            updateSubpagePillColor(slaveBtn, false)
+        }
+    }
+
     private fun showPipAdbGuideDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
@@ -409,7 +457,6 @@ class SettingsActivity : AppCompatActivity() {
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textColor = if (isNight) Color.WHITE else Color.BLACK
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         val scrollView = ScrollView(this).apply {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(250))
@@ -419,7 +466,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val tvContent = TextView(this).apply {
             text = Html.fromHtml(getString(R.string.dialog_pip_adb_guide_text), Html.FROM_HTML_MODE_LEGACY)
-            setHtmlTextColor(textColor)
+            setTextColor(textColor)
             textSize = 14f
             setLineSpacing(0f, 1.2f)
         }
@@ -462,10 +509,6 @@ class SettingsActivity : AppCompatActivity() {
         closeBtn.requestFocus()
     }
 
-    private fun TextView.setHtmlTextColor(color: Int) {
-        this.setTextColor(color)
-    }
-
     private fun showSubPanel(activePanel: View, layer: Int, title: String) {
         currentMenuLayer = layer
         tvSettingsTitle.text = title
@@ -493,8 +536,6 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun updateSubpagePillColor(btn: MaterialButton?, isSelected: Boolean) {
         if (btn == null) return
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         if (isSelected) {
             btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
@@ -525,8 +566,6 @@ class SettingsActivity : AppCompatActivity() {
             btn.setTextColor(ContextCompat.getColor(this, R.color.pill_normal_inactive_text))
         }
 
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
         if (btn.isFocused) {
             btn.strokeWidth = 8
             btn.strokeColor = ColorStateList.valueOf(targetBorderColor)
@@ -574,7 +613,6 @@ class SettingsActivity : AppCompatActivity() {
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textLabelColor = if (isNight) Color.parseColor("#80FFFFFF") else Color.parseColor("#80000000")
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         advancedHeaderView = TextView(this).apply {
             text = "Advanced"
@@ -609,9 +647,7 @@ class SettingsActivity : AppCompatActivity() {
                     val workClass = Class.forName("com.shipofagony.klippshell4creality.KlipperTvWorker") as Class<out androidx.work.ListenableWorker>
                     WorkManager.getInstance(applicationContext).enqueue(OneTimeWorkRequest.Builder(workClass).build())
                     showCenteredPillToast(getString(R.string.btn_advanced_trigger_tv) + " ✓")
-                } catch (e: Exception) {
-                    Log.e("KlippShell", "Advanced TV-Worker Trigger failed", e)
-                }
+                } catch (e: Exception) { Log.e("KlippShell", "Advanced TV-Worker Trigger failed", e) }
             }
         }
 
@@ -638,7 +674,6 @@ class SettingsActivity : AppCompatActivity() {
             setOnClickListener {
                 val currentMode = prefs.getInt("layout_mode_override", 0)
                 val nextMode = (currentMode + 1) % 3
-
                 prefs.edit().putInt("layout_mode_override", nextMode).apply()
                 updateTabletButtonVisuals(this, nextMode)
 
@@ -668,7 +703,6 @@ class SettingsActivity : AppCompatActivity() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val activeBg = ColorStateList.valueOf(if (isNight) Color.parseColor("#44FFFFFF") else Color.parseColor("#1A888888"))
         val activeTxt = if (isNight) Color.WHITE else Color.BLACK
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         val normalBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val normalTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
@@ -739,11 +773,7 @@ class SettingsActivity : AppCompatActivity() {
 
             if (newVal) {
                 this@SettingsActivity.showCenteredPillToast("🔊 Ton aktiviert: " + soundTitles[index] + " ✓")
-                try {
-                    SoundManager.playLiveNotification(targetKey)
-                } catch (e: Exception) {
-                    Log.e("KlippShell", "SoundManager Preview trigger failed", e)
-                }
+                try { SoundManager.playLiveNotification(targetKey) } catch (e: Exception) { Log.e("KlippShell", "SoundManager Preview trigger failed", e) }
             }
             showSoundsConfigurationDialog()
         }
@@ -781,9 +811,7 @@ class SettingsActivity : AppCompatActivity() {
         val oldContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         val dialogScrollView = ScrollView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply {
-                setMargins(0, toPx(4), 0, toPx(4))
-            }
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply { setMargins(0, toPx(4), 0, toPx(4)) }
             isVerticalScrollBarEnabled = true
         }
 
@@ -793,8 +821,6 @@ class SettingsActivity : AppCompatActivity() {
         var firstBtn: MaterialButton? = null
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         val pVert = if (isDualScreenMode) toPx(30) else toPx(14)
         val pVertClose = if (isDualScreenMode) toPx(26) else toPx(14)
@@ -802,10 +828,7 @@ class SettingsActivity : AppCompatActivity() {
         options.forEachIndexed { index, itemText ->
             val customHex = hexColors.getOrNull(index)
             val btn = MaterialButton(this).apply {
-                text = itemText
-                isAllCaps = false
-                textSize = 16f
-                isFocusable = true
+                text = itemText; isAllCaps = false; textSize = 16f; isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
                 setPadding(0, pVert, 0, pVert)
 
@@ -817,40 +840,26 @@ class SettingsActivity : AppCompatActivity() {
                     setTextColor(defaultTxtColor)
                 }
 
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(0, toPx(8), 0, toPx(8))
-                }
-
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(8), 0, toPx(8)) }
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 8
                         v.strokeColor = ColorStateList.valueOf(targetBorderColor)
-                    } else {
-                        v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
-                        (v as MaterialButton).strokeWidth = 0
-                    }
+                    } else { v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 0 }
                 }
 
                 setOnClickListener {
                     val targetKey = popupKeys[index]
                     val newVal = !prefs.getBoolean(targetKey, true)
                     prefs.edit().putBoolean(targetKey, newVal).apply()
-
                     dialog.dismiss()
 
                     if (newVal) {
-                        NotificationManager.showLivePopup(
-                            this@SettingsActivity,
-                            targetKey,
-                            popupTitleIds[index],
-                            popupMessages[index]
-                        ) {
+                        NotificationManager.showLivePopup(this@SettingsActivity, targetKey, popupTitleIds[index], popupMessages[index]) {
                             showPopupsConfigurationDialog()
                         }
-                    } else {
-                        showPopupsConfigurationDialog()
-                    }
+                    } else { showPopupsConfigurationDialog() }
                 }
             }
             if (index == 0) firstBtn = btn
@@ -858,26 +867,18 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         val closeBtn = MaterialButton(this).apply {
-            text = getString(R.string.notify_btn_default)
-            isAllCaps = false
-            textSize = 16f
-            isFocusable = true
+            text = getString(R.string.notify_btn_default); isAllCaps = false; textSize = 16f; isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
             setPadding(0, pVertClose, 0, pVertClose)
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
             setTextColor(Color.WHITE)
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(0, toPx(16), 0, toPx(8))
-            }
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(16), 0, toPx(8)) }
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
                     v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                     (v as MaterialButton).strokeWidth = 8
                     v.strokeColor = ColorStateList.valueOf(targetBorderColor)
-                } else {
-                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
-                    (v as MaterialButton).strokeWidth = 0
-                }
+                } else { v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 0 }
             }
             setOnClickListener {
                 dialog.dismiss()
@@ -889,16 +890,9 @@ class SettingsActivity : AppCompatActivity() {
         oldContainer?.parent?.let { parent ->
             val group = parent as ViewGroup
             val idx = group.indexOfChild(oldContainer)
-            if (idx != -1) {
-                group.removeViewAt(idx)
-                group.addView(dialogScrollView, idx)
-            }
+            if (idx != -1) { group.removeViewAt(idx); group.addView(dialogScrollView, idx) }
         }
-
-        dialog.setOnCancelListener {
-            if (isDualScreenMode) handleBackNavigation() else initPillButtonStates()
-        }
-
+        dialog.setOnCancelListener { if (isDualScreenMode) handleBackNavigation() else initPillButtonStates() }
         dialog.show()
         firstBtn?.requestFocus()
     }
@@ -912,18 +906,13 @@ class SettingsActivity : AppCompatActivity() {
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
         var preFocused: MaterialButton? = null
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         val pVert = if (isDualScreenMode) toPx(30) else toPx(14)
 
         names.forEachIndexed { index, langName ->
             val isSelected = codes[index] == activeCode
             val btn = MaterialButton(this).apply {
-                text = langName
-                isAllCaps = false
-                textSize = 16f
-                isFocusable = true
+                text = langName; isAllCaps = false; textSize = 16f; isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
                 setPadding(0, pVert, 0, pVert)
 
@@ -935,19 +924,13 @@ class SettingsActivity : AppCompatActivity() {
                     setTextColor(defaultTxtColor)
                 }
 
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(0, toPx(8), 0, toPx(8))
-                }
-
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(8), 0, toPx(8)) }
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 8
                         v.strokeColor = ColorStateList.valueOf(targetBorderColor)
-                    } else {
-                        v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
-                        (v as MaterialButton).strokeWidth = 0
-                    }
+                    } else { v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 0 }
                 }
 
                 setOnClickListener {
@@ -1049,9 +1032,7 @@ class SettingsActivity : AppCompatActivity() {
         val oldContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         val dialogScrollView = ScrollView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply {
-                setMargins(0, toPx(4), 0, toPx(4))
-            }
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply { setMargins(0, toPx(4), 0, toPx(4)) }
             isVerticalScrollBarEnabled = true
             clipToPadding = false
             clipChildren = false
@@ -1068,8 +1049,6 @@ class SettingsActivity : AppCompatActivity() {
         var firstBtn: MaterialButton? = null
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         val pVert = if (isDualScreenMode) toPx(30) else toPx(14)
         val pVertClose = if (isDualScreenMode) toPx(26) else toPx(14)
@@ -1077,10 +1056,7 @@ class SettingsActivity : AppCompatActivity() {
         items.forEachIndexed { index, itemText ->
             val customHex = hexColors?.getOrNull(index)
             val btn = MaterialButton(this).apply {
-                text = itemText
-                isAllCaps = false
-                textSize = 16f
-                isFocusable = true
+                text = itemText; isAllCaps = false; textSize = 16f; isFocusable = true
                 shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
                 setPadding(0, pVert, 0, pVert)
 
@@ -1092,19 +1068,13 @@ class SettingsActivity : AppCompatActivity() {
                     setTextColor(defaultTxtColor)
                 }
 
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    setMargins(0, toPx(8), 0, toPx(8))
-                }
-
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(8), 0, toPx(8)) }
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                         (v as MaterialButton).strokeWidth = 8
                         v.strokeColor = ColorStateList.valueOf(targetBorderColor)
-                    } else {
-                        v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
-                        (v as MaterialButton).strokeWidth = 0
-                    }
+                    } else { v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 0 }
                 }
                 setOnClickListener { dialog.dismiss(); onItemSelected(index) }
             }
@@ -1113,26 +1083,18 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         val closeBtn = MaterialButton(this).apply {
-            text = getString(R.string.notify_btn_default)
-            isAllCaps = false
-            textSize = 16f
-            isFocusable = true
+            text = getString(R.string.notify_btn_default); isAllCaps = false; textSize = 16f; isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
             setPadding(0, pVertClose, 0, pVertClose)
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
             setTextColor(Color.WHITE)
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(0, toPx(16), 0, toPx(8))
-            }
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(16), 0, toPx(8)) }
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
                     v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
                     (v as MaterialButton).strokeWidth = 8
                     v.strokeColor = ColorStateList.valueOf(targetBorderColor)
-                } else {
-                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
-                    (v as MaterialButton).strokeWidth = 0
-                }
+                } else { v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 0 }
             }
             setOnClickListener {
                 dialog.dismiss()
@@ -1144,16 +1106,9 @@ class SettingsActivity : AppCompatActivity() {
         oldContainer?.parent?.let { parent ->
             val group = parent as ViewGroup
             val idx = group.indexOfChild(oldContainer)
-            if (idx != -1) {
-                group.removeViewAt(idx)
-                group.addView(dialogScrollView, idx)
-            }
+            if (idx != -1) { group.removeViewAt(idx); group.addView(dialogScrollView, idx) }
         }
-
-        dialog.setOnCancelListener {
-            if (isDualScreenMode) handleBackNavigation() else initPillButtonStates()
-        }
-
+        dialog.setOnCancelListener { if (isDualScreenMode) handleBackNavigation() else initPillButtonStates() }
         dialog.show()
         firstBtn?.requestFocus()
     }
@@ -1162,13 +1117,9 @@ class SettingsActivity : AppCompatActivity() {
         val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val pillView = TextView(this).apply {
-            text = message
-            textSize = 16f
-            gravity = Gravity.CENTER
-            setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(if (isNight) Color.WHITE else Color.BLACK)
             background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = 100f
+                shape = GradientDrawable.RECTANGLE; cornerRadius = 100f
                 setColor(if (isNight) Color.parseColor("#252B2E") else Color.WHITE)
                 setStroke(4, if (isNight) Color.WHITE else Color.parseColor("#BDBDBD"))
             }
@@ -1181,9 +1132,7 @@ class SettingsActivity : AppCompatActivity() {
                 gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
                 setMargins(0, 0, 0, toPx(120))
             }
-            addView(pillView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-            })
+            addView(pillView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL })
         }
         rootLayout.addView(container)
         Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
@@ -1209,10 +1158,14 @@ class SettingsActivity : AppCompatActivity() {
         updateSubpagePillColor(findViewById(R.id.btnPillThemeDark), currentMode == AppCompatDelegate.MODE_NIGHT_YES)
         updateSubpagePillColor(findViewById(R.id.btnPillThemeSystem), currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
-        val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
-        updateSubpagePillColor(findViewById(R.id.btnPillRoleAuto), currentRole == "auto")
-        updateSubpagePillColor(findViewById(R.id.btnPillRoleMaster), currentRole == "master")
-        updateSubpagePillColor(findViewById(R.id.btnPillRoleSlave), currentRole == "slave")
+        btnCompanionToggleProgrammatic?.let { toggleBtn ->
+            refreshCompanionToggleAndPills(
+                toggleBtn,
+                findViewById(R.id.btnPillRoleAuto),
+                findViewById(R.id.btnPillRoleMaster),
+                findViewById(R.id.btnPillRoleSlave)
+            )
+        }
 
         setupPill(R.id.btnPillSaver30)
         setupPill(R.id.btnPillSaver60)
@@ -1264,7 +1217,6 @@ class SettingsActivity : AppCompatActivity() {
                 connection.connectTimeout = 4000
                 connection.readTimeout = 4000
                 connection.useCaches = false
-
                 connection.setRequestProperty("User-Agent", "KlippShell-App")
                 connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
 
@@ -1282,12 +1234,7 @@ class SettingsActivity : AppCompatActivity() {
                             downloadUrl = assetsArray.optJSONObject(0).optString("browser_download_url", "")
                         }
 
-                        val currentVersionName = try {
-                            packageManager.getPackageInfo(packageName, 0).versionName?.replace("v", "")?.trim() ?: "0.8.6"
-                        } catch (e: Exception) {
-                            "0.8.6"
-                        }
-
+                        val currentVersionName = try { packageManager.getPackageInfo(packageName, 0).versionName?.replace("v", "")?.trim() ?: "0.8.6" } catch (e: Exception) { "0.8.6" }
                         val cleanCurrent = currentVersionName.takeWhile { it.isDigit() || it == '.' }.trim('.')
                         val cleanLatest = latestVersionTag.takeWhile { it.isDigit() || it == '.' }.trim('.')
 
@@ -1299,41 +1246,20 @@ class SettingsActivity : AppCompatActivity() {
                         for (i in 0 until maxLength) {
                             val currentPart = currentParts.getOrElse(i) { 0 }
                             val latestPart = latestParts.getOrElse(i) { 0 }
-                            if (latestPart > currentPart) {
-                                isNewer = true
-                                break
-                            }
-                            if (latestPart < currentPart) {
-                                isNewer = false
-                                break
-                            }
+                            if (latestPart > currentPart) { isNewer = true; break }
+                            if (latestPart < currentPart) { isNewer = false; break }
                         }
 
                         withContext(Dispatchers.Main) {
-                            if (isNewer && downloadUrl.isNotEmpty()) {
-                                showUpdateAvailableDialog(latestVersionTag, downloadUrl)
-                            } else {
-                                showCenteredPillToast(getString(R.string.toast_updater_up_to_date))
-                            }
+                            if (isNewer && downloadUrl.isNotEmpty()) { showUpdateAvailableDialog(latestVersionTag, downloadUrl) }
+                            else { showCenteredPillToast(getString(R.string.toast_updater_up_to_date)) }
                         }
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            showCenteredPillToast(getString(R.string.toast_updater_up_to_date))
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        showCenteredPillToast(getString(R.string.toast_updater_error_code, responseCode))
-                    }
-                }
+                    } else { withContext(Dispatchers.Main) { showCenteredPillToast(getString(R.string.toast_updater_up_to_date)) } }
+                } else { withContext(Dispatchers.Main) { showCenteredPillToast(getString(R.string.toast_updater_error_code, responseCode)) } }
             } catch (e: Exception) {
                 Log.e("KlippShell", "GitHub Update-Check failed", e)
-                withContext(Dispatchers.Main) {
-                    showCenteredPillToast(getString(R.string.toast_updater_server_error))
-                }
-            } finally {
-                connection?.disconnect()
-            }
+                withContext(Dispatchers.Main) { showCenteredPillToast(getString(R.string.toast_updater_server_error)) }
+            } finally { connection?.disconnect() }
         }
     }
 
@@ -1342,16 +1268,10 @@ class SettingsActivity : AppCompatActivity() {
         showTvDialog(title = getString(R.string.update_available_title, newVersion), options) { index ->
             if (index == 0 && downloadUrl.isNotEmpty()) {
                 try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
                     startActivity(intent)
-                } catch (e: Exception) {
-                    showCenteredPillToast(getString(R.string.toast_update_browser_error))
-                }
-            } else {
-                findViewById<MaterialButton>(R.id.btnCheckUpdates).requestFocus()
-            }
+                } catch (e: Exception) { showCenteredPillToast(getString(R.string.toast_update_browser_error)) }
+            } else { findViewById<MaterialButton>(R.id.btnCheckUpdates).requestFocus() }
         }
     }
 
@@ -1361,9 +1281,7 @@ class SettingsActivity : AppCompatActivity() {
             val stream = assets.open("licenses.txt")
             val reader = BufferedReader(InputStreamReader(stream))
             reader.forEachLine { licenseSb.append(it).append("\n") }
-        } catch (e: Exception) {
-            licenseSb.append("Lizenzen konnten nicht geladen werden.")
-        }
+        } catch (e: Exception) { licenseSb.append("Lizenzen konnten nicht geladen werden.") }
 
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
@@ -1374,7 +1292,6 @@ class SettingsActivity : AppCompatActivity() {
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textColor = if (isNight) Color.WHITE else Color.BLACK
-        val targetBorderColor = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
 
         val scrollView = ScrollView(this).apply {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(230))
@@ -1382,66 +1299,32 @@ class SettingsActivity : AppCompatActivity() {
             background = ContextCompat.getDrawable(this@SettingsActivity, R.drawable.bg_input_rounded)
         }
 
-        val tvContent = TextView(this).apply {
-            text = licenseSb.toString().trim()
-            setTextColor(textColor)
-            textSize = 14f
-        }
-
-        scrollView.addView(tvContent)
-        container?.addView(scrollView)
+        val tvContent = TextView(this).apply { text = licenseSb.toString().trim(); setTextColor(textColor); textSize = 14f }
+        scrollView.addView(tvContent); container?.addView(scrollView)
 
         val pVertClose = if (isDualScreenMode) toPx(30) else toPx(14)
 
         val closeBtn = MaterialButton(this).apply {
-            text = getString(R.string.notify_btn_default)
-            isAllCaps = false
-            textSize = 16f
-            isFocusable = true
+            text = getString(R.string.notify_btn_default); isAllCaps = false; textSize = 16f; isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
-            setPadding(0, pVertClose, 0, pVertClose)
-
-            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-            setTextColor(Color.WHITE)
-
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(0, 16, 0, 0)
-            }
+            setPadding(0, pVertClose, 0, pVertClose); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")); setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 16, 0, 0) }
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
                     v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
-                    (v as MaterialButton).strokeWidth = 8
-                    v.strokeColor = ColorStateList.valueOf(targetBorderColor)
-                } else {
-                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
-                    (v as MaterialButton).strokeWidth = 0
-                }
+                    (v as MaterialButton).strokeWidth = 8; v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                } else { v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 0 }
             }
-            setOnClickListener {
-                dialog.dismiss()
-                tvLicensesLink.requestFocus()
-            }
+            setOnClickListener { dialog.dismiss(); tvLicensesLink.requestFocus() }
         }
-
-        container?.addView(closeBtn)
-        dialog.show()
-        closeBtn.requestFocus()
+        container?.addView(closeBtn); dialog.show(); closeBtn.requestFocus()
     }
 
     override fun onPause() {
-        try {
-            NotificationManager.dismissActivePopup()
-        } catch (e: Exception) {
-            Log.e("KlippShell", "NotificationManager dismissal failed", e)
-        }
+        try { NotificationManager.dismissActivePopup() } catch (e: Exception) { Log.e("KlippShell", "NotificationManager dismissal failed", e) }
         super.onPause()
     }
 
-    private fun toPx(dp: Int): Int {
-        return (dp * resources.displayMetrics.density).toInt()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-    }
+    private fun toPx(dp: Int): Int { return (dp * resources.displayMetrics.density).toInt() }
+    override fun onDestroy() { super.onDestroy() }
 }

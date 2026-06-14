@@ -54,10 +54,12 @@
     <string name="toast_autostart_on">Inicio directo activado</string>
     <string name="toast_autostart_off">Inicio directo desactivado</string>
 
-    <string name="settings_role_title">Modo Companion (Master-Slave)</string>
+    <string name="settings_role_title">Modo Companion</string>
     <string name="settings_role_auto">Detección automática</string>
     <string name="settings_role_master">TV / Monitor (Master)</string>
     <string name="settings_role_slave">Mando a distancia (Slave)</string>
+    <string name="companion_toggle_on">Modo Companion: ACTIVADO</string>
+    <string name="companion_toggle_off">Modo Companion: DESACTIVADO</string>
 
     <string name="reset_app">Restablecer aplicación</string>
     <string name="reset_app_title">¿Borrar todos los datos?</string>

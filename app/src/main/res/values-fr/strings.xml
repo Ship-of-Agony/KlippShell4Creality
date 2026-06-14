@@ -54,10 +54,12 @@
     <string name="toast_autostart_on">Démarrage direct activé</string>
     <string name="toast_autostart_off">Démarrage direct désactivé</string>
 
-    <string name="settings_role_title">Mode Compagnon (Maître-Esclave)</string>
+    <string name="settings_role_title">Mode Compagnon</string>
     <string name="settings_role_auto">Détection automatique</string>
     <string name="settings_role_master">TV / Moniteur (Maître)</string>
     <string name="settings_role_slave">Télécommande (Esclave)</string>
+    <string name="companion_toggle_on">Mode Companion : ACTIVÉ</string>
+    <string name="companion_toggle_off">Mode Companion : DÉSACTIVÉ</string>
 
     <string name="reset_app">Réinitialiser l\'application</string>
     <string name="reset_app_title">Supprimer toutes les données ?</string>

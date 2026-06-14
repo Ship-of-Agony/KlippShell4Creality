@@ -54,10 +54,12 @@
     <string name="toast_autostart_on">Прямой запуск активирован</string>
     <string name="toast_autostart_off">Прямой запуск деактивирован</string>
 
-    <string name="settings_role_title">Режим Companion (Master-Slave)</string>
+    <string name="settings_role_title">Режим Companion</string>
     <string name="settings_role_auto">Автоматическое обнаружение</string>
     <string name="settings_role_master">ТВ / Монитор (Master)</string>
     <string name="settings_role_slave">Пульт ДУ (Slave)</string>
+    <string name="companion_toggle_on">Режим Companion: ВКЛ</string>
+    <string name="companion_toggle_off">Режим Companion: ВЫКЛ</string>
 
     <string name="reset_app">Сбросить приложение</string>
     <string name="reset_app_title">Удалить все данные?</string>

@@ -54,10 +54,12 @@
     <string name="toast_autostart_on">Direct start enabled</string>
     <string name="toast_autostart_off">Direct start disabled</string>
 
-    <string name="settings_role_title">Companion Mode (Master-Slave)</string>
+    <string name="settings_role_title">Companion Mode</string>
     <string name="settings_role_auto">Automatic Detection</string>
     <string name="settings_role_master">TV / Monitor (Master)</string>
     <string name="settings_role_slave">Remote Control (Slave)</string>
+    <string name="companion_toggle_on">Companion Mode: ON</string>
+    <string name="companion_toggle_off">Companion Mode: OFF</string>
 
     <string name="reset_app">Reset App</string>
     <string name="reset_app_title">Delete all data?</string>
