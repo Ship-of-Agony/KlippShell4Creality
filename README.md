@@ -2,6 +2,10 @@
 
    KlippShell 4 Creality is a native, highly optimized Android application specifically designed to control and monitor Creality OS and any other Klipper-based 3D printers (via Moonraker, Fluidd, or Mainsail). It allows you      to conveniently manage your 3D printer directly from your Android TV box, smart TV, smartphone, or tablet—completely standalone, with no PC required.
 
+   ⚠️ Note: I'm not completely sure yet if this fix by DnG Crafts is actually required for video streams on some devices to ensure full app functionality.
+   
+   ⚠️ ----> See for more Infos: https://github.com/DnG-Crafts/K2-Camera <----
+
 🛋️ The Couch Concept: Keep an eye on your 3D printer relaxed from your sofa while watching your favorite show on TV—without having to constantly run to the printer or open up your laptop.
 
 🛠️ Current Feature Set
