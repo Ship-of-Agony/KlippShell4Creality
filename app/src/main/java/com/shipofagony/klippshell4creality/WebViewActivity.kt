@@ -137,7 +137,6 @@ class WebViewActivity : AppCompatActivity() {
     private var lastFanModelSpeed = -1.0
     private var lastFanAuxSpeed = -1.0
     private var lastFanChamberSpeed = -1.0
-    private var lastDurationSeconds = -1
     private var lastProgressPercent = -1.0
     private var heartbeatTick = 0
 
@@ -207,7 +206,7 @@ class WebViewActivity : AppCompatActivity() {
                 "fr" -> "Erreurs et statut"
                 "pl" -> "Błędy i status"
                 "cs" -> "Chyby a stav"
-                "ru" -> "Ошибки и статус"
+                "ru" -> "Ошибки und status"
                 else -> "Errors & Status Alerts"
             }
 
@@ -548,7 +547,7 @@ class WebViewActivity : AppCompatActivity() {
 
                 val btnZoomIn = MaterialButton(this).apply {
                     text = getSafeString("btn_zoom_in", "Zoom (+)")
-                    isAllCaps = false; textSize = 15f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                    isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
                     setTextColor(if (isNight) Color.WHITE else Color.BLACK)
                     isFocusable = true; onFocusChangeListener = btnStyleListener
@@ -613,7 +612,6 @@ class WebViewActivity : AppCompatActivity() {
 
         btnToggle.setOnClickListener {
             val sPort = prefs.getInt("saved_dashboard_port_$hostIp", Uri.parse(currentActiveUrl).port.takeIf { it != -1 } ?: 7125)
-            // KORREKTUR: Toasts sauber i18n-konform übersetzt geladen
             if (isCameraMode) { loadStreamOrUrl("http://$hostIp:$sPort", 56.25f); showCenteredPillToast(getString(R.string.toast_loading_dashboard)) }
             else { loadStreamOrUrl(if (lastCameraUrl.isNotEmpty()) lastCameraUrl else "http://$hostIp:$sPort/camera.html", prefs.getFloat("camera_ratio_$hostIp", 56.25f)); showCenteredPillToast(getString(R.string.toast_loading_livestream)) }
         }
@@ -626,13 +624,16 @@ class WebViewActivity : AppCompatActivity() {
         startRemoteServerSocket()
     }
 
+    // WIEDERHERSTELLUNG: Core-Steuerungsmethode für den Schoner-Timeout
     private fun resetInactivityTimer() {
         screensaverHandler.removeCallbacks(startScreensaverRunnable)
-        if (isCameraMode && screensaverTimeoutMs > 0L && layoutScreensaver.visibility != View.VISIBLE && !isInPictureInPictureMode) {
+        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+        if (isCameraMode && screensaverTimeoutMs > 0L && layoutScreensaver.visibility != View.VISIBLE && !isInPiP) {
             screensaverHandler.postDelayed(startScreensaverRunnable, screensaverTimeoutMs)
         }
     }
 
+    // WIEDERHERSTELLUNG: Core-Aktionen für das PiP-Overlay
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updatePipActions() {
         val actions = ArrayList<RemoteAction>()
@@ -647,6 +648,7 @@ class WebViewActivity : AppCompatActivity() {
         setPictureInPictureParams(PictureInPictureParams.Builder().setActions(actions).setAspectRatio(if (isPipWideRatio) Rational(16, 9) else Rational(1, 1)).build())
     }
 
+    // WIEDERHERSTELLUNG: Methode zum Starten des nativen Picture-in-Picture Modus
     private fun enterPipMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
@@ -751,7 +753,8 @@ class WebViewActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (!isInPictureInPictureMode) {
+        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+        if (!isInPiP) {
             showButtons()
             resetInactivityTimer()
             btnToggle.post { btnToggle.requestFocus() }
@@ -774,7 +777,8 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (isInPictureInPictureMode) return super.onKeyDown(keyCode, event)
+        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+        if (isInPiP) return super.onKeyDown(keyCode, event)
         if (layoutScreensaver.visibility == View.VISIBLE) {
             deactivateScreensaver()
             return true
@@ -787,7 +791,8 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun activateScreensaver() {
-        if (isInPictureInPictureMode) return
+        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+        if (isInPiP) return
         screensaverHandler.removeCallbacks(startScreensaverRunnable)
         uiHandler.removeCallbacks(hideUiRunnable)
 
@@ -864,7 +869,13 @@ class WebViewActivity : AppCompatActivity() {
         pollingJob = lifecycleScope.launch(Dispatchers.IO) {
             while (isActive) {
                 fetchMoonrakerData()
-                val currentDelay = if (isActivityInForeground || isInPictureInPictureMode) 3000L else 30000L
+                val currentDelay = if (hasTrigOffline) {
+                    2000L
+                } else if (isActivityInForeground || isInPictureInPictureMode) {
+                    3000L
+                } else {
+                    30000L
+                }
                 delay(currentDelay)
             }
         }
@@ -918,7 +929,8 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun showButtons() {
-        if (layoutScreensaver.visibility == View.VISIBLE || isInPictureInPictureMode) return
+        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+        if (layoutScreensaver.visibility == View.VISIBLE || isInPiP) return
         uiHandler.removeCallbacks(hideUiRunnable)
         if (layoutWebButtons.visibility != View.VISIBLE) layoutWebButtons.visibility = View.VISIBLE
         layoutWebButtons.animate().alpha(1f).setDuration(250).start()
@@ -928,8 +940,6 @@ class WebViewActivity : AppCompatActivity() {
     private fun hideButtons() { layoutWebButtons.animate().alpha(0f).setDuration(500).start() }
 
     private fun applySeichterOsdBackground() {
-        // KORREKTUR: Theme-Zuweisung statt hartkodiertem Farb-Hardcoding
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val mainBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val borderStrokeColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
 
@@ -1035,7 +1045,13 @@ class WebViewActivity : AppCompatActivity() {
             if (!hasTrigOffline) { hasTrigOffline = true; triggerPopup("offline", "Offline", "Offline") }
             return
         }
+
+        if (hasTrigOffline) {
+            hasTrigOffline = false
+            webView?.post { webView?.reload() }
+        }
         hasTrigOffline = false
+
         heartbeatTick = if (heartbeatTick >= 5) 1 else heartbeatTick + 1
         try {
             val json = JSONObject(responseText)
@@ -1202,6 +1218,7 @@ class WebViewActivity : AppCompatActivity() {
         updateOsdTextForm(osdStyle == "banner" || boxContainer.orientation == LinearLayout.HORIZONTAL)
     }
 
+    // WIEDERHERSTELLUNG: Textausrichtungs-Konditionierer für Boxen-Ausrichtungen
     private fun updateOsdTextForm(isSingleLine: Boolean) {
         val views = arrayOf(tvOsdExtruder, tvOsdBed, tvOsdChamberSensor, tvOsdChamberHeater, tvOsdFanModel, tvOsdFanAux, tvOsdFanChamber, tvOsdProgress, tvOsdTime)
         views.forEach { tv ->
@@ -1365,7 +1382,8 @@ class WebViewActivity : AppCompatActivity() {
                 "ZOOM_OUT" -> webView?.zoomOut()
 
                 "PIP_TOGGLE" -> {
-                    if (isInPictureInPictureMode) {
+                    val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+                    if (isInPiP) {
                         val maxIntent = Intent(this@WebViewActivity, WebViewActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
                         }
