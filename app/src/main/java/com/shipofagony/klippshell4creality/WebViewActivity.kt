@@ -64,6 +64,10 @@ import android.content.SharedPreferences
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
 class WebViewActivity : AppCompatActivity() {
 
+    private fun toPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
+    }
+
     private var webView: WebView? = null
     private var webView3D: WebView? = null
     private lateinit var layoutOsd: View
@@ -254,7 +258,6 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
-    // FIX: Das falsche .setPadding(...) wurde hier restlos entfernt
     private fun sendNativeSystemNotification(title: String, message: String, targetChannelId: String, bitmap: android.graphics.Bitmap? = null) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as AndroidNotificationManager
         registerNotificationChannels()
@@ -328,16 +331,25 @@ class WebViewActivity : AppCompatActivity() {
             background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = 20f
-                setColor(Color.parseColor("#20000000"))
+                setColor(Color.parseColor("#00000000"))
             }
             clipToOutline = true
         }
 
+        // FIX: Reicht den Fortschritt nach Beendigung des Ladevorgangs sofort initial an das 3D Hologramm weiter
         webView3D = WebView(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             setBackgroundColor(Color.TRANSPARENT)
             setLayerType(View.LAYER_TYPE_HARDWARE, null)
-            webViewClient = WebViewClient()
+
+            webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    val progressFloat = if (lastPrintState == "printing" || lastPrintState == "complete") lastProgressPercent.coerceIn(0.0, 1.0) else 1.0
+                    view?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress($progressFloat);", null)
+                }
+            }
+
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = true
@@ -359,6 +371,10 @@ class WebViewActivity : AppCompatActivity() {
         thumbLayout.addView(ivThumbBackground)
         thumbLayout.addView(ivThumbForeground)
         rootLayout?.addView(thumbLayout)
+
+        layoutWebButtons.bringToFront()
+        layoutOsd.bringToFront()
+        layoutOsdBanner.bringToFront()
 
         layoutScreensaver.setOnClickListener {
             if (layoutScreensaver.visibility == View.VISIBLE) {
@@ -969,6 +985,10 @@ class WebViewActivity : AppCompatActivity() {
         } catch (e: Exception) { cachedMoonrakerUrl = null }
     }
 
+    private fun suspend_fetchMoonrakerData() { // Wrapper
+        lifecycleScope.launch(Dispatchers.IO) { fetchMoonrakerData() }
+    }
+
     private suspend fun fetchMoonrakerData() {
         val targetUrl = cachedMoonrakerUrl ?: return
         var conn: HttpURLConnection? = null
@@ -1159,10 +1179,9 @@ class WebViewActivity : AppCompatActivity() {
             btnMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#424242"))
             btnToggle.text = "⇄"
             val lp = webView?.layoutParams as? ConstraintLayout.LayoutParams
-            if (lp != null) { lp.dimensionRatio = when (paddingTopPercent) { 75.0f -> "H,4:3"; 100.0f -> "H,1:1"; else -> "H,16:9" }; lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT; lp.height = 0; lp.topToTop = ConstraintLayout.LayoutParams.PARENT_ID; lp.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID; webView?.layoutParams = lp }
-            if (isThumbnailEnabled) {
-                setupProgressThumbnailDrawables(thumbnailBitmap)
-            }
+            if (lp != null) { lp.dimensionRatio = when (paddingTopPercent) { 75.0f -> "H,4:3"; 100.0f -> "H,1:1"; else -> "H,16:9" }; lp.width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT; lp.height = 0; lp.topToTop = ConstraintLayout.LayoutParams.PARENT_ID; lp.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID; webView?.layoutParams = lp }
+
+            setupProgressThumbnailDrawables(thumbnailBitmap)
         } else {
             layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE; stopOsdPolling()
             findViewById<FrameLayout>(thumbContainerId)?.visibility = View.GONE
@@ -1203,6 +1222,8 @@ class WebViewActivity : AppCompatActivity() {
 
             if (isThumbnailEnabled && isCameraMode && !isInPiP) {
                 tView?.visibility = View.VISIBLE
+            } else {
+                tView?.visibility = View.GONE
             }
         } else {
             ivThumbBackground?.visibility = View.GONE
@@ -1219,6 +1240,8 @@ class WebViewActivity : AppCompatActivity() {
 
             if (isThumbnailEnabled && isCameraMode && !isInPiP) {
                 tView?.visibility = View.VISIBLE
+            } else {
+                tView?.visibility = View.GONE
             }
         }
         applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
@@ -1318,6 +1341,10 @@ class WebViewActivity : AppCompatActivity() {
             if (currentState == "printing" || currentState == "complete") {
                 if (thumbnailBitmap != null) {
                     clipDrawable?.level = (progress * 10000).toInt()
+                } else {
+                    // FIX: Reicht den Live-Fortschritt kontinuierlich an das rotierende 3D Hologramm weiter
+                    val progressFloat = progress.coerceIn(0.0, 1.0)
+                    webView3D?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress($progressFloat);", null)
                 }
                 if (tView != null) {
                     tView.visibility = if (shouldShowThumb) View.VISIBLE else View.GONE
@@ -1331,6 +1358,10 @@ class WebViewActivity : AppCompatActivity() {
                     thumbnailBitmap = null
                     setupProgressThumbnailDrawables(null)
                 }
+
+                // FIX: Setzt das 3D Hologramm außerhalb des Drucks (Standby) dauerhaft auf 100% gefüllt zurück
+                webView3D?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress(1.0);", null)
+
                 if (tView != null) {
                     tView.visibility = if (shouldShowThumb) View.VISIBLE else View.GONE
                 }
@@ -1529,6 +1560,8 @@ class WebViewActivity : AppCompatActivity() {
                 constraintSet.connect(thumbContainerId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140)
                 constraintSet.connect(thumbContainerId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, 40)
             }
+        } else {
+            constraintSet.setVisibility(thumbContainerId, ConstraintSet.GONE)
         }
         constraintSet.applyTo(root)
         updateOsdTextForm(osdStyle == "banner" || boxContainer.orientation == LinearLayout.HORIZONTAL)
@@ -1563,7 +1596,7 @@ class WebViewActivity : AppCompatActivity() {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
                     setTextColor(if (isNight) Color.WHITE else Color.BLACK)
                 }
-                isFocusable = true; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
+                isFocusable = true; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(10), 0, toPx(10)) }
                 onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
                     if (hasFocus) {
                         view.animate().scaleX(1.04f).scaleY(1.04f).translationZ(6f).setDuration(100).start()

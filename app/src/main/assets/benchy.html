@@ -25,8 +25,8 @@
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-    // Y von 27 auf 23 gesenkt, um das Boot noch ein ganz kleines Stück anzuheben
-    camera.position.set(0, 23, 72);
+    // Deine eingestellten Wunsch-Werte für Abstand und Höhe
+    camera.position.set(0, 10, 85);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -34,36 +34,107 @@
     renderer.setClearColor(0x000000, 0);
     document.body.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    renderer.localClippingEnabled = true;
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
     scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
     dirLight.position.set(20, 40, 20);
     scene.add(dirLight);
 
-    let model;
+    const pivotGroup = new THREE.Group();
+    scene.add(pivotGroup);
+
+    let minY = 0, maxY = 0;
+    let currentProgress = 1.0;
+
+    const localPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
 
     const loader = new THREE.GLTFLoader();
     loader.load('benchy_boat.glb', function (gltf) {
-        model = gltf.scene;
+        const solidModel = gltf.scene;
 
-        // Perfekte mathematische Zentrierung auf den Nullpunkt
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        model.position.x += (model.position.x - center.x);
-        model.position.y += (model.position.y - center.y);
-        model.position.z += (model.position.z - center.z);
+        solidModel.updateMatrixWorld(true);
 
-        scene.add(model);
+        const box = new THREE.Box3();
+        solidModel.traverse(function (child) {
+            if (child.isMesh) {
+                child.geometry.computeBoundingBox();
+                const localBox = child.geometry.boundingBox.clone();
+                localBox.applyMatrix4(child.matrixWorld);
+                box.union(localBox);
+            }
+        });
+
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        minY = box.min.y - center.y;
+        maxY = box.max.y - center.y;
+
+        const solidOffsetGroup = new THREE.Group();
+        solidOffsetGroup.position.set(-center.x, -center.y, -center.z);
+        solidOffsetGroup.add(solidModel);
+
+        solidModel.traverse(function (child) {
+            if (child.isMesh) {
+                child.material = child.material.clone();
+                child.material.clippingPlanes = [ localPlane ];
+                child.material.clipShadows = true;
+
+                // TRANSPARENZ-REGLER FÜR DAS FESTE BOOT:
+                child.material.transparent = true;
+                child.material.opacity = 0.75; // 1.0 = voll massiv | 0.0 = unsichtbar
+            }
+        });
+
+        const wireframeOffsetGroup = new THREE.Group();
+        const wireframeModel = solidModel.clone();
+        wireframeOffsetGroup.position.set(-center.x, -center.y, -center.z);
+        wireframeOffsetGroup.add(wireframeModel);
+
+        wireframeModel.traverse(function (child) {
+            if (child.isMesh) {
+                child.material = new THREE.MeshBasicMaterial({
+                    color: 0x00E5FF,
+                    wireframe: true,
+                    transparent: true,
+                    // TRANSPARENZ-REGLER FÜR DAS NEON-GITTER:
+                    opacity: 0.10, // Von 0.15 auf 0.08 gesenkt für dezentere Linien
+                    blending: THREE.AdditiveBlending
+                });
+                child.material.clippingPlanes = [];
+            }
+        });
+
+        pivotGroup.add(wireframeOffsetGroup);
+        pivotGroup.add(solidOffsetGroup);
+
+        // Dein Wunsch-Höhenwert -4
+        camera.lookAt(0, -4, 0);
+
+        updatePlaneConstant();
     });
+
+    function updatePlaneConstant() {
+        if (minY !== undefined && maxY !== undefined) {
+            localPlane.constant = minY + (maxY - minY) * currentProgress;
+        }
+    }
 
     function animate() {
         requestAnimationFrame(animate);
-        if (model) {
-            model.rotation.y -= 0.015; // Geschmeidige Drehung nach links
+        if (pivotGroup) {
+            pivotGroup.rotation.y -= 0.003;
         }
         renderer.render(scene, camera);
     }
     animate();
+
+    window.updateBenchyProgress = function(progress) {
+        currentProgress = progress;
+        updatePlaneConstant();
+    };
 
     window.addEventListener('resize', function () {
         camera.aspect = window.innerWidth / window.innerHeight;
