@@ -41,9 +41,9 @@ URL: https://github.com/CrealityOfficial/CrealityPrint
 
 ---
 
-6. 3D Model Assets ("Benchy in a Storm")
-The 3D Benchy placeholder model used in this application is based on the "Benchy in a storm" design from Printables. The original file format was converted into the optimized GLB format using the ImageToStl platform.
-Model URL: https://www.printables.com/model/612012-benchy-in-a-storm/files
+6. 3D Model Assets ("Benchy")
+The 3D Benchy placeholder model used in this application is based on the "Benchy - The jolly 3D printing torture-test" design from www.cults3d / CreativeTools. The original file format was converted into the optimized GLB format using the ImageToStl platform.
+Model URL: https://cults3d.com/en/orders/160580329
 Conversion Tool URL: https://imagetostl.com/
 
 ---
