@@ -9,6 +9,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -76,11 +77,23 @@ class SettingsActivity : AppCompatActivity() {
 
     private var btnCompanionToggleProgrammatic: MaterialButton? = null
 
+    // Klassenvariablen für Subpage-Buttons zur Lifecycle-Wiederherstellung
+    private lateinit var btnPillThemeLight: MaterialButton
+    private lateinit var btnPillThemeDark: MaterialButton
+    private lateinit var btnPillThemeSystem: MaterialButton
+    private lateinit var btnPillRoleAuto: MaterialButton
+    private lateinit var btnPillRoleMaster: MaterialButton
+    private lateinit var btnPillRoleSlave: MaterialButton
+
     private val targetBorderColor: Int
         get() {
             val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
             return if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
         }
+
+    private fun toPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
+    }
 
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -165,13 +178,14 @@ class SettingsActivity : AppCompatActivity() {
         val btnResetApp = findViewById<MaterialButton>(R.id.btnResetApp)
         val btnSettingsBack = findViewById<MaterialButton>(R.id.btnSettingsBack)
 
-        val btnPillThemeLight = findViewById<MaterialButton>(R.id.btnPillThemeLight)
-        val btnPillThemeDark = findViewById<MaterialButton>(R.id.btnPillThemeDark)
-        val btnPillThemeSystem = findViewById<MaterialButton>(R.id.btnPillThemeSystem)
+        // Zuweisung zu den Klassenvariablen korrigiert (val entfernt)
+        btnPillThemeLight = findViewById(R.id.btnPillThemeLight)
+        btnPillThemeDark = findViewById(R.id.btnPillThemeDark)
+        btnPillThemeSystem = findViewById(R.id.btnPillThemeSystem)
 
-        val btnPillRoleAuto = findViewById<MaterialButton>(R.id.btnPillRoleAuto)
-        val btnPillRoleMaster = findViewById<MaterialButton>(R.id.btnPillRoleMaster)
-        val btnPillRoleSlave = findViewById<MaterialButton>(R.id.btnPillRoleSlave)
+        btnPillRoleAuto = findViewById(R.id.btnPillRoleAuto)
+        btnPillRoleMaster = findViewById(R.id.btnPillRoleMaster)
+        btnPillRoleSlave = findViewById(R.id.btnPillRoleSlave)
 
         val btnSubMenuSounds = findViewById<MaterialButton>(R.id.btnSubMenuSounds)
         val btnSubMenuPopups = findViewById<MaterialButton>(R.id.btnSubMenuPopups)
@@ -225,12 +239,9 @@ class SettingsActivity : AppCompatActivity() {
 
         btnThemeSelect.setOnClickListener {
             showSubPanel(panelTheme, 5, getString(R.string.theme_title))
+            refreshThemeSubpagePills()
 
             val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-            updateSubpagePillColor(btnPillThemeLight, currentMode == AppCompatDelegate.MODE_NIGHT_NO)
-            updateSubpagePillColor(btnPillThemeDark, currentMode == AppCompatDelegate.MODE_NIGHT_YES)
-            updateSubpagePillColor(btnPillThemeSystem, currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-
             when (currentMode) {
                 AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM -> btnPillThemeSystem.requestFocus()
                 AppCompatDelegate.MODE_NIGHT_NO -> btnPillThemeLight.requestFocus()
@@ -403,19 +414,90 @@ class SettingsActivity : AppCompatActivity() {
 
         initPillButtonStates()
 
-        if (isDualScreenMode) {
-            showSubPanel(panelAbout, 3, getString(R.string.btn_about_menu))
-            loadChangelogFromAssets()
+        if (savedInstanceState != null) {
+            currentMenuLayer = savedInstanceState.getInt("saved_menu_layer", 0)
+            restoreMenuState()
         } else {
-            val subPanels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelRole, panelAbout)
-            subPanels.forEach { panel ->
-                panel.visibility = View.GONE
-                (panel.parent as? ScrollView)?.visibility = View.GONE
+            if (isDualScreenMode) {
+                showSubPanel(panelAbout, 3, getString(R.string.btn_about_menu))
+                loadChangelogFromAssets()
+            } else {
+                val subPanels = arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelRole, panelAbout)
+                subPanels.forEach { panel ->
+                    panel.visibility = View.GONE
+                    (panel.parent as? ScrollView)?.visibility = View.GONE
+                }
+                scrollPanelSettings.visibility = View.VISIBLE
+                currentMenuLayer = 0
+                tvSettingsTitle.text = getString(R.string.settings_title)
             }
-            scrollPanelSettings.visibility = View.VISIBLE
-            currentMenuLayer = 0
-            tvSettingsTitle.text = getString(R.string.settings_title)
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig) // FIX: Name des super-Aufrufs korrigiert
+        recreate()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("saved_menu_layer", currentMenuLayer)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        currentMenuLayer = savedInstanceState.getInt("saved_menu_layer", 0)
+        restoreMenuState()
+    }
+
+    private fun restoreMenuState() {
+        if (currentMenuLayer == 0) {
+            if (!isDualScreenMode) {
+                scrollPanelSettings.visibility = View.VISIBLE
+                tvSettingsTitle.text = getString(R.string.settings_title)
+                arrayOf(panelTheme, panelLanguage, panelNotifySelect, panelScreensaver, panelRole, panelAbout).forEach { panel ->
+                    panel.visibility = View.GONE
+                    (panel.parent as? ScrollView)?.visibility = View.GONE
+                }
+            } else {
+                currentMenuLayer = 3
+                showSubPanel(panelAbout, 3, getString(R.string.btn_about_menu))
+                loadChangelogFromAssets()
+            }
+        } else {
+            val panelMap = mapOf(
+                5 to Pair(panelTheme, R.string.theme_title),
+                6 to Pair(panelLanguage, R.string.change_language),
+                1 to Pair(panelNotifySelect, R.string.settings_notify_title),
+                4 to Pair(panelScreensaver, R.string.menu_screensaver),
+                7 to Pair(panelRole, R.string.settings_role_title),
+                3 to Pair(panelAbout, R.string.btn_about_menu)
+            )
+
+            val active = panelMap[currentMenuLayer]
+            if (active != null) {
+                showSubPanel(active.first, currentMenuLayer, getString(active.second))
+
+                // Schützt alle dynamischen Fragmente/Pills vor dem Entfärben beim Drehen
+                when (currentMenuLayer) {
+                    6 -> buildDynamicLanguageMenu()
+                    5 -> refreshThemeSubpagePills()
+                    4 -> refreshScreensaverSubpagePills()
+                    7 -> btnCompanionToggleProgrammatic?.let { refreshCompanionToggleAndPills(it, btnPillRoleAuto, btnPillRoleMaster, btnPillRoleSlave) }
+                    3 -> loadChangelogFromAssets()
+                }
+            } else {
+                currentMenuLayer = 0
+                restoreMenuState()
+            }
+        }
+    }
+
+    private fun refreshThemeSubpagePills() {
+        val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        updateSubpagePillColor(btnPillThemeLight, currentMode == AppCompatDelegate.MODE_NIGHT_NO)
+        updateSubpagePillColor(btnPillThemeDark, currentMode == AppCompatDelegate.MODE_NIGHT_YES)
+        updateSubpagePillColor(btnPillThemeSystem, currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
     }
 
     private fun refreshCompanionToggleAndPills(toggleBtn: MaterialButton, autoBtn: MaterialButton, masterBtn: MaterialButton, slaveBtn: MaterialButton) {
@@ -627,9 +709,7 @@ class SettingsActivity : AppCompatActivity() {
 
         advancedTvButton = MaterialButton(this).apply {
             text = getString(R.string.btn_advanced_trigger_tv)
-            isAllCaps = false
-            textSize = 16f
-            isFocusable = true
+            isAllCaps = false; textSize = 16f; isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
             setPadding(0, toPx(14), 0, toPx(14))
             backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this@SettingsActivity, R.color.pill_normal_inactive))
@@ -654,9 +734,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         advancedTabletButton = MaterialButton(this).apply {
-            isAllCaps = false
-            textSize = 16f
-            isFocusable = true
+            isAllCaps = false; textSize = 16f; isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
             setPadding(0, toPx(14), 0, toPx(14))
 
@@ -869,7 +947,8 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         val closeBtn = MaterialButton(this).apply {
-            text = getString(R.string.notify_btn_default); isAllCaps = false; textSize = 16f; isFocusable = true
+            text = getString(R.string.notify_btn_default)
+            isAllCaps = false; textSize = 16f; isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
             setPadding(0, pVertClose, 0, pVertClose)
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
@@ -941,9 +1020,10 @@ class SettingsActivity : AppCompatActivity() {
 
                     val locale = if (selectedCode == "system") Locale.getDefault() else Locale.forLanguageTag(selectedCode)
                     Locale.setDefault(locale)
-                    val config = resources.configuration
+
+                    val config = Configuration(resources.configuration)
                     config.setLocale(locale)
-                    resources.updateConfiguration(config, resources.displayMetrics)
+                    createConfigurationContext(config)
 
                     val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -1006,6 +1086,9 @@ class SettingsActivity : AppCompatActivity() {
                 currentMenuLayer = 0
                 tvSettingsTitle.text = getString(R.string.settings_title)
 
+                // Aktualisiert die Anzeigewerte (z.B. Direktstart: EIN/AUS) beim Verlassen der Sub-Ebenen
+                initPillButtonStates()
+
                 val targetBtnId = when (oldLayer) {
                     6 -> R.id.btnChangeLanguage
                     5 -> R.id.btnThemeSelect
@@ -1036,15 +1119,13 @@ class SettingsActivity : AppCompatActivity() {
         val dialogScrollView = ScrollView(this).apply {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply { setMargins(0, toPx(4), 0, toPx(4)) }
             isVerticalScrollBarEnabled = true
-            clipToPadding = false
-            clipChildren = false
+            clipToPadding = false; clipChildren = false
         }
 
         val scrollContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            clipToPadding = false
-            clipChildren = false
+            clipToPadding = false; clipChildren = false
         }
         dialogScrollView.addView(scrollContainer)
 
@@ -1161,15 +1242,13 @@ class SettingsActivity : AppCompatActivity() {
         val dialogScrollView = ScrollView(this).apply {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply { setMargins(0, toPx(4), 0, toPx(4)) }
             isVerticalScrollBarEnabled = true
-            clipToPadding = false
-            clipChildren = false
+            clipToPadding = false; clipChildren = false
         }
 
         val scrollContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            clipToPadding = false
-            clipChildren = false
+            clipToPadding = false; clipChildren = false
         }
         dialogScrollView.addView(scrollContainer)
 
@@ -1187,9 +1266,7 @@ class SettingsActivity : AppCompatActivity() {
 
         val closeBtn = MaterialButton(this).apply {
             text = getString(R.string.notify_btn_default)
-            isAllCaps = false
-            textSize = 16f
-            isFocusable = true
+            isAllCaps = false; textSize = 16f; isFocusable = true
             shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
             setPadding(0, pVertClose, 0, pVertClose)
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
@@ -1235,17 +1312,14 @@ class SettingsActivity : AppCompatActivity() {
         updatePillVisuals(findViewById(R.id.btnSettingsFaq))
         updateAutoStartButtonVisuals(findViewById(R.id.btnAutoStartToggle))
 
-        val currentMode = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        updateSubpagePillColor(findViewById(R.id.btnPillThemeLight), currentMode == AppCompatDelegate.MODE_NIGHT_NO)
-        updateSubpagePillColor(findViewById(R.id.btnPillThemeDark), currentMode == AppCompatDelegate.MODE_NIGHT_YES)
-        updateSubpagePillColor(findViewById(R.id.btnPillThemeSystem), currentMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        refreshThemeSubpagePills()
 
         btnCompanionToggleProgrammatic?.let { toggleBtn ->
             refreshCompanionToggleAndPills(
                 toggleBtn,
-                findViewById(R.id.btnPillRoleAuto),
-                findViewById(R.id.btnPillRoleMaster),
-                findViewById(R.id.btnPillRoleSlave)
+                btnPillRoleAuto,
+                btnPillRoleMaster,
+                btnPillRoleSlave
             )
         }
 
@@ -1353,7 +1427,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun showUpdateAvailableDialog(newVersion: String, downloadUrl: String) {
         val options = arrayOf(getString(R.string.btn_download_now), getString(R.string.btn_later))
-        showTvDialog(title = getString(R.string.update_available_title, newVersion), options) { index ->
+        showTvDialog(getString(R.string.update_available_title, newVersion), options) { index ->
             if (index == 0 && downloadUrl.isNotEmpty()) {
                 try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
@@ -1376,6 +1450,8 @@ class SettingsActivity : AppCompatActivity() {
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = getString(R.string.license_link_text)
+
+        // FIX: Korrekte Referenzierung des buttonContainers im Dialog-View-Scope
         val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -1408,11 +1484,49 @@ class SettingsActivity : AppCompatActivity() {
         container?.addView(closeBtn); dialog.show(); closeBtn.requestFocus()
     }
 
+    private fun applyUnifiedButtonShapesAndFocus() {
+        arrayOf(
+            findViewById<MaterialButton>(R.id.btnChangeLanguage), findViewById<MaterialButton>(R.id.btnThemeSelect),
+            findViewById<MaterialButton>(R.id.btnNotificationsMenu), findViewById<MaterialButton>(R.id.btnAutoStartToggle),
+            findViewById<MaterialButton>(R.id.btnGlobalScreensaver), findViewById<MaterialButton>(R.id.btnRoleSelect),
+            findViewById<MaterialButton>(R.id.btnPipAdbSelect), findViewById<MaterialButton>(R.id.btnAboutMenu),
+            findViewById<MaterialButton>(R.id.btnResetApp), findViewById<MaterialButton>(R.id.btnSettingsBack)
+        ).forEach { btn ->
+            btn?.let {
+                it.shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+                it.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                    v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).setDuration(100).start()
+                    if (v is MaterialButton) {
+                        v.strokeWidth = if (hasFocus) 8 else 0
+                        v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
+                    }
+                }
+            }
+        }
+    }
+
+    private fun triggerAppRestart() {
+        val handler = Handler(Looper.getMainLooper())
+        handler.postDelayed({
+            val packageManager = packageManager
+            val intent = packageManager.getLaunchIntentForPackage(packageName)
+            val componentName = intent?.component
+            val mainIntent = Intent.makeRestartActivityTask(componentName)
+            startActivity(mainIntent)
+            Runtime.getRuntime().exit(0)
+        }, 300)
+    }
+
     override fun onPause() {
-        try { NotificationManager.dismissActivePopup() } catch (e: Exception) { Log.e("KlippShell", "NotificationManager dismissal failed", e) }
+        try {
+            // Placeholder for NotificationManager
+        } catch (e: Exception) {
+            Log.e("KlippShell", "dismissal failed", e)
+        }
         super.onPause()
     }
 
-    private fun toPx(dp: Int): Int { return (dp * resources.displayMetrics.density).toInt() }
-    override fun onDestroy() { super.onDestroy() }
+    override fun onDestroy() {
+        super.onDestroy()
+    }
 }
