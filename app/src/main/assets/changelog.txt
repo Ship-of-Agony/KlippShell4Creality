@@ -1,4 +1,4 @@
-v0.9.150626-rc
+v0.9.170626-rc
 
 Fine-tuned Three.js camera view and centering for optimal Benchy alignment
 • Updated third-party open-source credits with 3D model and conversion tool attributions

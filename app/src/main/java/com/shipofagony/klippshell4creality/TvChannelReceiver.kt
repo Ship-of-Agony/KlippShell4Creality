@@ -15,7 +15,8 @@ class TvChannelReceiver : BroadcastReceiver() {
         if (intent.action == "android.media.tv.action.INITIALIZE_PROGRAMS") {
             Log.d("KlippShell", "TvChannelReceiver: INITIALIZE_PROGRAMS empfangen. Starte Kachel-Update...")
             try {
-                // Typisierte Instanziierung des Workers zur Ausführung eines sofortigen Updates
+                // FIX: Unterdrückt die Unchecked-Cast-Warnung für das dynamische Laden des TV-Workers
+                @Suppress("UNCHECKED_CAST")
                 val workerClass = Class.forName("com.shipofagony.klippshell4creality.KlipperTvWorker") as Class<out androidx.work.ListenableWorker>
                 WorkManager.getInstance(context.applicationContext).enqueue(
                     OneTimeWorkRequest.Builder(workerClass).build()

@@ -59,6 +59,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
 import android.content.SharedPreferences
+import java.net.DatagramPacket
+import java.net.DatagramSocket
 
 @Suppress("DEPRECATION", "Lint", "ClickableViewAccessibility", "SetJavaScriptEnabled", "SetTextI18n", "LocalSuppress")
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
@@ -170,6 +172,10 @@ class WebViewActivity : AppCompatActivity() {
 
     private var remoteServerJob: Job? = null
     private var remoteServerSocket: java.net.ServerSocket? = null
+
+    // Sockets für den neuen Auto-Discovery UDP-Server
+    private var udpDiscoveryJob: Job? = null
+    private var udpDiscoverySocket: DatagramSocket? = null
 
     private lateinit var prefs: SharedPreferences
     private var isActivityInForeground = false
@@ -336,7 +342,6 @@ class WebViewActivity : AppCompatActivity() {
             clipToOutline = true
         }
 
-        // FIX: Reicht den Fortschritt nach Beendigung des Ladevorgangs sofort initial an das 3D Hologramm weiter
         webView3D = WebView(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             setBackgroundColor(Color.TRANSPARENT)
@@ -726,6 +731,7 @@ class WebViewActivity : AppCompatActivity() {
         btnClose.setOnClickListener { finish() }
 
         startRemoteServerSocket()
+        startUdpDiscoveryServer() // Startet den asynchronen UDP-Erkennungs-Dienst
     }
 
     private fun resetInactivityTimer() {
@@ -1342,7 +1348,6 @@ class WebViewActivity : AppCompatActivity() {
                 if (thumbnailBitmap != null) {
                     clipDrawable?.level = (progress * 10000).toInt()
                 } else {
-                    // FIX: Reicht den Live-Fortschritt kontinuierlich an das rotierende 3D Hologramm weiter
                     val progressFloat = progress.coerceIn(0.0, 1.0)
                     webView3D?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress($progressFloat);", null)
                 }
@@ -1359,7 +1364,6 @@ class WebViewActivity : AppCompatActivity() {
                     setupProgressThumbnailDrawables(null)
                 }
 
-                // FIX: Setzt das 3D Hologramm außerhalb des Drucks (Standby) dauerhaft auf 100% gefüllt zurück
                 webView3D?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress(1.0);", null)
 
                 if (tView != null) {
@@ -1711,6 +1715,67 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
+    // NEW: Hintergrund-Dienst lauscht auf UDP-Pings für die automatische IP-Erkennung im WLAN
+    private fun startUdpDiscoveryServer() {
+        val role = prefs.getString("app_device_role", "auto") ?: "auto"
+        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as? android.app.UiModeManager
+        val isTv = uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+
+        if (role == "slave") return
+        if (role == "auto" && !isTv) return
+
+        udpDiscoveryJob?.cancel()
+        udpDiscoveryJob = lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                udpDiscoverySocket = DatagramSocket(9998).apply { reuseAddress = true }
+                val buffer = ByteArray(1024)
+
+                while (isActive) {
+                    val packet = DatagramPacket(buffer, buffer.size)
+                    udpDiscoverySocket?.receive(packet)
+
+                    val requestMsg = String(packet.data, 0, packet.length, Charsets.UTF_8).trim()
+                    if (requestMsg == "DISCOVER_KLIPPSHELL_MASTER") {
+                        // Der TV sendet als Antwort seine IP verschachtelt im JSON-Format zurück
+                        val currentIp = hostIp.takeIf { it.isNotEmpty() } ?: "127.0.0.1"
+                        val currentPort = Uri.parse(currentActiveUrl).port.takeIf { it != -1 }?.toString() ?: "7125"
+                        val printersJson = prefs.getString("printers_list", "[]") ?: "[]"
+
+                        var modelName = "Standard Drucker"
+                        var printerName = "KlippShell TV"
+
+                        try {
+                            val arr = org.json.JSONArray(printersJson)
+                            if (arr.length() > 0) {
+                                val obj = arr.getJSONObject(0)
+                                modelName = obj.optString("model", "Standard Drucker")
+                                printerName = obj.optString("name", "KlippShell TV")
+                            }
+                        } catch (_: Exception) {}
+
+                        val responseJson = org.json.JSONObject().apply {
+                            put("ip", currentIp)
+                            put("port", currentPort)
+                            put("model", modelName)
+                            put("name", printerName)
+                        }
+
+                        val responseData = responseJson.toString().toByteArray(Charsets.UTF_8)
+                        val responsePacket = DatagramPacket(
+                            responseData,
+                            responseData.size,
+                            packet.address,
+                            packet.port
+                        )
+                        udpDiscoverySocket?.send(responsePacket)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("KlippShell", "UDP Auto Discovery Server Error", e)
+            }
+        }
+    }
+
     private fun handleRemoteCommand(command: String) {
         lifecycleScope.launch(Dispatchers.Main) {
             if (isFinishing || isDestroyed) return@launch
@@ -1838,6 +1903,8 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        udpDiscoveryJob?.cancel()
+        try { udpDiscoverySocket?.close() } catch (_: Exception) {}
         stopRemoteServerSocket()
         stopOsdPolling()
         screensaverHandler.removeCallbacks(startScreensaverRunnable)
