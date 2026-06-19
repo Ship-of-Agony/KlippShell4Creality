@@ -173,7 +173,6 @@ class WebViewActivity : AppCompatActivity() {
     private var remoteServerJob: Job? = null
     private var remoteServerSocket: java.net.ServerSocket? = null
 
-    // Sockets für den neuen Auto-Discovery UDP-Server
     private var udpDiscoveryJob: Job? = null
     private var udpDiscoverySocket: DatagramSocket? = null
 
@@ -329,6 +328,7 @@ class WebViewActivity : AppCompatActivity() {
         defaultScreensaverDrawable = ivScreensaverLogo.drawable
 
         isThumbnailEnabled = prefs.getBoolean("thumbnail_enabled_$hostIp", true)
+
         val thumbLayout = FrameLayout(this).apply {
             id = thumbContainerId
             visibility = View.GONE
@@ -340,12 +340,20 @@ class WebViewActivity : AppCompatActivity() {
                 setColor(Color.parseColor("#00000000"))
             }
             clipToOutline = true
+            isClickable = false
+            isFocusable = false
         }
 
+        // Isolierte 3D-WebView Umgebung (Mit Hardware-Rendering für flüssiges WebGL)
         webView3D = WebView(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             setBackgroundColor(Color.TRANSPARENT)
+
             setLayerType(View.LAYER_TYPE_HARDWARE, null)
+
+            isFocusable = false
+            isClickable = false
+            isFocusableInTouchMode = false
 
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -355,12 +363,17 @@ class WebViewActivity : AppCompatActivity() {
                 }
             }
 
+            // Extreme Settings-Diät, um Video-Konflikte trotz Hardware-Modus zu verhindern
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = true
             settings.allowContentAccess = true
             settings.allowFileAccessFromFileURLs = true
             settings.allowUniversalAccessFromFileURLs = true
+
+            // Verhindert das Laden von externen Medien, schützt die Render-Pipeline des Videos
+            settings.blockNetworkImage = true
+            settings.loadsImagesAutomatically = false
         }
 
         ivThumbBackground = ImageView(this).apply {
@@ -377,9 +390,12 @@ class WebViewActivity : AppCompatActivity() {
         thumbLayout.addView(ivThumbForeground)
         rootLayout?.addView(thumbLayout)
 
+        // Z-INDEX ORDNUNG: Buttons und OSD liegen sicher über dem Benchy und dem Video!
+        thumbLayout.apply { isClickable = false; isFocusable = false }
         layoutWebButtons.bringToFront()
         layoutOsd.bringToFront()
         layoutOsdBanner.bringToFront()
+        layoutScrollRight.bringToFront()
 
         layoutScreensaver.setOnClickListener {
             if (layoutScreensaver.visibility == View.VISIBLE) {
@@ -731,7 +747,7 @@ class WebViewActivity : AppCompatActivity() {
         btnClose.setOnClickListener { finish() }
 
         startRemoteServerSocket()
-        startUdpDiscoveryServer() // Startet den asynchronen UDP-Erkennungs-Dienst
+        startUdpDiscoveryServer()
     }
 
     private fun resetInactivityTimer() {
@@ -841,7 +857,7 @@ class WebViewActivity : AppCompatActivity() {
             if (lp != null) {
                 if (isCameraMode) {
                     lp.dimensionRatio = when (currentAspectRatioPercent) { 75.0f -> "H,4:3"; 100.0f -> "H,1:1"; else -> "H,16:9" }
-                    lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT
+                    lp.width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
                     lp.height = 0
                 } else {
                     lp.dimensionRatio = null
@@ -991,10 +1007,6 @@ class WebViewActivity : AppCompatActivity() {
         } catch (e: Exception) { cachedMoonrakerUrl = null }
     }
 
-    private fun suspend_fetchMoonrakerData() { // Wrapper
-        lifecycleScope.launch(Dispatchers.IO) { fetchMoonrakerData() }
-    }
-
     private suspend fun fetchMoonrakerData() {
         val targetUrl = cachedMoonrakerUrl ?: return
         var conn: HttpURLConnection? = null
@@ -1060,15 +1072,10 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun showCenteredPillToast(message: String) {
         val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
-
-        val backgroundColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
-        val textColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
-
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val pillView = TextView(this).apply {
-            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(textColor)
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE; cornerRadius = 100f; setColor(backgroundColor); setStroke(4, textColor)
-            }
+            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+            background = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 100f; setColor(Color.parseColor(if (isNight) "#252B2E" else "#FFFFFF")); setStroke(4, Color.parseColor(if (isNight) "#FFFFFF" else "#BDBDBD")) }
             setPadding(50, 35, 50, 35)
         }
         val container = FrameLayout(this).apply { addView(pillView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; setMargins(50, 0, 50, 240) }) }
@@ -1089,22 +1096,8 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun applySeichterOsdBackground() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
-        val mainBgColor = if (isNight) Color.parseColor("#BF1C1C1E") else Color.parseColor("#A6FFFFFF")
-        val borderStrokeColor = if (isNight) Color.parseColor("#40FFFFFF") else Color.parseColor("#66888888")
-
-        val bg = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = 24f
-            setColor(mainBgColor)
-            setStroke(3, borderStrokeColor)
-        }
-
-        layoutOsd.background = bg
-        layoutOsdBanner.background = bg
-
-        layoutOsd.elevation = 16f
-        layoutOsdBanner.elevation = 16f
+        val bg = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 24f; setColor(Color.parseColor(if (isNight) "#B3212529" else "#73FAFAFA")); setStroke(3, Color.parseColor(if (isNight) "#40FFFFFF" else "#33000000")) }
+        layoutOsd.background = bg; layoutOsdBanner.background = bg
     }
 
     private fun resetPrintTriggers() {
@@ -1184,8 +1177,16 @@ class WebViewActivity : AppCompatActivity() {
             btnMenu.text = "≡"; btnMenu.setTextSize(TypedValue.COMPLEX_UNIT_SP, 26f)
             btnMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#424242"))
             btnToggle.text = "⇄"
+
             val lp = webView?.layoutParams as? ConstraintLayout.LayoutParams
-            if (lp != null) { lp.dimensionRatio = when (paddingTopPercent) { 75.0f -> "H,4:3"; 100.0f -> "H,1:1"; else -> "H,16:9" }; lp.width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT; lp.height = 0; lp.topToTop = ConstraintLayout.LayoutParams.PARENT_ID; lp.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID; webView?.layoutParams = lp }
+            if (lp != null) {
+                lp.dimensionRatio = when (paddingTopPercent) { 75.0f -> "H,4:3"; 100.0f -> "H,1:1"; else -> "H,16:9" }
+                lp.width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
+                lp.height = 0
+                lp.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                lp.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                webView?.layoutParams = lp
+            }
 
             setupProgressThumbnailDrawables(thumbnailBitmap)
         } else {
@@ -1225,12 +1226,6 @@ class WebViewActivity : AppCompatActivity() {
 
             val progress = lastProgressPercent.coerceIn(0.0, 1.0)
             clip.level = (progress * 10000).toInt()
-
-            if (isThumbnailEnabled && isCameraMode && !isInPiP) {
-                tView?.visibility = View.VISIBLE
-            } else {
-                tView?.visibility = View.GONE
-            }
         } else {
             ivThumbBackground?.visibility = View.GONE
             ivThumbForeground?.visibility = View.GONE
@@ -1238,17 +1233,21 @@ class WebViewActivity : AppCompatActivity() {
             ivThumbForeground?.setImageDrawable(null)
             this.clipDrawable = null
 
+            // IMMER SICHTBAR IM VIDEO MODUS: Zeigt das rotierende Modell
             webView3D?.visibility = View.VISIBLE
             if (!isBenchyShowing) {
                 isBenchyShowing = true
                 webView3D?.loadUrl("file:///android_asset/benchy.html")
             }
 
-            if (isThumbnailEnabled && isCameraMode && !isInPiP) {
-                tView?.visibility = View.VISIBLE
-            } else {
-                tView?.visibility = View.GONE
-            }
+            val progressFloat = if (lastPrintState == "printing" || lastPrintState == "complete") lastProgressPercent.coerceIn(0.0, 1.0) else 1.0
+            webView3D?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress($progressFloat);", null)
+        }
+
+        if (isThumbnailEnabled && isCameraMode && !isInPiP) {
+            tView?.visibility = View.VISIBLE
+        } else {
+            tView?.visibility = View.GONE
         }
         applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
     }
@@ -1542,7 +1541,7 @@ class WebViewActivity : AppCompatActivity() {
             }
         }
 
-        if (isThumbnailEnabled && isCameraMode && (thumbnailBitmap != null || lastPrintState == "printing" || lastPrintState != "printing")) {
+        if (isThumbnailEnabled && isCameraMode) {
             constraintSet.constrainWidth(thumbContainerId, (120 * resources.displayMetrics.density).toInt())
             constraintSet.constrainHeight(thumbContainerId, (120 * resources.displayMetrics.density).toInt())
             if (osdStyle == "banner") {
@@ -1715,7 +1714,6 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
-    // NEW: Hintergrund-Dienst lauscht auf UDP-Pings für die automatische IP-Erkennung im WLAN
     private fun startUdpDiscoveryServer() {
         val role = prefs.getString("app_device_role", "auto") ?: "auto"
         val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as? android.app.UiModeManager
@@ -1736,7 +1734,6 @@ class WebViewActivity : AppCompatActivity() {
 
                     val requestMsg = String(packet.data, 0, packet.length, Charsets.UTF_8).trim()
                     if (requestMsg == "DISCOVER_KLIPPSHELL_MASTER") {
-                        // Der TV sendet als Antwort seine IP verschachtelt im JSON-Format zurück
                         val currentIp = hostIp.takeIf { it.isNotEmpty() } ?: "127.0.0.1"
                         val currentPort = Uri.parse(currentActiveUrl).port.takeIf { it != -1 }?.toString() ?: "7125"
                         val printersJson = prefs.getString("printers_list", "[]") ?: "[]"

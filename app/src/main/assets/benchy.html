@@ -17,6 +17,7 @@
             background: transparent;
         }
     </style>
+    <!-- Nutzt die originalen Bibliotheken -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
@@ -25,9 +26,10 @@
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-    // Deine eingestellten Wunsch-Werte für Abstand und Höhe
+    // Deine originalen Wunsch-Werte für Abstand und Höhe
     camera.position.set(0, 10, 85);
 
+    // FIX: Antialiasing eingeschaltet (true) und native Pixeldichte wiederhergestellt für gestochen scharfe Kanten!
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -36,11 +38,9 @@
 
     renderer.localClippingEnabled = true;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
+    // Einfaches Umgebungslicht (Reicht völlig aus und kostet fast 0 Leistung)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
     scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
-    dirLight.position.set(20, 40, 20);
-    scene.add(dirLight);
 
     const pivotGroup = new THREE.Group();
     scene.add(pivotGroup);
@@ -53,7 +53,6 @@
     const loader = new THREE.GLTFLoader();
     loader.load('benchy_boat.glb', function (gltf) {
         const solidModel = gltf.scene;
-
         solidModel.updateMatrixWorld(true);
 
         const box = new THREE.Box3();
@@ -78,41 +77,22 @@
 
         solidModel.traverse(function (child) {
             if (child.isMesh) {
-                child.material = child.material.clone();
-                child.material.clippingPlanes = [ localPlane ];
-                child.material.clipShadows = true;
-
-                // TRANSPARENZ-REGLER FÜR DAS FESTE BOOT:
-                child.material.transparent = true;
-                child.material.opacity = 0.75; // 1.0 = voll massiv | 0.0 = unsichtbar
-            }
-        });
-
-        const wireframeOffsetGroup = new THREE.Group();
-        const wireframeModel = solidModel.clone();
-        wireframeOffsetGroup.position.set(-center.x, -center.y, -center.z);
-        wireframeOffsetGroup.add(wireframeModel);
-
-        wireframeModel.traverse(function (child) {
-            if (child.isMesh) {
-                child.material = new THREE.MeshBasicMaterial({
-                    color: 0x00E5FF,
-                    wireframe: true,
+                // Extrem schnelles Material ohne schwere Shader-Berechnungen
+                child.material = new THREE.MeshLambertMaterial({
+                    color: 0x00E5FF,             // Schickes KlippShell-Cyan
+                    clippingPlanes: [localPlane],
                     transparent: true,
-                    // TRANSPARENZ-REGLER FÜR DAS NEON-GITTER:
-                    opacity: 0.10, // Von 0.15 auf 0.08 gesenkt für dezentere Linien
-                    blending: THREE.AdditiveBlending
+                    opacity: 0.80,               // Schön dezent transparent über dem Video
+                    side: THREE.DoubleSide       // Sorgt dafür, dass man das Boot auch von innen sieht
                 });
-                child.material.clippingPlanes = [];
             }
         });
 
-        pivotGroup.add(wireframeOffsetGroup);
+        // Einzelnes Modell spart 50% Rechenlast auf der Box!
         pivotGroup.add(solidOffsetGroup);
 
         // Dein Wunsch-Höhenwert -4
         camera.lookAt(0, -4, 0);
-
         updatePlaneConstant();
     });
 
@@ -125,6 +105,7 @@
     function animate() {
         requestAnimationFrame(animate);
         if (pivotGroup) {
+            // Rotiert gemütlich im Hintergrund
             pivotGroup.rotation.y -= 0.003;
         }
         renderer.render(scene, camera);
