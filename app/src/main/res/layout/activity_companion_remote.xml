@@ -13,11 +13,12 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:padding="16dp"
         android:clipChildren="false"
         android:clipToPadding="false">
 
+        <!-- UNIFIED TOP BAR -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRemoteEstop"
             android:layout_width="44dp"
@@ -109,6 +110,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/btnRemoteEstop" />
 
+        <!-- Statusverbindung -->
         <TextView
             android:id="@+id/tvRemoteStatus"
             android:layout_width="wrap_content"
@@ -122,6 +124,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/etTargetTvIp" />
 
+        <!-- RESPONSIVER STEUERCONTAINER (4:3 Ratio) -->
         <FrameLayout
             android:id="@+id/morphingFrameContainer"
             android:layout_width="0dp"
@@ -133,22 +136,24 @@
             app:layout_constraintTop_toBottomOf="@+id/tvRemoteStatus"
             app:layout_constraintWidth_percent="0.85">
 
+            <!-- HAUPT-DPAD: Maximal vergrößert auf 276dp Durchmesser -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layoutDpadZone"
-                android:layout_width="220dp"
-                android:layout_height="220dp"
+                android:layout_width="276dp"
+                android:layout_height="276dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_dpad_outer"
                 android:backgroundTint="@color/pill_normal_inactive"
-                android:padding="6dp">
+                android:padding="8dp">
 
+                <!-- Zentraler OK Button (Satt vergrößert auf 96dp) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnRemoteOk"
-                    android:layout_width="76dp"
-                    android:layout_height="76dp"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
                     android:text="OK"
                     android:textColor="#FFFFFF"
-                    android:textSize="16sp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:gravity="center"
                     android:padding="0dp"
@@ -160,19 +165,20 @@
                     app:backgroundTint="#424242"
                     app:strokeWidth="2dp"
                     app:strokeColor="#616161"
-                    app:cornerRadius="38dp"
+                    app:cornerRadius="48dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <!-- Segment Oben -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnRemoteUp"
-                    android:layout_width="60dp"
-                    android:layout_height="50dp"
+                    android:layout_width="80dp"
+                    android:layout_height="64dp"
                     android:text="▲"
                     android:textColor="#424242"
-                    android:textSize="16sp"
+                    android:textSize="20sp"
                     android:padding="0dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
@@ -183,13 +189,14 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <!-- Segment Unten -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnRemoteDown"
-                    android:layout_width="60dp"
-                    android:layout_height="50dp"
+                    android:layout_width="80dp"
+                    android:layout_height="64dp"
                     android:text="▼"
                     android:textColor="#424242"
-                    android:textSize="16sp"
+                    android:textSize="20sp"
                     android:padding="0dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
@@ -200,13 +207,14 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/btnRemoteOk" />
 
+                <!-- Segment Links -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnRemoteLeft"
-                    android:layout_width="50dp"
-                    android:layout_height="60dp"
+                    android:layout_width="64dp"
+                    android:layout_height="80dp"
                     android:text="◀"
                     android:textColor="#424242"
-                    android:textSize="16sp"
+                    android:textSize="20sp"
                     android:padding="0dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
@@ -217,13 +225,14 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <!-- Segment Rechts -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnRemoteRight"
-                    android:layout_width="50dp"
-                    android:layout_height="60dp"
+                    android:layout_width="64dp"
+                    android:layout_height="80dp"
                     android:text="▶"
                     android:textColor="#424242"
-                    android:textSize="16sp"
+                    android:textSize="20sp"
                     android:padding="0dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
@@ -235,6 +244,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- TOUCHPAD: Padding auf 125dp erhöht für eine ultrakleine Bildanzeige -->
             <FrameLayout
                 android:id="@+id/layoutTouchZone"
                 android:layout_width="match_parent"
@@ -248,7 +258,7 @@
                     android:src="@drawable/touchme"
                     android:tint="#808080"
                     android:scaleType="fitCenter"
-                    android:padding="56dp"
+                    android:padding="125dp"
                     android:clickable="true"
                     android:focusable="true"
                     tools:ignore="UseAppTint" />
@@ -315,6 +325,7 @@
             </FrameLayout>
         </FrameLayout>
 
+        <!-- PILLEN-UMSCHALTER -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnToggleTouchMode"
             android:layout_width="54dp"
@@ -338,12 +349,13 @@
             app:layout_constraintTop_toTopOf="@+id/morphingFrameContainer"
             app:layout_constraintVertical_bias="0.5" />
 
+        <!-- Funktionstasten Stream & Layout -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRemoteStream"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="6dp"
             android:padding="0dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
@@ -361,14 +373,14 @@
             app:strokeColor="#33FFFFFF"
             app:layout_constraintEnd_toStartOf="@+id/btnRemoteLayout"
             app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/morphingFrameContainer"
             app:layout_constraintTop_toBottomOf="@+id/morphingFrameContainer" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRemoteLayout"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:padding="0dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
@@ -385,17 +397,18 @@
             app:strokeWidth="1.5dp"
             app:strokeColor="#33FFFFFF"
             app:layout_constraintBottom_toBottomOf="@+id/btnRemoteStream"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/morphingFrameContainer"
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toEndOf="@+id/btnRemoteStream"
             app:layout_constraintTop_toTopOf="@+id/btnRemoteStream" />
 
+        <!-- OSD SEKTION -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRemoteBar"
             android:layout_width="0dp"
             android:layout_height="38dp"
             android:layout_marginTop="10dp"
-            android:layout_marginEnd="6dp"
+            android:layout_marginEnd="4dp"
             android:padding="0dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
@@ -413,15 +426,15 @@
             app:strokeColor="#33FFFFFF"
             app:layout_constraintEnd_toStartOf="@+id/btnRemotePip"
             app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/morphingFrameContainer"
             app:layout_constraintTop_toBottomOf="@+id/btnRemoteStream" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRemotePip"
             android:layout_width="0dp"
             android:layout_height="38dp"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="6dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:padding="0dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
@@ -439,7 +452,7 @@
             app:strokeColor="#33FFFFFF"
             app:layout_constraintBottom_toBottomOf="@+id/btnRemoteBar"
             app:layout_constraintEnd_toStartOf="@+id/btnRemoteBox"
-            app:layout_constraintHorizontal_weight="1.1"
+            app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toEndOf="@+id/btnRemoteBar"
             app:layout_constraintTop_toTopOf="@+id/btnRemoteBar" />
 
@@ -447,7 +460,7 @@
             android:id="@+id/btnRemoteBox"
             android:layout_width="0dp"
             android:layout_height="38dp"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="4dp"
             android:padding="0dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
@@ -464,7 +477,7 @@
             app:strokeWidth="1.5dp"
             app:strokeColor="#33FFFFFF"
             app:layout_constraintBottom_toBottomOf="@+id/btnRemoteBar"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/morphingFrameContainer"
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toEndOf="@+id/btnRemotePip"
             app:layout_constraintTop_toTopOf="@+id/btnRemoteBar" />
@@ -481,11 +494,13 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnRemoteBar" />
 
+        <!-- UNTERE FUNKTIONSTASTEN -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRemoteZoomIn"
-            android:layout_width="74dp"
+            android:layout_width="0dp"
             android:layout_height="38dp"
             android:layout_marginTop="12dp"
+            android:layout_marginEnd="6dp"
             android:padding="0dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
@@ -501,12 +516,14 @@
             app:cornerRadius="19dp"
             app:strokeWidth="1dp"
             app:strokeColor="#22FFFFFF"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/secDpadContainer"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toStartOf="@+id/morphingFrameContainer"
             app:layout_constraintTop_toBottomOf="@+id/tvSecDpadTitle" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRemoteHome"
-            android:layout_width="74dp"
+            android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_marginTop="8dp"
             android:padding="0dp"
@@ -522,9 +539,11 @@
             app:iconGravity="textStart"
             app:backgroundTint="#E53935"
             app:cornerRadius="20dp"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/btnRemoteZoomIn"
+            app:layout_constraintStart_toStartOf="@+id/btnRemoteZoomIn"
             app:layout_constraintTop_toBottomOf="@+id/btnRemoteZoomIn" />
 
+        <!-- UNTERES OSD-DPAD -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/secDpadContainer"
             android:layout_width="100dp"
@@ -605,8 +624,9 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRemoteZoomOut"
-            android:layout_width="74dp"
+            android:layout_width="0dp"
             android:layout_height="38dp"
+            android:layout_marginStart="6dp"
             android:padding="0dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
@@ -622,12 +642,14 @@
             app:cornerRadius="19dp"
             app:strokeWidth="1dp"
             app:strokeColor="#22FFFFFF"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/morphingFrameContainer"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintStart_toEndOf="@+id/secDpadContainer"
             app:layout_constraintTop_toTopOf="@+id/btnRemoteZoomIn" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRemoteCamera"
-            android:layout_width="74dp"
+            android:layout_width="0dp"
             android:layout_height="40dp"
             android:padding="0dp"
             android:insetTop="0dp"
@@ -644,9 +666,11 @@
             app:cornerRadius="20dp"
             app:strokeWidth="1dp"
             app:strokeColor="#22FFFFFF"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/btnRemoteZoomOut"
+            app:layout_constraintStart_toStartOf="@+id/btnRemoteZoomOut"
             app:layout_constraintTop_toTopOf="@+id/btnRemoteHome" />
 
+        <!-- Live-Status Drucker -->
         <TextView
             android:id="@+id/tvFooterInfo"
             android:layout_width="match_parent"
