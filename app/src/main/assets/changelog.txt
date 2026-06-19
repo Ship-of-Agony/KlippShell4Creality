@@ -1,3 +1,9 @@
+v0.9.1.190626-rc
+
+• Added TV search dialog for model selection
+• Tolerant G-code/model search implemented
+• Memory polling optimized for Moonraker
+
 v0.9.170626-rc
 
 Fine-tuned Three.js camera view and centering for optimal Benchy alignment

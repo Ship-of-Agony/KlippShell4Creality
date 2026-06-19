@@ -15,6 +15,7 @@ import android.text.method.DigitsKeyListener
 import android.util.Log
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
@@ -22,6 +23,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -78,6 +80,15 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private var btnRemoteSecLeft: MaterialButton? = null
     private var btnRemoteSecRight: MaterialButton? = null
 
+    private lateinit var layoutDpadZone: ViewGroup
+    private lateinit var layoutTouchZone: ViewGroup
+
+    private lateinit var viewTouchPadField: View
+    private lateinit var btnTouchBack: MaterialButton
+    private lateinit var btnTouchReturnDpad: MaterialButton
+    private lateinit var btnTouchOk: MaterialButton
+    private lateinit var btnToggleTouchMode: MaterialButton
+
     private var targetMasterIp: String = ""
     private var connectionJob: Job? = null
     private var isConnected = false
@@ -86,6 +97,10 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private var isOsdOn = false
     private var isPipMode = false
     private var currentOsdStyle = "box"
+
+    private var lastTouchX = 0f
+    private var lastTouchY = 0f
+    private var isTouchModeActive = false
 
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -114,7 +129,6 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         setContentView(R.layout.activity_companion_remote)
 
@@ -134,6 +148,8 @@ class CompanionRemoteActivity : AppCompatActivity() {
         refreshOsdDependentUi()
         applyFloatingBenchyBackground()
         applyDynamicVignetteBorder()
+
+        setTouchMode(false)
 
         val deviceRole = prefs.getString("app_device_role", "auto") ?: "auto"
         if (targetMasterIp.isEmpty() || deviceRole == "auto") {
@@ -174,63 +190,28 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteSecLeft = findViewById(resources.getIdentifier("btnRemoteSecLeft", "id", packageName))
         btnRemoteSecRight = findViewById(resources.getIdentifier("btnRemoteSecRight", "id", packageName))
 
+        layoutDpadZone = findViewById(R.id.layoutDpadZone)
+        layoutTouchZone = findViewById(R.id.layoutTouchZone)
+
+        viewTouchPadField = findViewById(R.id.viewTouchPadField)
+        btnTouchBack = findViewById(R.id.btnTouchBack)
+        btnTouchReturnDpad = findViewById(R.id.btnTouchReturnDpad)
+        btnTouchOk = findViewById(R.id.btnTouchOk)
+        btnToggleTouchMode = findViewById(R.id.btnToggleTouchMode)
+
         etTargetTvIp.keyListener = DigitsKeyListener.getInstance("0123456789.")
         updatePrinterNameDisplay("offline")
 
-        try {
-            val bubbleContainer = etTargetTvIp.parent as? ViewGroup
-            if (bubbleContainer != null) {
-                val grandParent = bubbleContainer.parent as? ViewGroup
-                if (grandParent != null && bubbleContainer.id != android.R.id.content) {
-                    val density = resources.displayMetrics.density
-                    val originalIndex = grandParent.indexOfChild(bubbleContainer)
-                    val originalParams = bubbleContainer.layoutParams
-                    val originalId = bubbleContainer.id
+        val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val strokeColor = if (isNightMode) Color.parseColor("#33FFFFFF") else Color.parseColor("#1A000000")
 
-                    val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
-                    val tvIpLabel = TextView(this).apply {
-                        text = "TV IP"
-                        textSize = 14f
-                        setTextColor(if (isNightMode) Color.parseColor("#B0FFFFFF") else Color.parseColor("#8A000000"))
-                        gravity = Gravity.CENTER
-                        setTypeface(null, android.graphics.Typeface.BOLD)
-                    }
-
-                    val wrapperLayout = LinearLayout(this).apply {
-                        orientation = LinearLayout.VERTICAL
-                        gravity = Gravity.CENTER_HORIZONTAL
-                        layoutParams = originalParams
-                        if (originalId != View.NO_ID) {
-                            id = originalId
-                        }
-                    }
-
-                    bubbleContainer.id = View.generateViewId()
-                    grandParent.removeView(bubbleContainer)
-
-                    val labelParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        topMargin = (24 * density).toInt()
-                        bottomMargin = (10 * density).toInt()
-                    }
-                    tvIpLabel.layoutParams = labelParams
-
-                    bubbleContainer.layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-
-                    wrapperLayout.addView(tvIpLabel)
-                    wrapperLayout.addView(bubbleContainer)
-                    grandParent.addView(wrapperLayout, originalIndex)
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("KlippShell", "Wrapper Label Injektion fehlgeschlagen", e)
+        val touchBackground = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 48f
+            setColor(ContextCompat.getColor(this@CompanionRemoteActivity, R.color.pill_normal_inactive))
+            setStroke(3, strokeColor)
         }
+        viewTouchPadField.background = touchBackground
     }
 
     private fun updatePrinterNameDisplay(state: String, fetchedModel: String? = null, fetchedName: String? = null) {
@@ -252,18 +233,14 @@ class CompanionRemoteActivity : AppCompatActivity() {
         val localDisplay = if (localPrinterName.isNotEmpty()) "$localPrinterName ($localModelName)" else localModelName
 
         when (state) {
-            "connecting" -> {
-                tvFooterInfo.text = getString(R.string.remote_footer_connecting)
-            }
+            "connecting" -> tvFooterInfo.text = getString(R.string.remote_footer_connecting)
             "online" -> {
                 val model = fetchedModel ?: localModelName
                 val name = fetchedName ?: localPrinterName
                 val liveDisplay = if (!name.isNullOrEmpty()) "$name ($model)" else model
                 tvFooterInfo.text = getString(R.string.remote_footer_online, liveDisplay)
             }
-            else -> {
-                tvFooterInfo.text = getString(R.string.remote_footer_offline, localDisplay)
-            }
+            else -> tvFooterInfo.text = getString(R.string.remote_footer_offline, localDisplay)
         }
     }
 
@@ -276,10 +253,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
         connectionJob = lifecycleScope.launch(Dispatchers.IO) {
             var datagramSocket: DatagramSocket? = null
             try {
-                datagramSocket = DatagramSocket().apply {
-                    soTimeout = 2500
-                    broadcast = true
-                }
+                datagramSocket = DatagramSocket().apply { soTimeout = 2500; broadcast = true }
                 val requestData = "DISCOVER_KLIPPSHELL_MASTER".toByteArray(Charsets.UTF_8)
                 val broadcastPacket = DatagramPacket(requestData, requestData.size, InetAddress.getByName("255.255.255.255"), 9998)
                 datagramSocket.send(broadcastPacket)
@@ -308,11 +282,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
                     return@launch
                 }
             } catch (e: Exception) {
-                Log.d("KlippShell", "Auto Discovery passiv abgelaufen, prüfe Fallback-IP")
+                Log.d("KlippShell", "Auto Discovery passiv abgelaufen")
             } finally {
-                try {
-                    datagramSocket?.close()
-                } catch (_: Exception) {}
+                try { datagramSocket?.close() } catch (_: Exception) {}
             }
 
             if (targetMasterIp.isNotEmpty()) {
@@ -334,24 +306,13 @@ class CompanionRemoteActivity : AppCompatActivity() {
             val inflatedLayout = rootContent?.getChildAt(0) as? ViewGroup
 
             if (rootContent != null && inflatedLayout != null) {
-                val benchyView = ImageView(this).apply {
-                    setImageResource(R.drawable.benchy_boat)
-                    alpha = 0.06f
-                }
-
+                val benchyView = ImageView(this).apply { setImageResource(R.drawable.benchy_boat); alpha = 0.06f }
                 val originalXmlBg = inflatedLayout.background
-                if (originalXmlBg != null) {
-                    rootContent.background = originalXmlBg
-                    inflatedLayout.background = null
-                }
-
+                if (originalXmlBg != null) { rootContent.background = originalXmlBg; inflatedLayout.background = null }
                 rootContent.addView(benchyView, 0)
 
                 lifecycleScope.launch(Dispatchers.Main) {
-                    while (rootContent.width == 0 || rootContent.height == 0) {
-                        delay(30)
-                    }
-
+                    while (rootContent.width == 0 || rootContent.height == 0) delay(30)
                     val containerW = rootContent.width
                     val containerH = rootContent.height
                     val boatSize = (containerW * 0.45f).toInt()
@@ -365,15 +326,14 @@ class CompanionRemoteActivity : AppCompatActivity() {
                     while (isActive) {
                         val currentW = rootContent.width
                         val currentH = rootContent.height
-
                         posX += speedX
                         posY += speedY
 
                         if (posX <= 0f) { speedX = abs(speedX); posX = 0f; benchyView.scaleX = 1f }
-                        else if (posX + boatSize >= currentW) { speedX = -abs(speedX); posX = (currentW - boatSize).toFloat(); benchyView.scaleX = -1f }
+                        else if (posX + boatSize >= currentW) { speedX = -abs(speedX); posX = (containerW - boatSize).toFloat(); benchyView.scaleX = -1f }
 
                         if (posY <= 0f) { speedY = abs(speedY); posY = 0f }
-                        else if (posY + boatSize >= currentH) { speedY = -abs(speedY); posY = (currentH - boatSize).toFloat() }
+                        else if (posY + boatSize >= currentH) { speedY = -abs(speedY); posY = (containerH - boatSize).toFloat() }
 
                         benchyView.x = posX
                         benchyView.y = posY
@@ -381,9 +341,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
                     }
                 }
             }
-        } catch (e: Exception) {
-            Log.e("KlippShell", "Benchy Background fehlgeschlagen", e)
-        }
+        } catch (e: Exception) { Log.e("KlippShell", "Benchy Background fehlgeschlagen", e) }
     }
 
     private fun applyDynamicVignetteBorder() {
@@ -406,8 +364,21 @@ class CompanionRemoteActivity : AppCompatActivity() {
                 }
                 rootContent.addView(vignetteView, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
             }
-        } catch (e: Exception) {
-            Log.e("KlippShell", "Vignette fehlgeschlagen", e)
+        } catch (e: Exception) { Log.e("KlippShell", "Vignette fehlgeschlagen", e) }
+    }
+
+    private fun setTouchMode(enabled: Boolean) {
+        isTouchModeActive = enabled
+        if (enabled) {
+            layoutDpadZone.visibility = View.GONE
+            layoutTouchZone.visibility = View.VISIBLE
+            btnToggleTouchMode.visibility = View.GONE
+        } else {
+            layoutDpadZone.visibility = View.VISIBLE
+            layoutTouchZone.visibility = View.GONE
+            btnToggleTouchMode.visibility = View.VISIBLE
+            btnToggleTouchMode.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
+            btnToggleTouchMode.setIconResource(R.drawable.ic_trackpad_mouse)
         }
     }
 
@@ -416,6 +387,11 @@ class CompanionRemoteActivity : AppCompatActivity() {
             val ip = etTargetTvIp.text.toString().trim()
             if (ip.isNotEmpty()) triggerConnectionCheck(ip) else discoverAndConnectTvAuto()
         }
+
+        btnToggleTouchMode.setOnClickListener { vibrateFeedback(); setTouchMode(!isTouchModeActive) }
+        btnTouchReturnDpad.setOnClickListener { vibrateFeedback(); setTouchMode(false) }
+        btnTouchBack.setOnClickListener { sendCommandToTv("BACK") }
+        btnTouchOk.setOnClickListener { sendCommandToTv("DPAD_OK") }
 
         btnLeaveRemote.setOnClickListener { vibrateFeedback(); finish() }
         btnRemoteUp.setOnClickListener { sendCommandToTv("DPAD_UP") }
@@ -427,17 +403,33 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteZoomIn.setOnClickListener { sendCommandToTv("ZOOM_IN") }
         btnRemoteZoomOut.setOnClickListener { sendCommandToTv("ZOOM_OUT") }
 
+        viewTouchPadField.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> { lastTouchX = event.x; lastTouchY = event.y; vibrateFeedback(); true }
+                MotionEvent.ACTION_MOVE -> {
+                    val deltaX = event.x - lastTouchX
+                    val deltaY = event.y - lastTouchY
+                    if (abs(deltaX) > 2 || abs(deltaY) > 2) {
+                        sendCommandToTv("MOUSE_MOVE;${deltaX.toInt()};${deltaY.toInt()}")
+                        lastTouchX = event.x
+                        lastTouchY = event.y
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+
         btnRemoteEstop.setOnClickListener {
             vibrateFeedback()
             val dialogContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; val pad = (24 * resources.displayMetrics.density).toInt(); setPadding(pad, pad, pad, pad); background = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 48f; setColor(Color.parseColor("#E53935")) }; layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
-            TextView(this).apply { text = getString(R.string.menu_emergency_stop); textSize = 22f; setTextColor(Color.WHITE); gravity = Gravity.CENTER; setTypeface(null, android.graphics.Typeface.BOLD); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT) }.let { dialogContainer.addView(it) }
-            TextView(this).apply { text = getString(R.string.dialog_stop_title); textSize = 16f; setTextColor(Color.WHITE); gravity = Gravity.CENTER; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = (16 * resources.displayMetrics.density).toInt() } }.let { dialogContainer.addView(it) }
-            val buttonRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; weightSum = 2f; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = (24 * resources.displayMetrics.density).toInt() } }
+            TextView(this).apply { text = getString(R.string.menu_emergency_stop); textSize = 22f; setTextColor(Color.WHITE); gravity = Gravity.CENTER; setTypeface(null, android.graphics.Typeface.BOLD) }.let { dialogContainer.addView(it) }
+            TextView(this).apply { text = getString(R.string.dialog_stop_title); textSize = 16f; setTextColor(Color.WHITE); gravity = Gravity.CENTER }.let { dialogContainer.addView(it) }
+            val buttonRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; weightSum = 2f }
             val pVert = (12 * resources.displayMetrics.density).toInt()
 
-            // FIX: Schließende Klammer bei setPadding() ergänzt, um den Syntaxfehler in Zeile 438 zu beheben
-            val btnCancel = MaterialButton(this).apply { text = getString(R.string.cancel); isAllCaps = false; textSize = 15f; isFocusable = true; setTextColor(Color.parseColor("#E53935")); backgroundTintList = ColorStateList.valueOf(Color.WHITE); shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build(); setPadding(0, pVert, 0, pVert); layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = (8 * resources.displayMetrics.density).toInt() } }
-            val btnConfirm = MaterialButton(this).apply { text = getString(R.string.dialog_stop_confirm); isAllCaps = false; textSize = 15f; isFocusable = true; setTextColor(Color.WHITE); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B71C1C")); shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build(); setPadding(0, pVert, 0, pVert); layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = (8 * resources.displayMetrics.density).toInt() } }
+            val btnCancel = MaterialButton(this).apply { text = getString(R.string.cancel); isAllCaps = false; textSize = 15f; isFocusable = true; setTextColor(Color.parseColor("#E53935")); backgroundTintList = ColorStateList.valueOf(Color.WHITE); shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build(); setPadding(0, pVert, 0, pVert) }
+            val btnConfirm = MaterialButton(this).apply { text = getString(R.string.dialog_stop_confirm); isAllCaps = false; textSize = 15f; isFocusable = true; setTextColor(Color.WHITE); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B71C1C")); shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build(); setPadding(0, pVert, 0, pVert) }
 
             buttonRow.addView(btnCancel)
             buttonRow.addView(btnConfirm)
@@ -500,11 +492,20 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private fun applyUnifiedButtonShapesAndFocus() {
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val borderHighlight = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
-        val combinedButtons = mutableListOf(btnSearchTv, btnLeaveRemote, btnRemoteUp, btnRemoteDown, btnRemoteLeft, btnRemoteRight, btnRemoteOk, btnRemoteHome, btnRemoteStream, btnRemoteCamera, btnRemoteEstop, btnRemoteZoomIn, btnRemoteZoomOut, btnRemoteLayout, btnRemotePip, btnRemoteBar, btnRemoteBox)
+        val combinedButtons = mutableListOf(
+            btnSearchTv, btnLeaveRemote, btnRemoteUp, btnRemoteDown, btnRemoteLeft, btnRemoteRight,
+            btnRemoteOk, btnRemoteHome, btnRemoteStream, btnRemoteCamera, btnRemoteEstop, btnRemoteZoomIn,
+            btnRemoteZoomOut, btnRemoteLayout, btnRemotePip, btnRemoteBar, btnRemoteBox,
+            btnTouchBack, btnTouchReturnDpad, btnTouchOk, btnToggleTouchMode
+        )
         arrayOf(btnRemoteSecUp, btnRemoteSecDown, btnRemoteSecLeft, btnRemoteSecRight).forEach { btn -> btn?.let { combinedButtons.add(it) } }
 
         combinedButtons.forEach { btn ->
-            btn?.shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+            if (btn != btnTouchBack && btn != btnTouchReturnDpad && btn != btnTouchOk &&
+                btn != btnRemoteUp && btn != btnRemoteDown && btn != btnRemoteLeft && btn != btnRemoteRight &&
+                btn != btnRemoteSecUp && btn != btnRemoteSecDown && btn != btnRemoteSecLeft && btn != btnRemoteSecRight) {
+                btn?.shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+            }
             if (btn == btnRemoteEstop) { btn.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")); btn.setTextColor(Color.WHITE) }
             val oldListener = btn?.onFocusChangeListener
             btn?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus -> oldListener?.onFocusChange(v, hasFocus); if (v.isEnabled) { v.animate().scaleX(if (hasFocus) 1.05f else 1.0f).scaleY(if (hasFocus) 1.05f else 1.0f).setDuration(120).start(); if (v is MaterialButton) { v.strokeWidth = if (hasFocus) 6 else 0; v.strokeColor = if (hasFocus) ColorStateList.valueOf(borderHighlight) else null } } }
@@ -525,8 +526,8 @@ class CompanionRemoteActivity : AppCompatActivity() {
                 val writer = BufferedWriter(OutputStreamWriter(socket.getOutputStream(), "UTF-8"))
                 writer.write("REQUEST_PRINTER_INFO\n")
                 writer.flush()
-                val reader = BufferedReader(InputStreamReader(socket.getInputStream(), "UTF-8"))
-                val response = reader.readLine()
+                val borderReader = BufferedReader(InputStreamReader(socket.getInputStream(), "UTF-8"))
+                val response = borderReader.readLine()
                 var liveModel: String? = null
                 var liveName: String? = null
                 if (!response.isNullOrEmpty()) {
@@ -564,19 +565,15 @@ class CompanionRemoteActivity : AppCompatActivity() {
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun vibrateFeedback() {
-        window.decorView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+        val view = findViewById<View>(android.R.id.content)
+        view?.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
     }
 
     private fun showCenteredPillToast(message: String) {
-        val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
-        val backgroundColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
-        val textColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
-        val pillView = TextView(this).apply { text = message; textSize = 15f; gravity = Gravity.CENTER; setTextColor(textColor); background = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 100f; setColor(backgroundColor); setStroke(4, textColor) }; setPadding(40, 24, 40, 24) }
-        val container = FrameLayout(this).apply { addView(pillView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; setMargins(40, 0, 40, 180) }) }
-        rootLayout.addView(container)
-        Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2000)
+        val toast = Toast.makeText(this, message, Toast.LENGTH_SHORT)
+        toast.setGravity(Gravity.CENTER, 0, 0)
+        toast.show()
     }
 
     override fun onDestroy() { connectionJob?.cancel(); super.onDestroy() }
