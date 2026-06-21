@@ -269,4 +269,7 @@ Certains fabricants de téléviseurs bloquent par défaut le Picture-in-Picture 
     <string name="remote_footer_connecting">Recherche du profil d\'imprimante TV…</string>
     <string name="remote_footer_online">Connecté en direct : %s</string>
 
+    <string name="btn_companion_menu">Menu Companion</string>
+    <string name="btn_dpad_control">Croix directionnelle D-Pad</string>
+
 </resources>

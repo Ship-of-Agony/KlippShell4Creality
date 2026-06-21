@@ -268,4 +268,8 @@ Algunos fabricantes de televisores bloquean Picture-in-Picture (PiP) de forma pr
     <string name="remote_footer_offline">TV fuera de línea • Predeterminado: %s</string>
     <string name="remote_footer_connecting">Buscando perfil de impresora en TV…</string>
     <string name="remote_footer_online">Conectado en vivo: %s</string>
+
+    <string name="btn_companion_menu">Menú Companion</string>
+    <string name="btn_dpad_control">Cruceta D-Pad</string>
+
 </resources>

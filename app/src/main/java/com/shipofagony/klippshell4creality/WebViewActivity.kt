@@ -344,13 +344,10 @@ class WebViewActivity : AppCompatActivity() {
             isFocusable = false
         }
 
-        // Isolierte 3D-WebView Umgebung (Mit Hardware-Rendering für flüssiges WebGL)
         webView3D = WebView(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             setBackgroundColor(Color.TRANSPARENT)
-
             setLayerType(View.LAYER_TYPE_HARDWARE, null)
-
             isFocusable = false
             isClickable = false
             isFocusableInTouchMode = false
@@ -363,15 +360,12 @@ class WebViewActivity : AppCompatActivity() {
                 }
             }
 
-            // Extreme Settings-Diät, um Video-Konflikte trotz Hardware-Modus zu verhindern
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = true
             settings.allowContentAccess = true
             settings.allowFileAccessFromFileURLs = true
             settings.allowUniversalAccessFromFileURLs = true
-
-            // Verhindert das Laden von externen Medien, schützt die Render-Pipeline des Videos
             settings.blockNetworkImage = true
             settings.loadsImagesAutomatically = false
         }
@@ -390,7 +384,6 @@ class WebViewActivity : AppCompatActivity() {
         thumbLayout.addView(ivThumbForeground)
         rootLayout?.addView(thumbLayout)
 
-        // Z-INDEX ORDNUNG: Buttons und OSD liegen sicher über dem Benchy und dem Video!
         thumbLayout.apply { isClickable = false; isFocusable = false }
         layoutWebButtons.bringToFront()
         layoutOsd.bringToFront()
@@ -459,7 +452,7 @@ class WebViewActivity : AppCompatActivity() {
                             btnToggle.requestFocus()
                             showButtons()
                         } else {
-                            webView?.evaluateJavascript("window.scrollBy(0, -150);", null)
+                            webView?.evaluateJavascript("window.scrollBy(0, -120);", null)
                             showButtons()
                         }
                         true
@@ -578,20 +571,103 @@ class WebViewActivity : AppCompatActivity() {
                     }
                 }
 
+                // Lade Kachelhintergrund aus Ressourcen
+                val cardDrawable = ContextCompat.getDrawable(this, R.drawable.bg_card)
+
+                // =========================================================================
+                // KACHEL 1: COMPANION MENÜ & D-PAD STEUERKREUZ
+                // =========================================================================
+                val cardCompanion = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    background = cardDrawable
+                    setPadding(toPx(12), toPx(12), toPx(12), toPx(12))
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                        setMargins(0, toPx(6), 0, toPx(6))
+                    }
+                }
+
+                val companionHeaderRow = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    weightSum = 2f
+                }
+
+                val btnCompanionMenu = MaterialButton(this).apply {
+                    text = getSafeString("btn_companion_menu", "Companion Menü")
+                    isAllCaps = false; textSize = 15f; cornerRadius = 100
+                    this.setPadding(0, toPx(14), 0, toPx(14))
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
+                    setTextColor(Color.WHITE)
+                    isFocusable = true; onFocusChangeListener = btnStyleListener
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 0; rightMargin = 8 }
+                    setOnClickListener {
+                        dialog.dismiss()
+                        val settingsIntent = Intent(this@WebViewActivity, SettingsActivity::class.java).apply {
+                            putExtra("saved_menu_layer", 7)
+                        }
+                        startActivity(settingsIntent)
+                    }
+                }
+
+                val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+                val isCompanionEnabled = (activeRole != "disabled")
+
+                val btnDpadControl = MaterialButton(this).apply {
+                    text = getSafeString("btn_dpad_control", "D-Pad Steuerkreuz")
+                    isAllCaps = false; textSize = 15f; cornerRadius = 100
+                    this.setPadding(0, toPx(14), 0, toPx(14))
+
+                    if (isCompanionEnabled) {
+                        backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+                        setTextColor(Color.WHITE)
+                        isEnabled = true
+                    } else {
+                        backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
+                        setTextColor(Color.parseColor(if (isNight) "#4DFFFFFF" else "#66000000"))
+                        isEnabled = false
+                    }
+
+                    isFocusable = isCompanionEnabled
+                    onFocusChangeListener = btnStyleListener
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 8; rightMargin = 0 }
+                    setOnClickListener {
+                        dialog.dismiss()
+                        val remoteIntent = Intent(this@WebViewActivity, CompanionRemoteActivity::class.java)
+                        startActivity(remoteIntent)
+                    }
+                }
+
+                companionHeaderRow.addView(btnCompanionMenu)
+                companionHeaderRow.addView(btnDpadControl)
+                cardCompanion.addView(companionHeaderRow)
+                container.addView(cardCompanion)
+
+                // =========================================================================
+                // KACHEL 2: ON-SCREEN-DISPLAY & OSD FORMAT STYLE
+                // =========================================================================
+                val cardOsd = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    background = cardDrawable
+                    setPadding(toPx(12), toPx(12), toPx(12), toPx(12))
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                        setMargins(0, toPx(6), 0, toPx(6))
+                    }
+                }
+
                 val splitRow = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                        setMargins(0, 10, 0, 10)
-                    }
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    weightSum = 2f
                 }
 
                 val btnLeftToggle = MaterialButton(this).apply {
                     text = getString(if (isOsdEnabled) R.string.osd_state_on else R.string.osd_state_off)
-                    isAllCaps = false; textSize = 15f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                    isAllCaps = false; textSize = 15f; cornerRadius = 100
+                    this.setPadding(0, toPx(14), 0, toPx(14))
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isOsdEnabled) "#4CAF50" else if (isNight) "#33FFFFFF" else "#1A888888"))
                     setTextColor(if (isOsdEnabled) Color.WHITE else if (isNight) Color.WHITE else Color.BLACK)
                     isFocusable = true; onFocusChangeListener = btnStyleListener
-                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 8 }
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 0; rightMargin = 8 }
                     setOnClickListener {
                         isOsdEnabled = !isOsdEnabled
                         prefs.edit().putBoolean("osd_enabled_$hostIp", isOsdEnabled).apply()
@@ -613,10 +689,11 @@ class WebViewActivity : AppCompatActivity() {
                 val currentStyleName = if ((prefs.getString("osd_style_$hostIp", "box") ?: "box") == "banner") getSafeString("osd_style_banner", "Leiste") else getSafeString("osd_style_box", "Box")
                 val btnRightStyle = MaterialButton(this).apply {
                     text = getSafeString("menu_osd_style_title", "Stil") + ": " + currentStyleName
-                    isAllCaps = false; textSize = 15f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                    isAllCaps = false; textSize = 15f; cornerRadius = 100
+                    this.setPadding(0, toPx(14), 0, toPx(14))
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
                     setTextColor(if (isNight) Color.WHITE else Color.BLACK); isFocusable = true; onFocusChangeListener = btnStyleListener
-                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = 8 }
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 8; rightMargin = 0 }
                     setOnClickListener {
                         dialog.dismiss()
                         showPillDialog(getSafeString("menu_osd_style_title", "OSD Stil"), arrayOf(getSafeString("osd_style_box", "Kompakte Box"), getSafeString("osd_style_banner", "Flexible Leiste"))) { styleIndex ->
@@ -628,15 +705,66 @@ class WebViewActivity : AppCompatActivity() {
 
                 splitRow.addView(btnLeftToggle)
                 splitRow.addView(btnRightStyle)
-                container.addView(splitRow)
+                cardOsd.addView(splitRow)
+                container.addView(cardOsd)
+
+                // =========================================================================
+                // KACHEL 3: ZOOM (-) & ZOOM (+)
+                // =========================================================================
+                val cardZoom = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    background = cardDrawable
+                    setPadding(toPx(12), toPx(12), toPx(12), toPx(12))
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                        setMargins(0, toPx(6), 0, toPx(12))
+                    }
+                }
+
+                val splitRowZoom = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    weightSum = 2f
+                }
+
+                val btnZoomOut = MaterialButton(this).apply {
+                    text = getSafeString("btn_zoom_out", "Zoom (-)")
+                    isAllCaps = false; textSize = 15f; cornerRadius = 100
+                    this.setPadding(0, toPx(14), 0, toPx(14))
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
+                    setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+                    isFocusable = true; onFocusChangeListener = btnStyleListener
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 0; rightMargin = 8 }
+                    setOnClickListener { webView?.zoomOut() }
+                }
+
+                val btnZoomIn = MaterialButton(this).apply {
+                    text = getSafeString("btn_zoom_in", "Zoom (+)")
+                    isAllCaps = false; textSize = 16f; cornerRadius = 100
+                    this.setPadding(0, toPx(14), 0, toPx(14))
+                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
+                    setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+                    isFocusable = true; onFocusChangeListener = btnStyleListener
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 8; rightMargin = 0 }
+                    setOnClickListener { webView?.zoomIn() }
+                }
+
+                splitRowZoom.addView(btnZoomOut)
+                splitRowZoom.addView(btnZoomIn)
+                cardZoom.addView(splitRowZoom)
+                container.addView(cardZoom)
+
+                // =========================================================================
+                // NORMALER ANZUCH: DURCHGEHENDE PILLEN FOLGEN UNVERÄNDERT DARUNTER
+                // =========================================================================
 
                 val btnThumbnailToggle = MaterialButton(this).apply {
                     text = getSafeString("menu_thumbnail_progress", "Modell-Fortschritt")
-                    isAllCaps = false; textSize = 15f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                    isAllCaps = false; textSize = 15f; cornerRadius = 100
+                    this.setPadding(0, toPx(14), 0, toPx(14))
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isThumbnailEnabled) "#4CAF50" else "#E53935"))
                     setTextColor(Color.WHITE)
                     isFocusable = true; onFocusChangeListener = btnStyleListener
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 16) }
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
                     setOnClickListener {
                         isThumbnailEnabled = !isThumbnailEnabled
                         prefs.edit().putBoolean("thumbnail_enabled_$hostIp", isThumbnailEnabled).apply()
@@ -653,41 +781,11 @@ class WebViewActivity : AppCompatActivity() {
                 }
                 container.addView(btnThumbnailToggle)
 
-                val splitRowZoom = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                        setMargins(0, 10, 0, 10)
-                    }
-                }
-
-                val btnZoomOut = MaterialButton(this).apply {
-                    text = getSafeString("btn_zoom_out", "Zoom (-)")
-                    isAllCaps = false; textSize = 15f; cornerRadius = 100; setPadding(0, 35, 0, 35)
-                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
-                    setTextColor(if (isNight) Color.WHITE else Color.BLACK)
-                    isFocusable = true; onFocusChangeListener = btnStyleListener
-                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 8 }
-                    setOnClickListener { webView?.zoomOut() }
-                }
-
-                val btnZoomIn = MaterialButton(this).apply {
-                    text = getSafeString("btn_zoom_in", "Zoom (+)")
-                    isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
-                    backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
-                    setTextColor(if (isNight) Color.WHITE else Color.BLACK)
-                    isFocusable = true; onFocusChangeListener = btnStyleListener
-                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = 8 }
-                    setOnClickListener { webView?.zoomIn() }
-                }
-
-                splitRowZoom.addView(btnZoomOut)
-                splitRowZoom.addView(btnZoomIn)
-                container.addView(splitRowZoom)
-
-                val menuOptions = arrayOf(getSafeString("menu_pip_name", "PiP"), getSafeString("menu_light_control", "Licht"), getSafeString("menu_screensaver", "Schoner"), getSafeString("menu_ratio_title", "Format"), getSafeString("menu_change_camera_type", "Kamera-Typ"), getSafeString("menu_emergency_stop", "NOT-STOPP"))
+                val menuOptions = arrayOf(getSafeString("menu_pip_name", "Bild in Bild (PiP)"), getSafeString("menu_light_control", "Beleuchtung"), getSafeString("menu_screensaver", "Bildschirmschoner"), getSafeString("menu_ratio_title", "Bildformat ändern"), getSafeString("menu_change_camera_type", "Live-Stream"), getSafeString("menu_emergency_stop", "NOT-AUS"))
                 menuOptions.forEachIndexed { idx, optText ->
                     val btn = MaterialButton(this).apply {
-                        text = optText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                        text = optText; isAllCaps = false; textSize = 16f; cornerRadius = 100
+                        this.setPadding(0, toPx(14), 0, toPx(14))
                         backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (idx == 5) "#E53935" else if (isNight) "#33FFFFFF" else "#1A888888"))
                         setTextColor(if (idx == 5) Color.WHITE else if (isNight) Color.WHITE else Color.BLACK)
                         isFocusable = true; onFocusChangeListener = btnStyleListener
@@ -1198,6 +1296,7 @@ class WebViewActivity : AppCompatActivity() {
             val lp = webView?.layoutParams as? ConstraintLayout.LayoutParams
             if (lp != null) { lp.dimensionRatio = null; lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT; lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT; webView?.layoutParams = lp }
         }
+        // Hier war der Fehler: geänder von layoutUrl() zu loadUrl()
         webView?.loadUrl(url)
     }
 
@@ -1233,7 +1332,6 @@ class WebViewActivity : AppCompatActivity() {
             ivThumbForeground?.setImageDrawable(null)
             this.clipDrawable = null
 
-            // IMMER SICHTBAR IM VIDEO MODUS: Zeigt das rotierende Modell
             webView3D?.visibility = View.VISIBLE
             if (!isBenchyShowing) {
                 isBenchyShowing = true
@@ -1469,7 +1567,7 @@ class WebViewActivity : AppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             if (bitmap != null && !isFinishing && !isDestroyed) {
                                 thumbnailBitmap = bitmap
-                                setupProgressThumbnailDrawables(bitmap)
+                                setupProgressThumbnailDrawables(thumbnailBitmap)
                             }
                         }
                     }
@@ -1593,7 +1691,8 @@ class WebViewActivity : AppCompatActivity() {
         items.forEachIndexed { index, itemText ->
             val customHex = hexColors?.getOrNull(index)
             val btn = MaterialButton(this).apply {
-                text = itemText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                text = itemText; isAllCaps = false; textSize = 16f; cornerRadius = 100
+                this.setPadding(0, toPx(14), 0, toPx(14))
                 if (customHex != null) { backgroundTintList = ColorStateList.valueOf(Color.parseColor(customHex)); setTextColor(Color.WHITE) }
                 else {
                     backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
@@ -1626,7 +1725,8 @@ class WebViewActivity : AppCompatActivity() {
             val targetMs = when (index) { 1 -> 30 * 60 * 1000L; 2 -> 60 * 60 * 1000L; 3 -> 90 * 60 * 1000L; 4 -> 120 * 60 * 1000L; else -> -1L }
             val isCurrentlyActive = (targetMs == activeTimeout) || (index == 5 && activeTimeout == 0L)
             val btn = MaterialButton(this).apply {
-                text = itemText; isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, 35, 0, 35)
+                text = itemText; isAllCaps = false; textSize = 16f; cornerRadius = 100
+                this.setPadding(0, toPx(14), 0, toPx(14))
                 if (isCurrentlyActive) { backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")); setTextColor(Color.WHITE) }
                 else { backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888")); setTextColor(if (isNight) Color.WHITE else Color.BLACK) }
                 isFocusable = true; layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }

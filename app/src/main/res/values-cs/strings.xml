@@ -268,4 +268,8 @@ Někteří výrobci televizorů standardně blokují funkci Obraz v obraze (PiP)
     <string name="remote_footer_offline">TV offline • Výchozí: %s</string>
     <string name="remote_footer_connecting">Hledání profilu tiskárny v TV…</string>
     <string name="remote_footer_online">Živě připojeno: %s</string>
-</resources>
+
+    <string name="btn_companion_menu">Companion Menu</string>
+    <string name="btn_dpad_control">D-Pad Směrový kříž</string>
+
+    </resources>

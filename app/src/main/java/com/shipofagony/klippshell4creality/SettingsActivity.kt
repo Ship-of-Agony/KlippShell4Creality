@@ -9,7 +9,6 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -77,7 +76,6 @@ class SettingsActivity : AppCompatActivity() {
 
     private var btnCompanionToggleProgrammatic: MaterialButton? = null
 
-    // Klassenvariablen für Subpage-Buttons zur Lifecycle-Wiederherstellung
     private lateinit var btnPillThemeLight: MaterialButton
     private lateinit var btnPillThemeDark: MaterialButton
     private lateinit var btnPillThemeSystem: MaterialButton
@@ -178,7 +176,6 @@ class SettingsActivity : AppCompatActivity() {
         val btnResetApp = findViewById<MaterialButton>(R.id.btnResetApp)
         val btnSettingsBack = findViewById<MaterialButton>(R.id.btnSettingsBack)
 
-        // Zuweisung zu den Klassenvariablen korrigiert (val entfernt)
         btnPillThemeLight = findViewById(R.id.btnPillThemeLight)
         btnPillThemeDark = findViewById(R.id.btnPillThemeDark)
         btnPillThemeSystem = findViewById(R.id.btnPillThemeSystem)
@@ -208,8 +205,12 @@ class SettingsActivity : AppCompatActivity() {
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
                 if (v is MaterialButton) {
-                    v.strokeWidth = if (hasFocus) 8 else 0
-                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
+                    if (hasFocus) {
+                        v.strokeWidth = 8
+                        v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                    } else {
+                        v.strokeWidth = 0
+                    }
                 }
             }
             setOnClickListener {
@@ -405,8 +406,12 @@ class SettingsActivity : AppCompatActivity() {
             btn?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
                 if (v is MaterialButton) {
-                    v.strokeWidth = if (hasFocus) 8 else 0
-                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
+                    if (hasFocus) {
+                        v.strokeWidth = 8
+                        v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                    } else {
+                        v.strokeWidth = 0
+                    }
                 }
                 if (v == btnAutoStartToggle) updateAutoStartButtonVisuals(btnAutoStartToggle)
             }
@@ -414,8 +419,16 @@ class SettingsActivity : AppCompatActivity() {
 
         initPillButtonStates()
 
+        // =========================================================================
+        // FIX: PARSE EINGEHENDEN INTENT DIREKT IN ONCREATE FÜR DIREKT-WEITERLEITUNG
+        // =========================================================================
+        val layerFromIntent = intent?.getIntExtra("saved_menu_layer", 0) ?: 0
+
         if (savedInstanceState != null) {
             currentMenuLayer = savedInstanceState.getInt("saved_menu_layer", 0)
+            restoreMenuState()
+        } else if (layerFromIntent != 0) {
+            currentMenuLayer = layerFromIntent
             restoreMenuState()
         } else {
             if (isDualScreenMode) {
@@ -435,7 +448,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig) // FIX: Name des super-Aufrufs korrigiert
+        super.onConfigurationChanged(newConfig)
         recreate()
     }
 
@@ -478,7 +491,6 @@ class SettingsActivity : AppCompatActivity() {
             if (active != null) {
                 showSubPanel(active.first, currentMenuLayer, getString(active.second))
 
-                // Schützt alle dynamischen Fragmente/Pills vor dem Entfärben beim Drehen
                 when (currentMenuLayer) {
                     6 -> buildDynamicLanguageMenu()
                     5 -> refreshThemeSubpagePills()
@@ -720,8 +732,12 @@ class SettingsActivity : AppCompatActivity() {
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
                 if (v is MaterialButton) {
-                    v.strokeWidth = if (hasFocus) 8 else 0
-                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
+                    if (hasFocus) {
+                        v.strokeWidth = 8
+                        v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                    } else {
+                        v.strokeWidth = 0
+                    }
                 }
             }
             setOnClickListener {
@@ -739,7 +755,8 @@ class SettingsActivity : AppCompatActivity() {
             setPadding(0, toPx(14), 0, toPx(14))
 
             val overrideMode = prefs.getInt("layout_mode_override", 0)
-            updateTabletButtonVisuals(this, overrideMode)
+            val finalOverride = overrideMode
+            updateTabletButtonVisuals(this, finalOverride)
 
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                 setMargins(0, toPx(8), 0, toPx(8))
@@ -747,8 +764,12 @@ class SettingsActivity : AppCompatActivity() {
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 v.animate().scaleX(if (hasFocus) 1.03f else 1.0f).scaleY(if (hasFocus) 1.03f else 1.0f).setDuration(150).start()
                 if (v is MaterialButton) {
-                    v.strokeWidth = if (hasFocus) 8 else 0
-                    v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
+                    if (hasFocus) {
+                        v.strokeWidth = 8
+                        v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                    } else {
+                        v.strokeWidth = 0
+                    }
                 }
             }
             setOnClickListener {
@@ -1086,7 +1107,6 @@ class SettingsActivity : AppCompatActivity() {
                 currentMenuLayer = 0
                 tvSettingsTitle.text = getString(R.string.settings_title)
 
-                // Aktualisiert die Anzeigewerte (z.B. Direktstart: EIN/AUS) beim Verlassen der Sub-Ebenen
                 initPillButtonStates()
 
                 val targetBtnId = when (oldLayer) {
@@ -1450,8 +1470,6 @@ class SettingsActivity : AppCompatActivity() {
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         dialogView.findViewById<TextView>(R.id.tvDialogTitle).text = getString(R.string.license_link_text)
-
-        // FIX: Korrekte Referenzierung des buttonContainers im Dialog-View-Scope
         val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
         val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -1497,8 +1515,12 @@ class SettingsActivity : AppCompatActivity() {
                 it.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     v.animate().scaleX(if (hasFocus) 1.04f else 1.0f).scaleY(if (hasFocus) 1.04f else 1.0f).setDuration(100).start()
                     if (v is MaterialButton) {
-                        v.strokeWidth = if (hasFocus) 8 else 0
-                        v.strokeColor = if (hasFocus) ColorStateList.valueOf(targetBorderColor) else null
+                        if (hasFocus) {
+                            v.strokeWidth = 8
+                            v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                        } else {
+                            v.strokeWidth = 0
+                        }
                     }
                 }
             }
@@ -1518,11 +1540,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        try {
-            // Placeholder for NotificationManager
-        } catch (e: Exception) {
-            Log.e("KlippShell", "dismissal failed", e)
-        }
         super.onPause()
     }
 

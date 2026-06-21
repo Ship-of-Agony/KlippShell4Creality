@@ -269,4 +269,7 @@ Einige TV-Hersteller blockieren Picture-in-Picture (PiP) standardmäßig. Führe
     <string name="remote_footer_connecting">Suche TV-Druckerprofil…</string>
     <string name="remote_footer_online">Live verbunden: %s</string>
 
+    <string name="btn_companion_menu">Companion Menü</string>
+    <string name="btn_dpad_control">D-Pad Steuerkreuz</string>
+
 </resources>

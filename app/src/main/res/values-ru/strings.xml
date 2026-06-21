@@ -269,4 +269,7 @@
     <string name="remote_footer_connecting">Поиск профиля принтера на ТВ…</string>
     <string name="remote_footer_online">Подключено в реальном времени: %s</string>
 
+    <string name="btn_companion_menu">Меню Companion</string>
+    <string name="btn_dpad_control">Крестовина D-Pad</string>
+
 </resources>

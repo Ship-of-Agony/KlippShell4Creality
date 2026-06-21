@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
@@ -149,7 +150,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
         applyFloatingBenchyBackground()
         applyDynamicVignetteBorder()
 
-        setTouchMode(false)
+        checkCompanionModeLockState()
 
         val deviceRole = prefs.getString("app_device_role", "auto") ?: "auto"
         if (targetMasterIp.isEmpty() || deviceRole == "auto") {
@@ -214,6 +215,35 @@ class CompanionRemoteActivity : AppCompatActivity() {
         viewTouchPadField.background = touchBackground
     }
 
+    private fun checkCompanionModeLockState() {
+        val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+        val isCompanionEnabled = (activeRole != "disabled")
+
+        if (isCompanionEnabled) {
+            layoutDpadZone.alpha = 1.0f
+            btnRemoteOk.isEnabled = true
+            btnRemoteUp.isEnabled = true
+            btnRemoteDown.isEnabled = true
+            btnRemoteLeft.isEnabled = true
+            btnRemoteRight.isEnabled = true
+            btnToggleTouchMode.isEnabled = true
+            btnToggleTouchMode.alpha = 1.0f
+        } else {
+            layoutDpadZone.alpha = 0.35f
+            btnRemoteOk.isEnabled = false
+            btnRemoteUp.isEnabled = false
+            btnRemoteDown.isEnabled = false
+            btnRemoteLeft.isEnabled = false
+            btnRemoteRight.isEnabled = false
+
+            setTouchMode(false)
+            btnToggleTouchMode.isEnabled = false
+            btnToggleTouchMode.alpha = 0.35f
+
+            showCenteredPillToast(getString(R.string.autostart_disabled))
+        }
+    }
+
     private fun updatePrinterNameDisplay(state: String, fetchedModel: String? = null, fetchedName: String? = null) {
         var localModelName = "K2"
         var localPrinterName = ""
@@ -245,8 +275,18 @@ class CompanionRemoteActivity : AppCompatActivity() {
     }
 
     private fun discoverAndConnectTvAuto() {
+        val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+        if (activeRole == "disabled") {
+            isConnected = false
+            tvRemoteStatus.text = getString(R.string.remote_status_disconnected)
+            tvRemoteStatus.setTextColor(Color.parseColor("#E53935"))
+            updatePrinterNameDisplay("offline")
+            return
+        }
+
         connectionJob?.cancel()
         tvRemoteStatus.text = getString(R.string.toast_loading_dashboard)
+        tvRemoteStatus.setTypeface(null, Typeface.BOLD)
         tvRemoteStatus.setTextColor(Color.parseColor("#FFD54F"))
         updatePrinterNameDisplay("connecting")
 
@@ -312,9 +352,10 @@ class CompanionRemoteActivity : AppCompatActivity() {
                 rootContent.addView(benchyView, 0)
 
                 lifecycleScope.launch(Dispatchers.Main) {
-                    while (rootContent.width == 0 || rootContent.height == 0) delay(30)
-                    val containerW = rootContent.width
-                    val containerH = rootContent.height
+                    val decorView = window.decorView
+                    while (decorView.width == 0 || decorView.height == 0) delay(30)
+                    val containerW = decorView.width
+                    val containerH = decorView.height
                     val boatSize = (containerW * 0.45f).toInt()
                     benchyView.layoutParams = FrameLayout.LayoutParams(boatSize, boatSize)
 
@@ -324,8 +365,8 @@ class CompanionRemoteActivity : AppCompatActivity() {
                     var speedY = 0.045f
 
                     while (isActive) {
-                        val currentW = rootContent.width
-                        val currentH = rootContent.height
+                        val currentW = decorView.width
+                        val currentH = decorView.height
                         posX += speedX
                         posY += speedY
 
@@ -368,6 +409,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
     }
 
     private fun setTouchMode(enabled: Boolean) {
+        val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+        if (activeRole == "disabled" && enabled) return
+
         isTouchModeActive = enabled
         if (enabled) {
             layoutDpadZone.visibility = View.GONE
@@ -384,6 +428,11 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnSearchTv.setOnClickListener {
+            val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+            if (activeRole == "disabled") {
+                showCenteredPillToast(getString(R.string.autostart_disabled))
+                return@setOnClickListener
+            }
             val ip = etTargetTvIp.text.toString().trim()
             if (ip.isNotEmpty()) triggerConnectionCheck(ip) else discoverAndConnectTvAuto()
         }
@@ -404,6 +453,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteZoomOut.setOnClickListener { sendCommandToTv("ZOOM_OUT") }
 
         viewTouchPadField.setOnTouchListener { _, event ->
+            val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+            if (activeRole == "disabled") return@setOnTouchListener false
+
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> { lastTouchX = event.x; lastTouchY = event.y; vibrateFeedback(); true }
                 MotionEvent.ACTION_MOVE -> {
@@ -423,7 +475,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteEstop.setOnClickListener {
             vibrateFeedback()
             val dialogContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; val pad = (24 * resources.displayMetrics.density).toInt(); setPadding(pad, pad, pad, pad); background = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 48f; setColor(Color.parseColor("#E53935")) }; layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
-            TextView(this).apply { text = getString(R.string.menu_emergency_stop); textSize = 22f; setTextColor(Color.WHITE); gravity = Gravity.CENTER; setTypeface(null, android.graphics.Typeface.BOLD) }.let { dialogContainer.addView(it) }
+            TextView(this).apply { text = getString(R.string.menu_emergency_stop); textSize = 22f; setTextColor(Color.WHITE); gravity = Gravity.CENTER; setTypeface(null, Typeface.BOLD) }.let { dialogContainer.addView(it) }
             TextView(this).apply { text = getString(R.string.dialog_stop_title); textSize = 16f; setTextColor(Color.WHITE); gravity = Gravity.CENTER }.let { dialogContainer.addView(it) }
             val buttonRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; weightSum = 2f }
             val pVert = (12 * resources.displayMetrics.density).toInt()
@@ -470,6 +522,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
     }
 
     private fun refreshOsdDependentUi() {
+        val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+        if (activeRole == "disabled") return
+
         val smallDpad = arrayOf(btnRemoteSecUp, btnRemoteSecDown, btnRemoteSecLeft, btnRemoteSecRight)
         if (isOsdOn) {
             smallDpad.forEach { btn -> btn?.isEnabled = true; btn?.alpha = 1.0f }
@@ -513,8 +568,12 @@ class CompanionRemoteActivity : AppCompatActivity() {
     }
 
     private fun triggerConnectionCheck(ip: String) {
+        val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+        if (activeRole == "disabled") return
+
         connectionJob?.cancel()
         tvRemoteStatus.text = getString(R.string.toast_loading_dashboard)
+        tvRemoteStatus.setTypeface(null, Typeface.BOLD)
         tvRemoteStatus.setTextColor(Color.parseColor("#FFD54F"))
         updatePrinterNameDisplay("connecting")
 
@@ -537,9 +596,20 @@ class CompanionRemoteActivity : AppCompatActivity() {
                         liveName = if (json.has("name")) json.getString("name") else null
                     } catch (e: Exception) {}
                 }
-                withContext(Dispatchers.Main) { isConnected = true; targetMasterIp = ip; tvRemoteStatus.text = getString(R.string.remote_status_connected); tvRemoteStatus.setTextColor(Color.parseColor("#4CAF50")); updatePrinterNameDisplay("online", liveModel, liveName) }
+                withContext(Dispatchers.Main) {
+                    isConnected = true
+                    targetMasterIp = ip
+                    tvRemoteStatus.text = getString(R.string.remote_status_connected)
+                    tvRemoteStatus.setTextColor(Color.parseColor("#4CAF50"))
+                    updatePrinterNameDisplay("online", liveModel, liveName)
+                }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) { isConnected = false; tvRemoteStatus.text = getString(R.string.toast_no_connection); tvRemoteStatus.setTextColor(Color.parseColor("#E53935")); updatePrinterNameDisplay("offline") }
+                withContext(Dispatchers.Main) {
+                    isConnected = false
+                    tvRemoteStatus.text = getString(R.string.toast_no_connection)
+                    tvRemoteStatus.setTextColor(Color.parseColor("#E53935"))
+                    updatePrinterNameDisplay("offline")
+                }
             } finally {
                 try { socket?.close() } catch (_: Exception) {}
             }
@@ -548,6 +618,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
     private fun sendCommandToTv(command: String) {
         vibrateFeedback()
+        val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
+        if (activeRole == "disabled") return
+
         if (!isConnected || targetMasterIp.isEmpty()) { showCenteredPillToast(getString(R.string.toast_no_connection)); return }
         lifecycleScope.launch(Dispatchers.IO) {
             var socket: Socket? = null

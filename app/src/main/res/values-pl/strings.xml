@@ -269,4 +269,7 @@ Niektórzy producenci telewizorów domyślnie blokują funkcję Picture-in-Pictu
     <string name="remote_footer_connecting">Szukanie profilu drukarki w TV…</string>
     <string name="remote_footer_online">Połączono na żywo: %s</string>
 
+    <string name="btn_companion_menu">Menu Companion</string>
+    <string name="btn_dpad_control">Krzyżak D-Pad</string>
+
 </resources>
