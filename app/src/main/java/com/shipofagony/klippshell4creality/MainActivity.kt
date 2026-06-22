@@ -26,11 +26,11 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -125,28 +125,9 @@ class MainActivity : AppCompatActivity() {
     private fun registerNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as AndroidNotificationManager
-            val currentLang = prefs.getString("app_lang", "system") ?: "system"
-            val lang = if (currentLang == "system") Locale.getDefault().language else currentLang
 
-            val errorChannelName = when(lang) {
-                "de" -> "Fehler & Statusmeldungen"
-                "es" -> "Errores y estado"
-                "fr" -> "Erreurs et statut"
-                "pl" -> "Błędy i status"
-                "cs" -> "Chyby a stav"
-                "ru" -> "Ошибки и статус"
-                else -> "Errors & Status Alerts"
-            }
-
-            val infoChannelName = when(lang) {
-                "de" -> "Informationen & Meilensteine"
-                "es" -> "Información y hitos"
-                "fr" -> "Informations et étapes"
-                "pl" -> "Informacje i kamienie milowe"
-                "cs" -> "Informace a milníky"
-                "ru" -> "Информация и этапы"
-                else -> "Information & Milestones"
-            }
+            val errorChannelName = getString(R.string.channel_error_name)
+            val infoChannelName = getString(R.string.channel_info_name)
 
             val errorChannel = NotificationChannel("klippshell_errors_channel", errorChannelName, AndroidNotificationManager.IMPORTANCE_HIGH).apply {
                 description = "Critical printer errors and connection loss alerts"
@@ -354,22 +335,38 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (name.isNotEmpty() && ip.isNotEmpty()) {
-                val viewOptions = arrayOf(getString(R.string.menu_change_camera_type), getString(R.string.choose_default_view))
-                showPillDialog(getString(R.string.choose_default_view_title), viewOptions) { which ->
-                    val modelText = actvMainPrinterModel.text.toString().trim().ifEmpty { "Standard Drucker" }
-                    savePrinter(name, ip, port, modelText, if (which == 0) "camera" else "interface")
+                // KORREKTUR: Hardcodierte deutsche Texte für Master/Slave durch übersetzte Strings ersetzt
+                val roleOptions = arrayOf(
+                    getString(R.string.settings_role_auto),
+                    getString(R.string.settings_role_master),
+                    getString(R.string.settings_role_slave)
+                )
+                showPillDialog(getString(R.string.settings_role_title), roleOptions) { selectedRoleIndex ->
+                    val targetRoleString = when (selectedRoleIndex) {
+                        1 -> "master"
+                        2 -> "slave"
+                        else -> "auto"
+                    }
+                    prefs.edit().putString("app_device_role", targetRoleString).apply()
 
-                    etMainPrinterName.text.clear()
-                    etMainPrinterIP.text.clear()
-                    etMainPrinterPort.text.clear()
-                    actvMainPrinterModel.setText("", false)
+                    val viewOptions = arrayOf(getString(R.string.view_option_camera), getString(R.string.view_option_interface))
+                    showPillDialog(getString(R.string.choose_default_view_title), viewOptions) { whichView ->
+                        val defaultModelName = getString(R.string.printer_model_default)
+                        val modelText = actvMainPrinterModel.text.toString().trim().ifEmpty { defaultModelName }
+                        savePrinter(name, ip, port, modelText, if (whichView == 0) "camera" else "interface")
 
-                    selectedSystemIndex = 0
-                    btnSystemSelect.text = "Port: 4408"
-                    etMainPrinterPort.visibility = View.GONE
-                    containerAddPrinterForm.visibility = View.GONE
-                    tvAddPrinterTitle.text = getString(R.string.add_printer_down)
-                    showCenteredPillToast(getString(R.string.choose_default_view_title) + " ✓")
+                        etMainPrinterName.text.clear()
+                        etMainPrinterIP.text.clear()
+                        etMainPrinterPort.text.clear()
+                        actvMainPrinterModel.setText("", false)
+
+                        selectedSystemIndex = 0
+                        btnSystemSelect.text = "Port: 4408"
+                        etMainPrinterPort.visibility = View.GONE
+                        containerAddPrinterForm.visibility = View.GONE
+                        tvAddPrinterTitle.text = getString(R.string.add_printer_down)
+                        showCenteredPillToast(getString(R.string.printer_setup_success_format, name))
+                    }
                 }
             } else {
                 showPillDialog(getString(R.string.notify_title_error), arrayOf(getString(R.string.notify_btn_offline)), null) { }
@@ -449,7 +446,7 @@ class MainActivity : AppCompatActivity() {
             WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
                 "KlipperTvKachelWorker", ExistingPeriodicWorkPolicy.KEEP, tvWorkRequest
             )
-        } catch (e: Exception) { Log.e("KlippShell", "Fehler beim Starten des TV-Workers", e) }
+        } catch (e: Exception) { Log.e("KlippShell", "Error starting TV background worker", e) }
     }
 
     private fun createWelcomeTile(isNightMode: Boolean): View {
@@ -469,7 +466,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val title = TextView(this).apply {
-            text = try { getString(resources.getIdentifier("welcome_tile_title", "string", packageName)) } catch(e: Exception) { "Willkommen bei KlippShell! 👋" }
+            text = try { getString(resources.getIdentifier("welcome_tile_title", "string", packageName)) } catch(e: Exception) { getString(R.string.widget_printer_title) }
             textSize = 20f
             setTypeface(null, android.graphics.Typeface.BOLD)
             setTextColor(textColor)
@@ -479,7 +476,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val msg = TextView(this).apply {
-            text = try { getString(resources.getIdentifier("welcome_tile_msg", "string", packageName)) } catch(e: Exception) { "Schön, dass du da bist!..." }
+            text = try { getString(resources.getIdentifier("welcome_tile_msg", "string", packageName)) } catch(e: Exception) { "..." }
             textSize = 15f
             setTextColor(textColor)
             alpha = 0.85f
@@ -489,7 +486,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val btnDismiss = MaterialButton(this).apply {
-            text = try { getString(resources.getIdentifier("welcome_tile_btn", "string", packageName)) } catch(e: Exception) { "Verstanden & Ausblenden" }
+            text = try { getString(resources.getIdentifier("welcome_tile_btn", "string", packageName)) } catch(e: Exception) { getString(R.string.btn_later) }
             isAllCaps = false
             textSize = 16f
             setPadding(0, toPx(14), 0, toPx(14))
@@ -571,7 +568,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             tvName?.let { tv ->
-                tv.text = printer.optString("name", "Unbekannt"); tv.textSize = if (useHorizontalLayout) 20f else 18f; tv.setTypeface(null, android.graphics.Typeface.BOLD)
+                tv.text = printer.optString("name", getString(R.string.widget_printer_unknown)); tv.textSize = if (useHorizontalLayout) 20f else 18f; tv.setTypeface(null, android.graphics.Typeface.BOLD)
                 tv.setTextColor(if (isNightMode) Color.WHITE else Color.BLACK)
                 if (useHorizontalLayout) tv.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL }
             }
@@ -585,14 +582,16 @@ class MainActivity : AppCompatActivity() {
             }
 
             itemView.setOnLongClickListener {
-                showPillDialog(printer.optString("name", "Drucker"), arrayOf(getString(R.string.choose_default_view_title), getString(R.string.yes_delete)), arrayOf(null, "#E53935")) { whichAction ->
+                val defaultLabel = getString(R.string.printer_default_label)
+                showPillDialog(printer.optString("name", defaultLabel), arrayOf(getString(R.string.choose_default_view_title), getString(R.string.yes_delete)), arrayOf(null, "#E53935")) { whichAction ->
                     if (whichAction == 0) {
-                        showPillDialog(getString(R.string.choose_default_view_title), arrayOf(getString(R.string.menu_change_camera_type), getString(R.string.choose_default_view))) { whichView ->
+                        val viewOptions = arrayOf(getString(R.string.view_option_camera), getString(R.string.view_option_interface))
+                        showPillDialog(getString(R.string.choose_default_view_title), viewOptions) { whichView ->
                             try {
                                 val arr = JSONArray(prefs.getString("printers_list", "[]"))
                                 arr.getJSONObject(i).put("defaultView", if (whichView == 0) "camera" else "interface")
                                 prefs.edit().putString("printers_list", arr.toString()).apply()
-                                applyLanguageAndRefreshUI(); showCenteredPillToast(getString(R.string.choose_default_view_title) + " ✓")
+                                applyLanguageAndRefreshUI(); showCenteredPillToast(getString(R.string.toast_view_changed_success))
                             } catch (e: Exception) { Log.e("KlippShell", "Fehler beim Ändern der Standardansicht", e) }
                         }
                     } else {
@@ -635,8 +634,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun showCenteredPillToast(message: String) {
         val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
-
-        // REPARATUR: Synchronisierte Theme-Farben über ContextCompat statt Farb-Hardcoding
         val backgroundColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val textColorResource = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
 
@@ -692,7 +689,6 @@ class MainActivity : AppCompatActivity() {
                             var socket: Socket? = null
                             try {
                                 socket = Socket()
-                                // REPARATUR: Auf sichere 750ms angehoben gegen Paketverluste auf TV-WLAN Antennen
                                 socket.connect(InetSocketAddress("$ipPrefix.$i", port), 750)
                                 foundPrinters.add("$ipPrefix.$i:$port")
                             } catch (_: Exception) {} finally { try { socket?.close() } catch (_: Exception) {} }
@@ -830,7 +826,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-            } catch (e: Exception) { Log.e("KlippShell", "Lautloser Update-Check fehlgeschlagen", e) } finally { connection?.disconnect() }
+            } catch (e: Exception) { Log.e("KlippShell", "Silent update check failed", e) } finally { connection?.disconnect() }
         }
     }
 
@@ -847,7 +843,7 @@ class MainActivity : AppCompatActivity() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
         val dialog = AlertDialog.Builder(this).setCancelable(false).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = "Download läuft..."
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.download_in_progress)
 
         val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val textColor = if (isNightMode) Color.WHITE else Color.BLACK
@@ -911,7 +907,7 @@ class MainActivity : AppCompatActivity() {
                 Log.e("Updater", "Download error", e)
                 withContext(Dispatchers.Main) {
                     dialog.dismiss()
-                    showCenteredPillToast("Download fehlgeschlagen!")
+                    showCenteredPillToast(getString(R.string.toast_download_failed))
                 }
             }
         }
@@ -928,7 +924,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         } catch (e: Exception) {
             Log.e("Updater", "Install error", e)
-            showCenteredPillToast("Installation fehlgeschlagen!")
+            showCenteredPillToast(getString(R.string.toast_installation_failed))
         }
     }
 
@@ -968,7 +964,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showPermissionRationaleDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
-        val dialog = AlertDialog.Builder(this).setView(dialogView).create().apply { setCancelable(false); setCanceledOnTouchOutside(false); setOnKeyListener { _, keyCode, _ -> keyCode == KeyEvent.KEYCODE_BACK } }
+        val dialog = AlertDialog.Builder(this).setCancelable(false).setView(dialogView).create().apply { setCanceledOnTouchOutside(false); setOnKeyListener { _, keyCode, _ -> keyCode == KeyEvent.KEYCODE_BACK } }
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.perm_dialog_title)
         val mainContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)

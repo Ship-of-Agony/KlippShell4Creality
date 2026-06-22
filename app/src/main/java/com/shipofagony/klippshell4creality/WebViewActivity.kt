@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
@@ -38,10 +39,11 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.ImageView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -54,13 +56,19 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.*
+import org.json.JSONArray
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.Locale
-import android.content.SharedPreferences
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import java.net.HttpURLConnection
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.URL
+import java.util.Locale
 
 @Suppress("DEPRECATION", "Lint", "ClickableViewAccessibility", "SetJavaScriptEnabled", "SetTextI18n", "LocalSuppress")
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
@@ -126,7 +134,6 @@ class WebViewActivity : AppCompatActivity() {
     private var knownChamberSensor: String? = "temperature_sensor chamber_temp"
     private var knownChamberHeater: String? = "heater_generic chamber_heater"
     private var cachedChamberQueryString: String = "&temperature_sensor%20chamber_temp&heater_generic%20chamber_heater"
-    private var chamberSearchIndex = 0
 
     private var hasTrigFirstLayer = false
     private var hasTrig50 = false
@@ -194,6 +201,32 @@ class WebViewActivity : AppCompatActivity() {
     private val hostIp: String
         get() = Uri.parse(currentActiveUrl).host ?: ""
 
+    // Löst alle Sprach-Mix-Probleme: Setzt den internen Context der WebViewActivity auf deine gewählte Sprache
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+        val savedLang = prefs.getString("app_lang", "system") ?: "system"
+        val config = Configuration(newBase.resources.configuration)
+
+        if (savedLang != "system") {
+            val locale = Locale(savedLang)
+            Locale.setDefault(locale)
+            config.setLocale(locale)
+        }
+
+        val savedTheme = prefs.getInt("app_theme", androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        when (savedTheme) {
+            androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES -> {
+                config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or Configuration.UI_MODE_NIGHT_YES
+            }
+            androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO -> {
+                config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or Configuration.UI_MODE_NIGHT_NO
+            }
+        }
+
+        val localizedContext = newBase.createConfigurationContext(config)
+        super.attachBaseContext(localizedContext)
+    }
+
     private fun getSafeString(key: String, fallback: String): String {
         return try {
             val id = resources.getIdentifier(key, "string", packageName)
@@ -222,27 +255,10 @@ class WebViewActivity : AppCompatActivity() {
     private fun registerNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as AndroidNotificationManager
-            val currentLang = prefs.getString("app_lang", "de") ?: "de"
 
-            val errorChannelName = when(currentLang) {
-                "de" -> "Fehler & Statusmeldungen"
-                "es" -> "Errores y estado"
-                "fr" -> "Erreurs et statut"
-                "pl" -> "Błędy i status"
-                "cs" -> "Chyby a stav"
-                "ru" -> "Ohibki und status"
-                else -> "Errors & Status Alerts"
-            }
-
-            val infoChannelName = when(currentLang) {
-                "de" -> "Informationen & Meilensteine"
-                "es" -> "Información y hitos"
-                "fr" -> "Informations et étapes"
-                "pl" -> "Informacje i kamienie milowe"
-                "cs" -> "Informace a milníky"
-                "ru" -> "Informacija und Meilensteine"
-                else -> "Information & Milestones"
-            }
+            // Kompilier-Sicher: Nutzt die getSafeString Funktion ohne hartes "R.string" Aufrufen zu riskieren
+            val errorChannelName = getSafeString("channel_error_name", "Fehler & Statusmeldungen")
+            val infoChannelName = getSafeString("channel_info_name", "Informationen & Meilensteine")
 
             val errorChannel = NotificationChannel(channelErrorsId, errorChannelName, AndroidNotificationManager.IMPORTANCE_HIGH).apply {
                 description = "Critical printer errors and connection loss alerts"
@@ -291,16 +307,6 @@ class WebViewActivity : AppCompatActivity() {
         notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
     }
 
-    override fun attachBaseContext(newBase: Context) {
-        val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
-        val savedLang = prefs.getString("app_lang", "de") ?: "de"
-        val locale = Locale.forLanguageTag(savedLang)
-        Locale.setDefault(locale)
-        val config = newBase.resources.configuration
-        config.setLocale(locale)
-        super.attachBaseContext(newBase.createConfigurationContext(config))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_webview)
@@ -347,7 +353,6 @@ class WebViewActivity : AppCompatActivity() {
         webView3D = WebView(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             setBackgroundColor(Color.TRANSPARENT)
-            setLayerType(View.LAYER_TYPE_HARDWARE, null)
             isFocusable = false
             isClickable = false
             isFocusableInTouchMode = false
@@ -571,12 +576,8 @@ class WebViewActivity : AppCompatActivity() {
                     }
                 }
 
-                // Lade Kachelhintergrund aus Ressourcen
                 val cardDrawable = ContextCompat.getDrawable(this, R.drawable.bg_card)
 
-                // =========================================================================
-                // KACHEL 1: COMPANION MENÜ & D-PAD STEUERKREUZ
-                // =========================================================================
                 val cardCompanion = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     background = cardDrawable
@@ -642,9 +643,6 @@ class WebViewActivity : AppCompatActivity() {
                 cardCompanion.addView(companionHeaderRow)
                 container.addView(cardCompanion)
 
-                // =========================================================================
-                // KACHEL 2: ON-SCREEN-DISPLAY & OSD FORMAT STYLE
-                // =========================================================================
                 val cardOsd = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     background = cardDrawable
@@ -708,9 +706,6 @@ class WebViewActivity : AppCompatActivity() {
                 cardOsd.addView(splitRow)
                 container.addView(cardOsd)
 
-                // =========================================================================
-                // KACHEL 3: ZOOM (-) & ZOOM (+)
-                // =========================================================================
                 val cardZoom = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     background = cardDrawable
@@ -752,10 +747,6 @@ class WebViewActivity : AppCompatActivity() {
                 splitRowZoom.addView(btnZoomIn)
                 cardZoom.addView(splitRowZoom)
                 container.addView(cardZoom)
-
-                // =========================================================================
-                // NORMALER ANZUCH: DURCHGEHENDE PILLEN FOLGEN UNVERÄNDERT DARUNTER
-                // =========================================================================
 
                 val btnThumbnailToggle = MaterialButton(this).apply {
                     text = getSafeString("menu_thumbnail_progress", "Modell-Fortschritt")
@@ -1105,6 +1096,28 @@ class WebViewActivity : AppCompatActivity() {
         } catch (e: Exception) { cachedMoonrakerUrl = null }
     }
 
+    private fun showCenteredPillToast(message: String) {
+        val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
+        val backgroundColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
+        val textColorResource = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
+
+        val pillView = TextView(this).apply {
+            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(textColorResource)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE; cornerRadius = 100f
+                setColor(backgroundColor)
+                setStroke(4, textColorResource)
+            }
+            setPadding(toPx(50), toPx(35), toPx(50), toPx(35))
+            layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; setMargins(toPx(50), 0, toPx(50), toPx(120))
+            }
+        }
+        val container = FrameLayout(this).apply { addView(pillView) }
+        rootLayout.addView(container)
+        Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
+    }
+
     private suspend fun fetchMoonrakerData() {
         val targetUrl = cachedMoonrakerUrl ?: return
         var conn: HttpURLConnection? = null
@@ -1127,13 +1140,7 @@ class WebViewActivity : AppCompatActivity() {
         pollingJob = lifecycleScope.launch(Dispatchers.IO) {
             while (isActive) {
                 fetchMoonrakerData()
-                val currentDelay = if (hasTrigOffline) {
-                    2000L
-                } else if (isActivityInForeground || isInPictureInPictureMode) {
-                    3000L
-                } else {
-                    30000L
-                }
+                val currentDelay = if (hasTrigOffline) 2000L else 3000L
                 delay(currentDelay)
             }
         }
@@ -1166,19 +1173,6 @@ class WebViewActivity : AppCompatActivity() {
         val size = (18 * context.resources.displayMetrics.density).toInt()
         drawable.setBounds(0, 0, size, size)
         return drawable
-    }
-
-    private fun showCenteredPillToast(message: String) {
-        val rootLayout = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val pillView = TextView(this).apply {
-            text = message; textSize = 16f; gravity = Gravity.CENTER; setTextColor(if (isNight) Color.WHITE else Color.BLACK)
-            background = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 100f; setColor(Color.parseColor(if (isNight) "#252B2E" else "#FFFFFF")); setStroke(4, Color.parseColor(if (isNight) "#FFFFFF" else "#BDBDBD")) }
-            setPadding(50, 35, 50, 35)
-        }
-        val container = FrameLayout(this).apply { addView(pillView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; setMargins(50, 0, 50, 240) }) }
-        rootLayout.addView(container)
-        Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
     }
 
     private fun showButtons() {
@@ -1296,7 +1290,6 @@ class WebViewActivity : AppCompatActivity() {
             val lp = webView?.layoutParams as? ConstraintLayout.LayoutParams
             if (lp != null) { lp.dimensionRatio = null; lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT; lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT; webView?.layoutParams = lp }
         }
-        // Hier war der Fehler: geänder von layoutUrl() zu loadUrl()
         webView?.loadUrl(url)
     }
 
@@ -1525,7 +1518,7 @@ class WebViewActivity : AppCompatActivity() {
                 tvOsdChamberHeater?.visibility = View.VISIBLE; tvOsdChamberHeater?.text = " " + String.format(chHtrStr, tempChamberHeater, targetChamberHeater) + boxDivider
                 tvOsdFanModel?.text = " " + String.format(fanMdlStr, fanModelSpeed) + boxDivider
                 tvOsdFanAux?.text = " " + String.format(fanAuxStr, fanAuxSpeed) + boxDivider
-                tvOsdFanChamber?.text = " " + String.format(fanChmStr, fanChamberSpeed) + boxDivider
+                tvOsdFanChamber?.text = " " + String.format(fanChmStr, fanChamberSpeed)
                 val progressText = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
                 tvOsdProgress?.text = " " + String.format(prgStr, progressText) + boxDivider
                 val timeDigits = String.format(Locale.getDefault(), "%02d:%02d", duration / 60, duration % 60)
@@ -1883,12 +1876,14 @@ class WebViewActivity : AppCompatActivity() {
             resetInactivityTimer()
             showButtons()
 
+            webView?.requestFocus()
+
             when (command) {
-                "DPAD_UP" -> { webView?.requestFocus(); webView?.evaluateJavascript("window.scrollBy(0, -120);", null) }
-                "DPAD_DOWN" -> { webView?.requestFocus(); webView?.evaluateJavascript("window.scrollBy(0, 120);", null) }
-                "DPAD_LEFT" -> { webView?.requestFocus(); webView?.evaluateJavascript("window.scrollBy(-120, 0);", null) }
-                "DPAD_RIGHT" -> { webView?.requestFocus(); webView?.evaluateJavascript("window.scrollBy(120, 0);", null) }
-                "DPAD_OK" -> { webView?.requestFocus(); sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER) }
+                "DPAD_UP" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_UP)
+                "DPAD_DOWN" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN)
+                "DPAD_LEFT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT)
+                "DPAD_RIGHT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT)
+                "DPAD_OK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER)
                 "BACK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_BACK)
 
                 "ZOOM_IN" -> webView?.zoomIn()
@@ -1986,8 +1981,10 @@ class WebViewActivity : AppCompatActivity() {
     }
 
     private fun sendLocalKeyEvent(keyCode: Int) {
-        dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
-        dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
+        runOnUiThread {
+            dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+            dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
+        }
     }
 
     private fun stopRemoteServerSocket() {

@@ -1,7 +1,9 @@
 package com.shipofagony.klippshell4creality
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ActivityInfo
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
@@ -103,6 +105,12 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private var lastTouchY = 0f
     private var isTouchModeActive = false
 
+    private val targetBorderColor: Int
+        get() {
+            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            return if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
+        }
+
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val savedLang = prefs.getString("app_lang", "system") ?: "system"
@@ -130,7 +138,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         setContentView(R.layout.activity_companion_remote)
 
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -152,12 +160,20 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
         checkCompanionModeLockState()
 
-        val deviceRole = prefs.getString("app_device_role", "auto") ?: "auto"
-        if (targetMasterIp.isEmpty() || deviceRole == "auto") {
-            discoverAndConnectTvAuto()
+        // REPARATUR: Erzwungene IP über Widget-Intent abfangen oder Fallback ausführen
+        val widgetIpOverride = intent.getStringExtra("TARGET_WIDGET_IP")
+        if (!widgetIpOverride.isNullOrEmpty()) {
+            targetMasterIp = widgetIpOverride
+            etTargetTvIp.setText(widgetIpOverride)
+            triggerConnectionCheck(widgetIpOverride)
         } else {
-            etTargetTvIp.setText(targetMasterIp)
-            triggerConnectionCheck(targetMasterIp)
+            val deviceRole = prefs.getString("app_device_role", "auto") ?: "auto"
+            if (targetMasterIp.isEmpty() || deviceRole == "auto") {
+                discoverAndConnectTvAuto()
+            } else {
+                etTargetTvIp.setText(targetMasterIp)
+                triggerConnectionCheck(targetMasterIp)
+            }
         }
     }
 
@@ -330,59 +346,51 @@ class CompanionRemoteActivity : AppCompatActivity() {
             if (targetMasterIp.isNotEmpty()) {
                 withContext(Dispatchers.Main) { triggerConnectionCheck(targetMasterIp) }
             } else {
-                withContext(Dispatchers.Main) {
-                    isConnected = false
-                    tvRemoteStatus.text = getString(R.string.toast_no_connection)
-                    tvRemoteStatus.setTextColor(Color.parseColor("#E53935"))
-                    updatePrinterNameDisplay("offline")
-                }
+                handleConnectionFailureFallback()
             }
         }
     }
 
     private fun applyFloatingBenchyBackground() {
         try {
-            val rootContent = findViewById<ViewGroup>(android.R.id.content)
-            val inflatedLayout = rootContent?.getChildAt(0) as? ViewGroup
+            val decorView = window.decorView as ViewGroup
+            val benchyView = ImageView(this).apply {
+                setImageResource(R.drawable.benchy_boat)
+                alpha = 0.06f
+                background = null
+            }
+            decorView.addView(benchyView)
 
-            if (rootContent != null && inflatedLayout != null) {
-                val benchyView = ImageView(this).apply { setImageResource(R.drawable.benchy_boat); alpha = 0.06f }
-                val originalXmlBg = inflatedLayout.background
-                if (originalXmlBg != null) { rootContent.background = originalXmlBg; inflatedLayout.background = null }
-                rootContent.addView(benchyView, 0)
+            lifecycleScope.launch(Dispatchers.Main) {
+                while (decorView.width == 0 || decorView.height == 0) delay(30)
+                val containerW = decorView.width
+                val containerH = decorView.height
+                val boatSize = (containerW * 0.45f).toInt()
+                benchyView.layoutParams = FrameLayout.LayoutParams(boatSize, boatSize)
 
-                lifecycleScope.launch(Dispatchers.Main) {
-                    val decorView = window.decorView
-                    while (decorView.width == 0 || decorView.height == 0) delay(30)
-                    val containerW = decorView.width
-                    val containerH = decorView.height
-                    val boatSize = (containerW * 0.45f).toInt()
-                    benchyView.layoutParams = FrameLayout.LayoutParams(boatSize, boatSize)
+                var posX = (containerW - boatSize) / 2f
+                var posY = containerH * 0.35f
+                var speedX = 0.06f
+                var speedY = 0.045f
 
-                    var posX = (containerW - boatSize) / 2f
-                    var posY = containerH * 0.35f
-                    var speedX = 0.06f
-                    var speedY = 0.045f
+                while (isActive) {
+                    val currentW = decorView.width
+                    val currentH = decorView.height
+                    posX += speedX
+                    posY += speedY
 
-                    while (isActive) {
-                        val currentW = decorView.width
-                        val currentH = decorView.height
-                        posX += speedX
-                        posY += speedY
+                    if (posX <= 0f) { speedX = abs(speedX); posX = 0f; benchyView.scaleX = 1f }
+                    else if (posX + boatSize >= currentW) { speedX = -abs(speedX); posX = (containerW - boatSize).toFloat(); benchyView.scaleX = -1f }
 
-                        if (posX <= 0f) { speedX = abs(speedX); posX = 0f; benchyView.scaleX = 1f }
-                        else if (posX + boatSize >= currentW) { speedX = -abs(speedX); posX = (containerW - boatSize).toFloat(); benchyView.scaleX = -1f }
+                    if (posY <= 0f) { speedY = abs(speedY); posY = 0f }
+                    else if (posY + boatSize >= currentH) { speedY = -abs(speedY); posY = (containerH - boatSize).toFloat() }
 
-                        if (posY <= 0f) { speedY = abs(speedY); posY = 0f }
-                        else if (posY + boatSize >= currentH) { speedY = -abs(speedY); posY = (containerH - boatSize).toFloat() }
-
-                        benchyView.x = posX
-                        benchyView.y = posY
-                        delay(16)
-                    }
+                    benchyView.x = posX
+                    benchyView.y = posY
+                    delay(16)
                 }
             }
-        } catch (e: Exception) { Log.e("KlippShell", "Benchy Background fehlgeschlagen", e) }
+        } catch (e: Exception) { Log.e("KlippShell", "Benchy Background Transparenz Fehler", e) }
     }
 
     private fun applyDynamicVignetteBorder() {
@@ -411,7 +419,6 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private fun setTouchMode(enabled: Boolean) {
         val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
         if (activeRole == "disabled" && enabled) return
-
         isTouchModeActive = enabled
         if (enabled) {
             layoutDpadZone.visibility = View.GONE
@@ -449,8 +456,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteRight.setOnClickListener { sendCommandToTv("DPAD_RIGHT") }
         btnRemoteOk.setOnClickListener { sendCommandToTv("DPAD_OK") }
         btnRemoteHome.setOnClickListener { sendCommandToTv("BACK") }
-        btnRemoteZoomIn.setOnClickListener { sendCommandToTv("ZOOM_IN") }
-        btnRemoteZoomOut.setOnClickListener { sendCommandToTv("ZOOM_OUT") }
+
+        btnRemoteZoomIn.setOnClickListener { sendCommandToTv("ZOOM_OUT") }
+        btnRemoteZoomOut.setOnClickListener { sendCommandToTv("ZOOM_IN") }
 
         viewTouchPadField.setOnTouchListener { _, event ->
             val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
@@ -474,27 +482,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
         btnRemoteEstop.setOnClickListener {
             vibrateFeedback()
-            val dialogContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; val pad = (24 * resources.displayMetrics.density).toInt(); setPadding(pad, pad, pad, pad); background = GradientDrawable().apply { shape = GradientDrawable.RECTANGLE; cornerRadius = 48f; setColor(Color.parseColor("#E53935")) }; layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT) }
-            TextView(this).apply { text = getString(R.string.menu_emergency_stop); textSize = 22f; setTextColor(Color.WHITE); gravity = Gravity.CENTER; setTypeface(null, Typeface.BOLD) }.let { dialogContainer.addView(it) }
-            TextView(this).apply { text = getString(R.string.dialog_stop_title); textSize = 16f; setTextColor(Color.WHITE); gravity = Gravity.CENTER }.let { dialogContainer.addView(it) }
-            val buttonRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; weightSum = 2f }
-            val pVert = (12 * resources.displayMetrics.density).toInt()
-
-            val btnCancel = MaterialButton(this).apply { text = getString(R.string.cancel); isAllCaps = false; textSize = 15f; isFocusable = true; setTextColor(Color.parseColor("#E53935")); backgroundTintList = ColorStateList.valueOf(Color.WHITE); shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build(); setPadding(0, pVert, 0, pVert) }
-            val btnConfirm = MaterialButton(this).apply { text = getString(R.string.dialog_stop_confirm); isAllCaps = false; textSize = 15f; isFocusable = true; setTextColor(Color.WHITE); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B71C1C")); shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build(); setPadding(0, pVert, 0, pVert) }
-
-            buttonRow.addView(btnCancel)
-            buttonRow.addView(btnConfirm)
-            dialogContainer.addView(buttonRow)
-            val dialog = AlertDialog.Builder(this).setView(dialogContainer).create()
-            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-            val borderHighlight = if (isNight) Color.parseColor("#FFFFFF") else Color.parseColor("#424242")
-            arrayOf(btnCancel, btnConfirm).forEach { btn -> btn.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus -> v.animate().scaleX(if (hasFocus) 1.05f else 1.0f).scaleY(if (hasFocus) 1.05f else 1.0f).setDuration(100).start(); if (v is MaterialButton) { v.strokeWidth = if (hasFocus) 6 else 0; v.strokeColor = if (hasFocus) ColorStateList.valueOf(borderHighlight) else null } } }
-            btnCancel.setOnClickListener { dialog.dismiss() }
-            btnConfirm.setOnClickListener { dialog.dismiss(); sendCommandToTv("ESTOP") }
-            dialog.show()
-            btnCancel.requestFocus()
+            sendCommandToTv("ESTOP")
         }
 
         etTargetTvIp.addTextChangedListener(object : TextWatcher {
@@ -545,8 +533,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
     }
 
     private fun applyUnifiedButtonShapesAndFocus() {
-        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val borderHighlight = if (isNight) Color.parseColor("#4CAF50") else Color.parseColor("#424242")
+        val borderHighlight = targetBorderColor
         val combinedButtons = mutableListOf(
             btnSearchTv, btnLeaveRemote, btnRemoteUp, btnRemoteDown, btnRemoteLeft, btnRemoteRight,
             btnRemoteOk, btnRemoteHome, btnRemoteStream, btnRemoteCamera, btnRemoteEstop, btnRemoteZoomIn,
@@ -572,7 +559,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
         if (activeRole == "disabled") return
 
         connectionJob?.cancel()
-        tvRemoteStatus.text = getString(R.string.toast_loading_dashboard)
+        tvRemoteStatus.text = "Verbinde..."
         tvRemoteStatus.setTypeface(null, Typeface.BOLD)
         tvRemoteStatus.setTextColor(Color.parseColor("#FFD54F"))
         updatePrinterNameDisplay("connecting")
@@ -599,20 +586,81 @@ class CompanionRemoteActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     isConnected = true
                     targetMasterIp = ip
-                    tvRemoteStatus.text = getString(R.string.remote_status_connected)
+                    tvRemoteStatus.text = "Verbunden"
                     tvRemoteStatus.setTextColor(Color.parseColor("#4CAF50"))
                     updatePrinterNameDisplay("online", liveModel, liveName)
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    isConnected = false
-                    tvRemoteStatus.text = getString(R.string.toast_no_connection)
-                    tvRemoteStatus.setTextColor(Color.parseColor("#E53935"))
-                    updatePrinterNameDisplay("offline")
-                }
+                handleConnectionFailureFallback()
             } finally {
                 try { socket?.close() } catch (_: Exception) {}
             }
+        }
+    }
+
+    private fun handleConnectionFailureFallback() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            isConnected = false
+
+            val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
+            if (currentRole == "slave") {
+                tvRemoteStatus.text = "TV offline - Schwenke auf Automatik..."
+                tvRemoteStatus.setTextColor(Color.parseColor("#FFD54F"))
+
+                prefs.edit().putString("app_device_role", "auto").apply()
+                delay(1500)
+
+                discoverAndConnectTvAuto()
+            } else {
+                navigateToMasterDashboard()
+            }
+        }
+    }
+
+    private fun navigateToMasterDashboard() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            isConnected = false
+            tvRemoteStatus.text = "TV offline - Wechsle zu Monitor..."
+            tvRemoteStatus.setTextColor(Color.parseColor("#E53935"))
+
+            delay(1500)
+
+            val printersJson = prefs.getString("printers_list", "[]") ?: "[]"
+            var fallbackIp = "127.0.0.1"
+            var fallbackPort = "4408"
+            var defaultToCamera = false
+
+            try {
+                val arr = JSONArray(printersJson)
+                if (arr.length() > 0) {
+                    val primaryPrinter = arr.getJSONObject(0)
+                    fallbackIp = primaryPrinter.optString("ip", "127.0.0.1")
+
+                    if (primaryPrinter.has("port")) {
+                        fallbackPort = primaryPrinter.optString("port", "4408")
+                    } else {
+                        val savedPort = prefs.getInt("saved_dashboard_port_$fallbackIp", -1)
+                        if (savedPort != -1) {
+                            fallbackPort = savedPort.toString()
+                        }
+                    }
+
+                    if (primaryPrinter.has("default_to_camera")) {
+                        defaultToCamera = primaryPrinter.optBoolean("default_to_camera", false)
+                    } else {
+                        defaultToCamera = prefs.getBoolean("remote_state_video", true)
+                    }
+                }
+            } catch (_: Exception) {}
+
+            val intent = Intent(this@CompanionRemoteActivity, WebViewActivity::class.java).apply {
+                putExtra("PRINTER_IP", fallbackIp)
+                putExtra("PRINTER_PORT", fallbackPort)
+                putExtra("IS_CAMERA_VIEW", defaultToCamera)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
+            finish()
         }
     }
 
@@ -621,7 +669,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
         val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
         if (activeRole == "disabled") return
 
-        if (!isConnected || targetMasterIp.isEmpty()) { showCenteredPillToast(getString(R.string.toast_no_connection)); return }
+        if (!isConnected || targetMasterIp.isEmpty()) { showCenteredPillToast("Keine Verbindung"); return }
         lifecycleScope.launch(Dispatchers.IO) {
             var socket: Socket? = null
             try {
@@ -631,7 +679,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
                 writer.write(command + "\n")
                 writer.flush()
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) { isConnected = false; tvRemoteStatus.text = getString(R.string.remote_status_disconnected); tvRemoteStatus.setTextColor(Color.parseColor("#E53935")); updatePrinterNameDisplay("offline") }
+                withContext(Dispatchers.Main) { isConnected = false; tvRemoteStatus.text = "Getrennt"; tvRemoteStatus.setTextColor(Color.parseColor("#E53935")); updatePrinterNameDisplay("offline") }
             } finally {
                 try { socket?.close() } catch (_: Exception) {}
             }
