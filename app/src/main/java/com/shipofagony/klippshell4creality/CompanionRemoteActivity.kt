@@ -65,9 +65,11 @@ class CompanionRemoteActivity : AppCompatActivity() {
     private lateinit var btnRemoteLeft: MaterialButton
     private lateinit var btnRemoteRight: MaterialButton
     private lateinit var btnRemoteOk: MaterialButton
+    private lateinit var btnRemoteBackGlobal: MaterialButton
 
     private lateinit var btnRemoteHome: MaterialButton
     private lateinit var btnRemoteStream: MaterialButton
+    private lateinit var btnRemoteWebMenu: MaterialButton
     private lateinit var btnRemoteCamera: MaterialButton
     private lateinit var btnRemoteEstop: MaterialButton
     private lateinit var btnRemoteZoomIn: MaterialButton
@@ -188,9 +190,11 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteLeft = findViewById(R.id.btnRemoteLeft)
         btnRemoteRight = findViewById(R.id.btnRemoteRight)
         btnRemoteOk = findViewById(R.id.btnRemoteOk)
+        btnRemoteBackGlobal = findViewById(R.id.btnRemoteBackGlobal)
 
         btnRemoteHome = findViewById(R.id.btnRemoteHome)
         btnRemoteStream = findViewById(R.id.btnRemoteStream)
+        btnRemoteWebMenu = findViewById(R.id.btnRemoteWebMenu)
         btnRemoteCamera = findViewById(R.id.btnRemoteCamera)
         btnRemoteEstop = findViewById(R.id.btnRemoteEstop)
         btnRemoteZoomIn = findViewById(R.id.btnRemoteZoomIn)
@@ -228,6 +232,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
             setStroke(3, strokeColor)
         }
         viewTouchPadField.background = touchBackground
+
+        // Zwinge das neue Icon hart in die Button-Instanz, um Caching-Probleme zu umgehen
+        btnRemoteCamera.setIconResource(R.drawable.ic_desktop_landscape_add)
     }
 
     private fun checkCompanionModeLockState() {
@@ -241,6 +248,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
             btnRemoteDown.isEnabled = true
             btnRemoteLeft.isEnabled = true
             btnRemoteRight.isEnabled = true
+            btnRemoteBackGlobal.isEnabled = true
             btnToggleTouchMode.isEnabled = true
             btnToggleTouchMode.alpha = 1.0f
         } else {
@@ -250,6 +258,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
             btnRemoteDown.isEnabled = false
             btnRemoteLeft.isEnabled = false
             btnRemoteRight.isEnabled = false
+            btnRemoteBackGlobal.isEnabled = false
 
             setTouchMode(false)
             btnToggleTouchMode.isEnabled = false
@@ -431,10 +440,12 @@ class CompanionRemoteActivity : AppCompatActivity() {
         isTouchModeActive = enabled
         if (enabled) {
             layoutDpadZone.visibility = View.GONE
+            btnRemoteBackGlobal.visibility = View.GONE
             layoutTouchZone.visibility = View.VISIBLE
             btnToggleTouchMode.visibility = View.GONE
         } else {
             layoutDpadZone.visibility = View.VISIBLE
+            btnRemoteBackGlobal.visibility = View.VISIBLE
             layoutTouchZone.visibility = View.GONE
             btnToggleTouchMode.visibility = View.VISIBLE
             btnToggleTouchMode.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
@@ -468,10 +479,22 @@ class CompanionRemoteActivity : AppCompatActivity() {
         btnRemoteLeft.setOnClickListener { sendCommandToTv("DPAD_LEFT") }
         btnRemoteRight.setOnClickListener { sendCommandToTv("DPAD_RIGHT") }
         btnRemoteOk.setOnClickListener { sendCommandToTv("DPAD_OK") }
+        btnRemoteBackGlobal.setOnClickListener { sendCommandToTv("BACK") }
         btnRemoteHome.setOnClickListener { sendCommandToTv("BACK") }
 
         btnRemoteZoomIn.setOnClickListener { sendCommandToTv("ZOOM_OUT") }
         btnRemoteZoomOut.setOnClickListener { sendCommandToTv("ZOOM_IN") }
+
+        btnRemoteWebMenu.setOnClickListener {
+            vibrateFeedback()
+            btnRemoteWebMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            sendCommandToTv("WEB_MENU_OPEN")
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (!isFinishing) {
+                    btnRemoteWebMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
+                }
+            }, 500)
+        }
 
         viewTouchPadField.setOnTouchListener { _, event ->
             val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
@@ -507,10 +530,11 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
     private fun setupSpecialToggles() {
         updateButtonColorState(btnRemoteStream, isVideoMode)
-        btnRemoteStream.setOnClickListener { vibrateFeedback(); isVideoMode = !isVideoMode; prefs.edit().putBoolean("remote_state_video", isVideoMode).apply(); updateButtonColorState(btnRemoteStream, isVideoMode); sendCommandToTv("TOGGLE_VIDEO") }
         updateButtonColorState(btnRemotePip, isOsdOn)
-        btnRemotePip.setOnClickListener { vibrateFeedback(); isOsdOn = !isOsdOn; prefs.edit().putBoolean("remote_state_osd", isOsdOn).apply(); updateButtonColorState(btnRemotePip, isOsdOn); refreshOsdDependentUi(); sendCommandToTv("TOGGLE_OSD") }
         updateButtonColorState(btnRemoteLayout, isPipMode)
+
+        btnRemoteStream.setOnClickListener { vibrateFeedback(); isVideoMode = !isVideoMode; prefs.edit().putBoolean("remote_state_video", isVideoMode).apply(); updateButtonColorState(btnRemoteStream, isVideoMode); sendCommandToTv("TOGGLE_VIDEO") }
+        btnRemotePip.setOnClickListener { vibrateFeedback(); isOsdOn = !isOsdOn; prefs.edit().putBoolean("remote_state_osd", isOsdOn).apply(); updateButtonColorState(btnRemotePip, isOsdOn); refreshOsdDependentUi(); sendCommandToTv("TOGGLE_OSD") }
         btnRemoteLayout.setOnClickListener { vibrateFeedback(); isPipMode = !isPipMode; prefs.edit().putBoolean("remote_state_pip", isPipMode).apply(); updateButtonColorState(btnRemoteLayout, isPipMode); sendCommandToTv("PIP_TOGGLE") }
         btnRemoteBox.setOnClickListener { vibrateFeedback(); currentOsdStyle = "box"; prefs.edit().putString("remote_state_style", "box").apply(); refreshOsdDependentUi(); sendCommandToTv("STYLE_BOX") }
         btnRemoteBar.setOnClickListener { vibrateFeedback(); currentOsdStyle = "banner"; prefs.edit().putString("remote_state_style", "banner").apply(); refreshOsdDependentUi(); sendCommandToTv("STYLE_BANNER") }
@@ -530,7 +554,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
         if (isOsdOn) {
             smallDpad.forEach { btn -> btn?.isEnabled = true; btn?.alpha = 1.0f }
             btnRemoteBox.isEnabled = true; btnRemoteBar.isEnabled = true; btnRemoteBox.alpha = 1.0f; btnRemoteBar.alpha = 1.0f
-            updateButtonColorState(btnRemoteBox, currentOsdStyle == "box"); updateButtonColorState(btnRemoteBar, currentOsdStyle == "banner")
+            updateButtonColorState(btnRemoteBox, currentOsdStyle == "box"); updateButtonStateGrey(btnRemoteBar, currentOsdStyle == "banner")
         } else {
             smallDpad.forEach { btn -> btn?.isEnabled = false; btn?.alpha = 0.35f }
             btnRemoteBox.isEnabled = false; btnRemoteBar.isEnabled = false; btnRemoteBox.alpha = 0.35f; btnRemoteBar.alpha = 0.35f
@@ -545,13 +569,18 @@ class CompanionRemoteActivity : AppCompatActivity() {
         button.setTextColor(Color.WHITE)
     }
 
+    private fun updateButtonStateGrey(button: MaterialButton, isActive: Boolean) {
+        button.backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isActive) "#4CAF50" else "#E0E0E0"))
+        button.setTextColor(if (isActive) Color.WHITE else Color.BLACK)
+    }
+
     private fun applyUnifiedButtonShapesAndFocus() {
         val borderHighlight = targetBorderColor
         val combinedButtons = mutableListOf(
             btnSearchTv, btnLeaveRemote, btnRemoteUp, btnRemoteDown, btnRemoteLeft, btnRemoteRight,
-            btnRemoteOk, btnRemoteHome, btnRemoteStream, btnRemoteCamera, btnRemoteEstop, btnRemoteZoomIn,
+            btnRemoteOk, btnRemoteHome, btnRemoteStream, btnRemoteWebMenu, btnRemoteCamera, btnRemoteEstop, btnRemoteZoomIn,
             btnRemoteZoomOut, btnRemoteLayout, btnRemotePip, btnRemoteBar, btnRemoteBox,
-            btnTouchBack, btnTouchReturnDpad, btnTouchOk, btnToggleTouchMode
+            btnTouchBack, btnTouchReturnDpad, btnTouchOk, btnToggleTouchMode, btnRemoteBackGlobal
         )
         arrayOf(btnRemoteSecUp, btnRemoteSecDown, btnRemoteSecLeft, btnRemoteSecRight).forEach { btn -> btn?.let { combinedButtons.add(it) } }
 

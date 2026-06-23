@@ -54,9 +54,23 @@ class WebViewMenuHelper(
 
     fun showMenuOptionsDialog(isCameraMode: Boolean, showPillDialog: (String, Array<String>, Array<String?>?, (Int) -> Unit) -> Unit) {
         val isNight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        
+
+        // Zentrale Sicherheitsabfrage-Funktion für NOT-AUS (erzwingt das Pill-Popup)
+        val triggerEmergencyStopWithConfirmation = {
+            showPillDialog(
+                getSafeString("dialog_stop_title", "NOT-STOPP"),
+                arrayOf(getSafeString("dialog_stop_confirm", "Ja"), getSafeString("dialog_cancel", "Nein")),
+                arrayOf("#E53935", null)
+            ) { choice ->
+                if (choice == 0) {
+                    onActionSelected(MenuAction.EmergencyStop)
+                }
+            }
+        }
+
+        // Falls wir nicht im Kamera-Modus sind, zeigen wir direkt das Sicherheits-Popup
         if (!isCameraMode) {
-            showPillDialog(getSafeString("dialog_stop_title", "NOT-STOPP"), arrayOf(getSafeString("dialog_stop_confirm", "Ja"), getSafeString("dialog_cancel", "Nein")), arrayOf("#E53935", null)) { if (it == 0) onActionSelected(MenuAction.EmergencyStop) }
+            triggerEmergencyStopWithConfirmation()
             return
         }
 
@@ -246,14 +260,14 @@ class WebViewMenuHelper(
 
         // 5. STANDARD LIST OPTIONS
         val menuOptions = arrayOf(
-            getSafeString("menu_pip_name", "Bild in Bild (PiP)"), 
-            getSafeString("menu_light_control", "Beleuchtung"), 
-            getSafeString("menu_screensaver", "Bildschirmschoner"), 
-            getSafeString("menu_ratio_title", "Bildformat ändern"), 
-            getSafeString("menu_change_camera_type", "Live-Stream"), 
+            getSafeString("menu_pip_name", "Bild in Bild (PiP)"),
+            getSafeString("menu_light_control", "Beleuchtung"),
+            getSafeString("menu_screensaver", "Bildschirmschoner"),
+            getSafeString("menu_ratio_title", "Bildformat ändern"),
+            getSafeString("menu_change_camera_type", "Live-Stream"),
             getSafeString("menu_emergency_stop", "NOT-AUS")
         )
-        
+
         menuOptions.forEachIndexed { idx, optText ->
             val btn = MaterialButton(context).apply {
                 text = optText; isAllCaps = false; textSize = 16f; cornerRadius = 100
@@ -270,7 +284,7 @@ class WebViewMenuHelper(
                         2 -> onActionSelected(MenuAction.ShowScreensaverConfig)
                         3 -> onActionSelected(MenuAction.ChangeRatio)
                         4 -> onActionSelected(MenuAction.ChangeCameraType)
-                        5 -> onActionSelected(MenuAction.EmergencyStop)
+                        5 -> triggerEmergencyStopWithConfirmation() // Abfrage aufrufen
                     }
                 }
             }

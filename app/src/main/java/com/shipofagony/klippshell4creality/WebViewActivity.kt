@@ -363,7 +363,6 @@ class WebViewActivity : AppCompatActivity() {
         layoutOsdBanner.bringToFront()
         layoutScrollRight.bringToFront()
 
-        // Initialisierung aller externen Manager und des neuen MenuHelpers
         companionServerManager = CompanionServerManager(this, prefs, lifecycleScope, { command -> handleRemoteCommand(command) }, { hostIp }, { currentActiveUrl })
         thumbnailRenderHelper = ThumbnailRenderHelper { hostIp }
         screensaverManager = ScreensaverManager(layoutScreensaver, ivScreensaverLogo, defaultScreensaverDrawable, { thumbnailBitmap }, { lastPrintState }, { lastProgressPercent }, { currentGCodeFilename }, { deactivateScreensaver() })
@@ -1185,6 +1184,9 @@ class WebViewActivity : AppCompatActivity() {
             "ZOOM_IN" -> webView?.zoomIn()
             "ZOOM_OUT" -> webView?.zoomOut()
 
+            "WEB_MENU_OPEN" -> {
+                btnMenu.performClick()
+            }
             "PIP_TOGGLE" -> {
                 val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
                 if (isInPiP) {
