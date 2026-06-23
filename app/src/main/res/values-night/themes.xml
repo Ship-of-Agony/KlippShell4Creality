@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.KlippShell4Creality" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Satte, dunkle Farben für ein augenschonendes TV-Erlebnis nachts -->
         <item name="colorPrimary">#121212</item>
         <item name="colorSecondary">#1E1E1E</item>
         <item name="android:statusBarColor">#000000</item>
         <item name="android:windowBackground">#121212</item>
 
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/transparent_icon</item>
+
+        <item name="colorCardControl">#3A3A3A</item>
     </style>
 
     <style name="NotificationDialogAnimation">
         <item name="android:windowEnterAnimation">@anim/slide_up</item>
         <item name="android:windowExitAnimation">@anim/slide_down</item>
+    </style>
+
+    <style name="CircleButtonOverlay">
+        <item name="cornerSize">50%</item>
     </style>
 </resources>

@@ -1,197 +1,288 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">KlippShell</string>
-    <string name="no_printers">Принтеры не настроены</string>
-    <string name="saved_printers">Сохраненные Принтеры</string>
-    <string name="btn_search_network">Поиск в Сети</string>
-    <string name="search_network">Сканировать Сеть</string>
-    <string name="btn_add">Добавить</string>
-    <string name="btn_exit">Выход</string>
-    <string name="btn_back">Назад</string>
-    <string name="printer_name_hint">Имя Принтера</string>
-    <string name="printer_ip_hint">IP-Адрес</string>
-    <string name="printer_port_hint">Port (Опционально)</string>
-    <string name="printer_model_hint">Выбрать Модель Принтера</string>
-    <string name="search_model_hint">Поиск... (например, CR 10)</string>
-    <string name="choose_port">Выбрать Порт</string>
-    <string name="system_creality">Creality OS (4408)</string>
-    <string name="system_standard">Klipper Стандарт (7125)</string>
-    <string name="system_manual">Ручной Ввод</string>
-    <string name="add_printer_up">Добавить Принтер ▲</string>
-    <string name="add_printer_down">Добавить Принтер ▼</string>
-
-    <string name="choose_default_view_title">Интерфейс по Умолчанию</string>
-    <string name="choose_default_view">Klipper OS</string>
-    <string name="menu_change_camera_type">Живой Поток через</string>
-    <string name="found_printers">Найденные Принтеры</string>
-    <string name="toast_no_connection">Нет подключения к принтеру</string>
-    <string name="yes_delete">Удалить</string>
-    <string name="cancel">Отмена</string>
-    <string name="reset_confirm_msg">Вы действительно хотите удалить этот принтер?</string>
-
-    <string name="settings_title">Настройки</string>
-    <string name="theme_title">Дизайн Приложения</string>
-    <string name="theme_light">Светлый</string>
-    <string name="theme_dark">Темный</string>
-    <string name="theme_system">Как в Системе</string>
-    <string name="change_language">Изменить Язык</string>
-    <string name="settings_notify_title">Уведомления</string>
-    <string name="submenu_sounds_title">Управление Звуками</string>
-    <string name="submenu_popups_title">Управление Попапами</string>
-
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Сделано с ❤️ в Германии</string>
-    <string name="easter_egg_success">Для энтузиастов 3D-печати, не идущих на компромиссы.</string>
-    <string name="about_contact_text">Проект на GitHub • Поддержка по Email</string>
-    <string name="toast_email_error">Приложение электронной почты не найдено</string>
+    <string name="btn_back">Назад</string>
+    <string name="cancel">Отмена</string>
+    <string name="dialog_cancel">Отмена</string>
+    <string name="yes_delete">Удалить</string>
+    <string name="btn_later">Позже</string>
+    <string name="toast_saved">Сохранено ✓</string>
+    <string name="toast_fullscreen_only">Доступно только в полноэкранном режиме</string>
 
-    <string name="reset_app">Сбросить Приложение</string>
+    <string name="no_printers">Нет сохраненных принтеров</string>
+    <string name="saved_printers">Сохраненные принтеры</string>
+    <string name="btn_add">Добавить</string>
+    <string name="btn_exit">Выход</string>
+    <string name="add_printer_up">Добавить принтер ▲</string>
+    <string name="add_printer_down">Добавить принтер ▼</string>
+
+    <string name="printer_name_hint">Имя принтера</string>
+    <string name="printer_ip_hint">IP-адрес</string>
+    <string name="printer_port_hint">Порт (опционально)</string>
+    <string name="printer_model_hint">Выберите модель принтера</string>
+    <string name="search_model_hint">Поиск... (например, CR 10)</string>
+    <string name="printer_model_default">Принтер по умолчанию</string>
+    <string name="printer_default_label">Принтер</string>
+    <string name="printer_setup_success_format">%s успешно настроен ✓</string>
+
+    <string name="choose_port">Выберите порт</string>
+    <string name="system_creality">Creality OS (4408)</string>
+    <string name="system_standard">Klipper Стандарт (7125)</string>
+    <string name="system_manual">Ручной ввод</string>
+
+    <string name="choose_default_view_title">Интерфейс по умолчанию</string>
+    <string name="choose_default_view">Klipper OS</string>
+    <string name="view_option_camera">Прямой эфир</string>
+    <string name="view_option_interface">Klipper OS</string>
+    <string name="toast_view_changed_success">Режим просмотра по умолчанию изменен ✓</string>
+    <string name="reset_confirm_msg">Вы действительно хотите удалить этот принтер?</string>
+
+    <string name="btn_search_network">Поиск по сети</string>
+    <string name="search_network">Сканировать сеть</string>
+    <string name="found_printers">Найденные принтеры</string>
+    <string name="toast_no_connection">Нет подключения к принтеру</string>
+
+    <string name="settings_title">Настройки</string>
+    <string name="settings_optimized_tv">Оптимизировано для Android TV</string>
+    <string name="change_language">Изменить язык</string>
+
+    <string name="theme_title">Дизайн приложения</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Темная</string>
+    <string name="theme_system">Как в системе</string>
+
+    <string name="layout_mode_auto">Отображение интерфейса: АВТО</string>
+    <string name="layout_mode_phone">Отображение интерфейса: СМАРТФОН</string>
+    <string name="layout_mode_tablet">Отображение интерфейса: ПЛАНШЕТ</string>
+
+    <string name="autostart_disabled">Прямой запуск: ВЫКЛ</string>
+    <string name="autostart_enabled">Прямой запуск: ВКЛ</string>
+    <string name="toast_autostart_on">Прямой запуск активирован</string>
+    <string name="toast_autostart_off">Прямой запуск деактивирован</string>
+
+    <string name="reset_app">Сбросить приложение</string>
     <string name="reset_app_title">Удалить все данные?</string>
-    <string name="reset_app_yes">Да, удалить всё</string>
+    <string name="reset_app_yes">Да, удалить все</string>
     <string name="reset_app_cancel">Отмена</string>
 
-    <string name="btn_about_menu">О KlippShell</string>
-    <string name="btn_check_updates">Обновить</string>
-    <string name="license_link_text">Лицензии и Авторские Права</string>
-    <string name="about_changelog_title">Список Изменений</string>
-    <string name="about_changelog_text">v0.8.5.050626-rc\n• Добавлено обновление GitHub OTA: Асинхронная онлайн-проверка\n• Встроенный просмотрщик лицензий: Новое прокручиваемое диалоговое окно\n• Очистка макета: Удален избыточный текст интерфейса, защищена пасхалка логотипа\n• Повышена стабильность: Исправлены ошибки null safety и оптимизирован фокус диалогов</string>
-    <string name="settings_optimized_tv">Оптимизировано для Android TV</string>
+    <string name="menu_change_camera_type">Прямой эфир</string>
+    <string name="toast_loading_livestream">Загрузка трансляции...</string>
+    <string name="btn_zoom_in">Масштаб (+)</string>
+    <string name="btn_zoom_out">Масштаб (-)</string>
+
+    <string name="menu_ratio">Изменить формат изображения</string>
+    <string name="menu_ratio_title">Изменить формат изображения</string>
+    <string name="ratio_16_9">16:9 Широкоэкранный</string>
+    <string name="ratio_4_3">4:3 Стандартный</string>
+    <string name="ratio_1_1">1:1 Квадрат</string>
+    <string name="ratio_16_9_new">16:9 Широкоэкранный</string>
+    <string name="ratio_4_3_new">4:3 Стандартный</string>
+    <string name="ratio_1_1_new">1:1 Квадрат</string>
+
+    <string name="camera_type_html">Klipper HTML поток</string>
+    <string name="camera_type_port">Поток через порт 8080</string>
+    <string name="camera_type_webcam">Поток по пути веб-камеры</string>
+    <string name="camera_type_html_new">Klipper (HTML поток)</string>
+    <string name="camera_type_port_new">Порт (8080 поток)</string>
+    <string name="camera_type_webcam_new">Веб-камера (поток /webcam)</string>
 
     <string name="menu_options_title">Опции</string>
     <string name="menu_osd_show">Показать OSD</string>
     <string name="menu_osd_hide">Скрыть OSD</string>
-    <string name="osd_position_title">Выбрать Позицию OSD</string>
-    <string name="osd_pos_top_left">Сверху Слева</string>
-    <string name="osd_pos_top_center">Сверху по Центру</string>
-    <string name="osd_pos_top_right">Сверху Справа</string>
-    <string name="osd_pos_bottom_center">Снижу по Центру</string>
-    <string name="toast_position_saved">Позиция сохранена ✓</string>
-    <string name="toast_position_fullscreen_only">Изменение возможно только при активном OSD</string>
-    <string name="menu_osd_style_title">Стиль OSD</string>
-    <string name="osd_style_box">Компактный бокс</string>
-    <string name="osd_style_banner">Гибкая лента</string>
-    <string name="osd_pos_banner_top">Вверху</string>
-    <string name="osd_pos_banner_bottom">Внизу</string>
+    <string name="osd_state_on">Экранное меню (OSD)</string>
+    <string name="osd_state_off">Экранное меню (OSD)</string>
+    <string name="menu_osd_style_title">Формат OSD</string>
+    <string name="osd_style_box">Блок</string>
+    <string name="osd_style_banner">Панель</string>
+
+    <string name="osd_position_title">Выбрать позицию OSD</string>
+    <string name="osd_pos_top_left">Сверху слева</string>
+    <string name="osd_pos_top_center">Сверху по центру</string>
+    <string name="osd_pos_top_right">Сверху справа</string>
+    <string name="osd_pos_bottom_center">Снизу по центру</string>
+    <string name="osd_pos_banner_top">Сверху</string>
+    <string name="osd_pos_banner_bottom">Снизу</string>
     <string name="osd_pos_banner_left">Слева</string>
     <string name="osd_pos_banner_right">Справа</string>
-    <string name="osd_state_on">OSD: ВКЛ</string>
-    <string name="osd_state_off">OSD: ВЫКЛ</string>
-    <string name="btn_zoom_in">Приблизить (+)</string>
-    <string name="btn_zoom_out">Отдалить (-)</string>
+    <string name="toast_position_saved">Положение сохранено</string>
+    <string name="toast_position_fullscreen_only">Изменение возможно только при активном OSD</string>
 
-    <string name="menu_ratio_title">Изменить Соотношение Сторон</string>
-    <string name="ratio_16_9_new">16:9 Широкоэкранный</string>
-    <string name="ratio_4_3_new">4:3 Стандартный</string>
-    <string name="ratio_1_1_new">1:1 Квадрат</string>
-    <string name="menu_ratio">Изменить Соотношение Сторон</string>
-    <string name="ratio_16_9">16:9 Широкоэкранный</string>
-    <string name="ratio_4_3">4:3 Стандартный</string>
-    <string name="ratio_1_1">1:1 Квадрат</string>
-
-    <string name="camera_type_html_new">Klipper (HTML Поток)</string>
-    <string name="camera_type_port_new">Порт (Поток 8080)</string>
-    <string name="camera_type_webcam_new">Webcam (Поток /webcam)</string>
-    <string name="camera_type_html">HTML Поток Klipper</string>
-    <string name="camera_type_port">Поток Порта 8080</string>
-    <string name="camera_type_webcam">Поток Пути Webcam</string>
-
-    <string name="menu_emergency_stop">АВАРИЙНАЯ ОСТАНОВКА</string>
-    <string name="dialog_stop_title">Остановить Принтер?</string>
-    <string name="dialog_stop_confirm">ДА - ОСТАНОВИТЬ НЕМЕДЛЕННО</string>
-    <string name="dialog_cancel">Отмена</string>
-    <string name="toast_stop_success">АВАРИЙНАЯ ОСТАНОВКА отправлена!</string>
-    <string name="toast_stop_error">Ошибка отправки: </string>
     <string name="toast_loading_dashboard">Загрузка Klipper OS...</string>
-    <string name="osd_printer_offline">Принтер Не в Сети</string>
-
+    <string name="osd_printer_offline">Принтер оффлайн</string>
     <string name="osd_extruder">Сопло: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_bed">Стол: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Камера: %1$.1f°C</string>
-    <string name="osd_chamber_heater">Нагреватель: %1$.1f°C / %2$.1f°C</string>
-    <string name="osd_fan_model">Вентилятор Модели: %1$.0f%%</string>
-    <string name="osd_fan_aux">Доп. Вентилятор: %1$.0f%%</string>
-    <string name="osd_fan_chamber">Вытяжной Вентилятор: %1$.0f%%</string>
+    <string name="osd_chamber_heater">Нагрев: %1$.1f°C / %2$.1f°C</string>
+    <string name="osd_fan_model">Обдув модели: %1$.0f%%</string>
+    <string name="osd_fan_aux">Доп. обдув: %1$.0f%%</string>
+    <string name="osd_fan_chamber">Вытяжной вентилятор: %1$.0f%%</string>
     <string name="osd_progress_label">Прогресс: %1$s</string>
     <string name="osd_time">Время: %1$s / %2$s</string>
+    <string name="menu_thumbnail_progress">Прогресс модели</string>
 
-    <string name="event_offline">Офлайн</string>
-    <string name="event_first_layer">Первый Слой</string>
+    <string name="menu_light_control">Освещение</string>
+    <string name="menu_light_on">Включить освещение</string>
+    <string name="menu_light_off">Выключить освещение</string>
+    <string name="toast_light_error">Ошибка отправки</string>
+    <string name="toast_max_brightness">Яркость увеличена</string>
+    <string name="toast_restored_brightness">Яркость восстановлена</string>
+
+    <string name="menu_emergency_stop">АВАРИЙНАЯ ОСТАНОВКА</string>
+    <string name="dialog_stop_title">Остановить принтер?</string>
+    <string name="dialog_stop_confirm">ДА - ОСТАНОВИТЬ СЕЙЧАС</string>
+    <string name="toast_stop_success">Команда остановки отправлена!</string>
+    <string name="toast_stop_error">Ошибка при отправке: </string>
+
+    <string name="channel_error_name">Ошибки и статусные сообщения</string>
+    <string name="channel_info_name">Информация и этапы</string>
+    <string name="settings_notify_title">Уведомления</string>
+    <string name="submenu_sounds_title">Управление звуками</string>
+    <string name="submenu_popups_title">Управление всплывающими окнами</string>
+
+    <string name="event_offline">Оффлайн</string>
+    <string name="event_first_layer">Первый слой</string>
     <string name="event_50">Достигнуто 50%</string>
     <string name="event_75">Достигнуто 75%</string>
     <string name="event_90">Достигнуто 90%</string>
     <string name="event_100">Завершено</string>
     <string name="event_error">Ошибка</string>
 
-    <string name="notify_title_offline">Связь Потеряна</string>
+    <string name="notify_title_offline">Связь потеряна</string>
     <string name="notify_msg_offline">Принтер больше не отвечает.</string>
-    <string name="notify_btn_offline">Пропустить</string>
-    <string name="notify_title_first_layer">Первый Слой</string>
+    <string name="notify_btn_offline">Понятно</string>
+    <string name="notify_title_first_layer">Первый слой</string>
     <string name="notify_msg_first_layer">Печатается первый слой.</string>
     <string name="notify_title_50">Экватор!</string>
-    <string name="notify_msg_50">50% печати выполнено.</string>
+    <string name="notify_msg_50">50% печати уже позади.</string>
     <string name="notify_title_75">Почти готово</string>
     <string name="notify_msg_75">75% печати завершено.</string>
-    <string name="notify_title_90">Финишная Прямая</string>
+    <string name="notify_title_90">Финишная прямая</string>
     <string name="notify_msg_90">Достигнуто 90% печати.</string>
-    <string name="notify_title_100">Печать Завершена!</string>
+    <string name="notify_title_100">Печать завершена!</string>
     <string name="notify_msg_100">3D-печать успешно завершена.</string>
     <string name="notify_title_error">Ошибка Klipper</string>
     <string name="notify_msg_error">Принтер прервал печать из-за ошибки.</string>
     <string name="notify_btn_error">Закрыть</string>
-    <string name="notify_btn_success">Отлично</string>
+    <string name="notify_btn_success">Супер</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="menu_light_on">Свет Вкл</string>
-    <string name="menu_light_off">Свет Выкл</string>
-    <string name="toast_light_error">Ошибка отправки</string>
-    <string name="menu_screensaver">Хранитель Экрана</string>
-    <string name="screensaver_title">Автозатемнение через...</string>
-    <string name="screensaver_now">Активировать немедленно</string>
+    <string name="settings_role_title">Раздел Companion</string>
+    <string name="settings_role_auto">Автоматическое обнаружение</string>
+    <string name="settings_role_master">ТВ / Монитор (Master)</string>
+    <string name="settings_role_slave">Пульт ДУ (Slave)</string>
+    <string name="companion_toggle_on">Режим Companion: ВКЛ</string>
+    <string name="companion_toggle_off">Режим Companion: ВЫКЛ</string>
+
+    <string name="remote_title">Пульт KlippShell</string>
+    <string name="remote_status_connected">Подключено к ТВ</string>
+    <string name="remote_status_disconnected">Отключено</string>
+    <string name="remote_ip_hint">например, 192.168.178.109 (IP телевизора)</string>
+    <string name="remote_no_printer_connected">Нет подключенного принтера</string>
+    <string name="remote_connected_printer">Подключенный принтер: %1$s</string>
+
+    <string name="remote_footer_offline">ТВ оффлайн • По умолчанию: %s</string>
+    <string name="remote_footer_connecting">Поиск профиля принтера ТВ…</string>
+    <string name="remote_footer_online">Активное соединение: %s</string>
+
+    <string name="btn_companion_menu">Меню Companion</string>
+    <string name="btn_dpad_control">Пульт управления</string>
+
+    <string name="remote_dpad_up">Вверх</string>
+    <string name="remote_dpad_down">Вниз</string>
+    <string name="remote_dpad_left">Влево</string>
+    <string name="remote_dpad_right">Вправо</string>
+    <string name="remote_dpad_ok">Подтвердить (OK)</string>
+
+    <string name="remote_shortcut_layout">Формат изображения (Блок/Панель)</string>
+    <string name="remote_shortcut_zoom_in">Увеличить масштаб</string>
+    <string name="remote_shortcut_zoom_out">Уменьшить масштаб</string>
+    <string name="remote_shortcut_pip">Картинка в картинке (PiP)</string>
+    <string name="remote_shortcut_stream">Переключить камеру</string>
+    <string name="remote_shortcut_light">Освещение (LED)</string>
+    <string name="remote_shortcut_estop">АВАРИЙНАЯ ОСТАНОВКА</string>
+
+    <string name="remote_btn_estop">АВАР\nСТОП</string>
+    <string name="remote_btn_bar">Панель</string>
+    <string name="remote_btn_box">Блок</string>
+    <string name="remote_btn_light">Освещение</string>
+    <string name="remote_btn_back">назад</string>
+    <string name="remote_btn_camera">Камера</string>
+
+    <string name="menu_pip_name">Картинка в картинке (PiP)</string>
+    <string name="menu_pip_start">В фоновый режим (PiP)</string>
+    <string name="pip_progress_format">Прогресс печати: %1$d%%</string>
+    <string name="btn_pip_close">Закрыть</string>
+    <string name="btn_pip_resize">Изменить размер</string>
+
+    <string name="menu_pip_adb_title">Разблокировать PiP через ADB</string>
+    <string name="dialog_pip_adb_guide_title">Инструкция ADB для режима \"Картинка в картинке\"</string>
+    <string name="dialog_pip_adb_guide_text"><![CDATA[
+Некоторые производители ТВ блокируют функцию \"Картинка в картинке\" (PiP) по умолчанию. Выполните следующие шаги, чтобы разблокировать её навсегда:<br><br>
+1. Включите параметры разработчика на ТВ (нажмите 7 раз на \"Номер сборки\" в настройках системы).<br>
+2. Включите \"Отладку по ADB\" в параметрах разработчика.<br>
+3. Откройте командную строку на ПК и подключитесь к ТВ:<br>
+<tt><b>adb connect [IP_ВАШЕГО_ТВ]:5555</b></tt><br><br>
+4. Скопируйте и выполните следующую команду в точности:<br>
+<tt><b>adb shell appops set com.shipofagony.klippshell4creality PICTURE_IN_PICTURE allow</b></tt><br><br>
+5. Перезапустите приложение KlippShell на ТВ. Теперь режим PiP полностью готов к работе навсегда!
+]]></string>
+
+    <string name="btn_advanced_trigger_tv">Обновить лаунчер ТВ</string>
+    <string name="popup_advanced_sync_title">Фоновая синхронизация</string>
+    <string name="popup_advanced_sync_msg">Запрос статуса Moonraker и обновление плитки на главном экране ТВ.</string>
+    <string name="menu_screensaver">Экранная заставка</string>
+    <string name="screensaver_title">Автоматическое затемнение через...</string>
+    <string name="screensaver_now">Включить сейчас</string>
     <string name="screensaver_30">30 минут</string>
     <string name="screensaver_60">60 минут</string>
     <string name="screensaver_90">90 минут</string>
     <string name="screensaver_120">120 минут</string>
-    <string name="screensaver_off">Отключено</string>
+    <string name="screensaver_off">Деактивировано</string>
 
-    <string name="toast_max_brightness">Яркость увеличена</string>
-    <string name="toast_restored_brightness">Яркость восстановлена</string>
+    <string name="perm_dialog_title">Сеть и конфиденциальность</string>
+    <string name="perm_dialog_msg">KlippShell требуется доступ к сети для установления прямого взаимодействия с Moonraker API вашего принтера, а также разрешение на отправку уведомлений, чтобы вы получали важные предупреждения и этапы печати (например, завершение печати или ошибка) во время просмотра телевизора или использования других приложений. Интернет-соединение необходимо для проверки обновлений OTA, предоставления данных о статусе для лаунчера Android TV, а также для работы расширенных функций режима Companion. Безопасность данных — наш главный приоритет: обмен данными происходит исключительно локально между вашим устройством и принтером. Управляющие или телеметрические данные не передаются на внешние серверы.</string>
+    <string name="perm_dialog_btn">Понятно</string>
+    <string name="perm_dialog_btn_decline">Отклонить и выйти</string>
 
-    <string name="toast_updater_checking">Проверка версии…</string>
-    <string name="toast_updater_up_to_date">KlippShell обновлен ✓</string>
-    <string name="toast_updater_server_error">Сервер обновлений недоступен (404 / Тайм-аут)</string>
-    <string name="toast_updater_error_code">Ошибка получения (Код: %1$d)</string>
-    <string name="update_available_title">Доступно обновление до версии %1$s!</string>
-    <string name="btn_download_now">Скачать Сейчас</string>
-    <string name="btn_later">Позже</string>
-    <string name="toast_update_browser_error">Не удалось открыть браузер</string>
+    <string name="widget_printer_title">KlippShell</string>
+    <string name="widget_printer_empty">Принтеры не найдены</string>
+    <string name="widget_printer_unknown">Неизвестно</string>
+    <string name="widget_remote_label">Remote</string>
+    <string name="widget_remote_config_title">Выбрать принтер для пульта</string>
+    <string name="widget_remote_name_format">Пульт управления %s</string>
+    <string name="widget_config_no_printers_error">Пожалуйста, сначала добавьте принтеры в приложении!</string>
+    <string name="widget_remote_default_title">Пульт управления</string>
+
+    <string name="btn_check_updates">Обновить</string>
     <string name="submenu_update_title">Обновление</string>
     <string name="btn_manual_search">Проверить обновления</string>
-    <string name="pill_auto_check_on">Проверить автоматически при запуске</string>
-    <string name="pill_auto_check_off">Проверить автоматически при запуске</string>
-    <string name="toast_loading_livestream">Загрузка живого потока...</string>
+    <string name="pill_auto_check_on">Проверять автоматически при запуске</string>
+    <string name="pill_auto_check_off">Проверять автоматически при запуске</string>
+    <string name="toast_updater_checking">Проверка версии…</string>
+    <string name="toast_updater_up_to_date">У вас установлена последняя версия KlippShell</string>
+    <string name="toast_updater_server_error">Сервер обновлений недоступен (404 / Таймаут)</string>
+    <string name="toast_updater_error_code">Ошибка при получении данных (Код: %1$d)</string>
+    <string name="update_available_title">Доступно обновление до версии %1$s!</string>
+    <string name="btn_download_now">Скачать сейчас</string>
+    <string name="toast_update_browser_error">Не удалось открыть браузер</string>
+    <string name="download_in_progress">Скачивание…</string>
+    <string name="toast_download_failed">Ошибка скачивания!</string>
+    <string name="toast_installation_failed">Ошибка установки!</string>
 
-    <string name="menu_pip_start">Отправить в фон (PiP)</string>
-    <string name="pip_progress_format">Прогресс печати: %1$d%%</string>
-    <string name="btn_pip_close">Закрыть</string>
-    <string name="btn_pip_resize">Изменить размер</string>
-    <string name="menu_pip_name">Картинка в Картинке (PIP)</string>
-    <string name="menu_light_control">Освещение</string>
+    <string name="btn_about_menu">О KlippShell</string>
+    <string name="about_contact_text">Проект на GitHub • Поддержка по email</string>
+    <string name="about_contact_option">Контакты</string>
+    <string name="toast_email_error">Приложение для отправки email не найдено</string>
+    <string name="license_link_text">Лицензии и авторские права</string>
+    <string name="easter_egg_success">Для энтузиастов 3D-печати, не идущих на компромиссы</string>
+    <string name="about_changelog_title">Список изменений</string>
+    <string name="about_changelog_text"></string>
 
-    <string name="perm_dialog_title">Сеть и Конфиденциальность</string>
-    <string name="perm_dialog_msg">KlippShell требуется доступ к сети для установления прямого интерфейса с API Moonraker вашего принтера. Интернет-соединение необходимо для проверки обновлений OTA, предоставления ресурсов состояния для Launchera Android TV и расширенных функций компаньона. Безопасность данных является нашим главным приоритетом: связь осуществляется исключительно локально между вашим устройством и принтером. Никакие данные управления или телеметрии не передаются на внешние серверы.</string>
-    <string name="perm_dialog_btn">Понятно</string>
-    <string name="perm_dialog_btn_decline">Отклонить и Выйти</string>
+    <string name="welcome_tile_title">Добро пожаловать в KlippShell! 👋</string>
+    <string name="welcome_tile_msg">Рады, что вы с нами! Чтобы помочь вам получить максимум возможностей от мониторинга вашего принтера, ниже представлен краткий обзор ключевых функций KlippShell и особенностей работы с некоторыми ТВ. KlippShell разработан для удобного использования на смартфонах, планшетах или на Android TV.\n\n1️⃣ ПЕРВЫЕ ШАГИ\nДобавьте ниже свой первый 3D-принтер. На данный момент добавлены почти все существующие на рынке модели. Если вы хотите использовать другой принтер на базе Klipper, вы можете выбрать \"Custom Model\".\nПримечание: В зависимости от модели принтера и конфигурации сети вам, возможно, придется вручную настроить порты и доступ к камере для обеспечения корректного мониторинга. Однако автоматическое сканирование сети должно справиться с большинством конфигураций самостоятельно.\n⚠️ Если изображение с камеры не появляется, пожалуйста, посетите страницу https://github.com/DnG-Crafts/K2-Camera и установите исправляющий FIX. К сожалению, для этого требуются Root-права на самом принтере!\n💡 Совет: Длительное нажатие на один из сохраненных принтеров в главном меню открывает опции для изменения режима просмотра по умолчанию (между трансляцией и Klipper OS) или удаления принтера.\n\n2️⃣ УМНОЕУПРАВЛЕНИЕ В РЕАЛЬНОМ ВРЕМЕНИ\nВ режиме видеопотока вы управляете всем с помощью трех основных нижних кнопок:\n• Левая кнопка: Открывает меню экранного дисплея (OSD), масштабирования видео, PiP, подсветки корпуса, заставки и формата экрана.\n• Средняя кнопка: Быстрое переключение между Klipper OS (панель управления) и чистым видеопотоком с камеры.\n• Правая кнопка: Возврат в главное меню в любой момент.\n\n3️⃣ РЕЖИМ ПРЯМОГО ЗАПУСКА\nЕсли вы уже успешно настроили принтер, вы можете включить режим прямого запуска в настройках. Это позволит вам сразу же открывать трансляцию при запуске приложения.\n\n4️⃣ РЕЖИМ COMPANION\nС помощью KlippShell вы можете использовать свое устройство как ТВ-панель (Master) или как пульт управления на смартфоне (Slave). Активируйте режим Companion в настройках, чтобы с комфортом управлять вашим телевизором прямо со смартфона.\n\n5️⃣ РЕЖИМ \"КАРТИНКА В КАРТИНКЕ\" (PiP)\nХотя KlippShell полностью поддерживает режим PiP, некоторые производители ТВ блокируют эту функцию на системном уровне. Не волнуйтесь: в настройках вы найдете расширенную функцию с подробной инструкцией о том, как легко разблокировать PiP на вашем ТВ с помощью одной команды ADB!\n\n6️⃣ ФУНКЦИЯ ТВ \"NOW LIVE\"\nЕсли вы хотите использовать функцию ТВ \"Now Live\", из-за ограничений производителя она может не отображаться на домашнем экране вашего ТВ по умолчанию. В этом случае мы рекомендуем использовать альтернативный лаунчер (например, \"Projectivity Launcher\") на вашем ТВ, чтобы полноценно пользоваться этой возможностью.</string>
+    <string name="welcome_tile_btn">Понятно и скрыть</string>
 
-    <string name="btn_advanced_trigger_tv">Обновить Launcher TV</string>
-    <string name="popup_advanced_sync_title">Фоновая Синхронизация</string>
-    <string name="popup_advanced_sync_msg">Получение статуса Moonraker и обновление плитки главного экрана TV.</string>
-
-    <string name="layout_mode_auto">Отображение макета: АВТОМАТИЧЕСКИ</string>
-    <string name="layout_mode_phone">Отображение макета: СМАРТФОН</string>
-    <string name="layout_mode_tablet">Отображение макета: ПЛАНШЕТ</string>
-
-    <string name="autostart_disabled">Автостарт: ВЫКЛ</string>
-    <string name="autostart_enabled">Автостарт: ВКЛ ✓</string>
-    <string name="toast_autostart_on">Автостарт включен ✓</string>
-    <string name="toast_autostart_off">Автостарт выключен</string>
 </resources>

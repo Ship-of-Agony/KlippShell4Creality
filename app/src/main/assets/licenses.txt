@@ -1,25 +1,75 @@
 KlippShell (4 Creality)
-
 © 2026 Ship of Agony LABs
 
 Ideas, Sources, and Third-Party Open Source Information:
+This application uses the following open-source libraries, assets, and frameworks.
 
+---
 
-1. Printer Images
-The product illustrations and device graphics used in this application originate from the official Creality repository:
-• https://github.com/CrealityOfficial/CrealityPrint
+1. Kotlin Standard Library, Coroutines & Lifecycle
+Copyright JetBrains s.r.o.
+Licensed under the Apache License, Version 2.0
+URL: https://kotlinlang.org/
 
-2. Google Material Design Icons
+---
+
+2. Material Components for Android & Google Material Design Icons
+Copyright The Android Open Source Project
+Licensed under the Apache License, Version 2.0
 Used for the general user interface layout, icons, and control elements.
-• Licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+URL: https://github.com/material-components/material-components-android
 
-3. Kotlin Coroutines & Lifecycle Libraries
-Copyright © JetBrains s.r.o.
-• Licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+---
 
-4. Core Inspiration
-This application is heavily inspired by the great project "KlippHub" by DnG Crafts.
-• This sparked my vision of being able to conveniently monitor my 3D printer on the TV right from the comfort of my couch. Special thanks go to DnG for the tireless support, as well as for all the other valuable contributions—such as the "Cfs RFID" application—for the entire 3D printing community!
+3. AndroidX & Jetpack Frameworks (WorkManager, TVProvider, Core-KTX)
+Copyright The Android Open Source Project
+Licensed under the Apache License, Version 2.0
+URL: https://developer.android.com/jetpack
 
-5. Development Support: Gemini (Google AI)
-• for assistance in error analysis and resolving complex code crashes.
+---
+
+4. Coil (Coroutine Image Loader)
+Copyright 2023 Coil Contributors
+Licensed under the Apache License, Version 2.0
+URL: https://github.com/coil-kt/coil
+
+---
+
+5. Printer Images & Media Assets
+The product illustrations and device graphics used in this application originate from the official Creality repository.
+URL: https://github.com/CrealityOfficial/CrealityPrint
+
+---
+
+6. 3D Model Assets ("Benchy")
+The 3D Benchy placeholder model used in this application is based on the "Benchy - The jolly 3D printing torture-test" design from www.cults3d / CreativeTools. The original file format was converted into the optimized GLB format using the ImageToStl platform.
+Model URL: https://cults3d.com/en/orders/160580329
+Conversion Tool URL: https://imagetostl.com/
+
+---
+
+7. Core Inspiration & Acknowledgements
+This application is heavily inspired by the great project "KlippHub" by DnG Crafts. This sparked the vision of being able to conveniently monitor a 3D printer on the TV right from the comfort of the couch.
+Special thanks go to DnG for the tireless support, as well as for all the other valuable contributions (such as the "Cfs RFID" application) for the entire 3D printing community!
+
+---
+
+8. Development Support
+Google Gemini (AI) - for assistance in error analysis, code refactoring, and resolving complex crashes.
+
+---
+
+=======================================================
+APACHE LICENSE, VERSION 2.0 SUMMARY
+=======================================================
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use these files except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
