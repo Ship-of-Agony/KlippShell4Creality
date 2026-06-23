@@ -8,6 +8,7 @@ v0.9.2.230626-rc
 • Restructuring of SettingsAcity.kt
 • Remote Control Manager is better developed and more user-friendly
 
+
 v0.9.1.190626-rc
 
 • Added TV search dialog for model selection
