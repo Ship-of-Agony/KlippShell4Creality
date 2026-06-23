@@ -160,7 +160,6 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
         checkCompanionModeLockState()
 
-        // REPARATUR: Erzwungene IP über Widget-Intent abfangen oder Fallback ausführen
         val widgetIpOverride = intent.getStringExtra("TARGET_WIDGET_IP")
         if (!widgetIpOverride.isNullOrEmpty()) {
             targetMasterIp = widgetIpOverride
@@ -309,7 +308,12 @@ class CompanionRemoteActivity : AppCompatActivity() {
         connectionJob = lifecycleScope.launch(Dispatchers.IO) {
             var datagramSocket: DatagramSocket? = null
             try {
-                datagramSocket = DatagramSocket().apply { soTimeout = 2500; broadcast = true }
+                datagramSocket = DatagramSocket(null).apply {
+                    reuseAddress = true
+                    soTimeout = 2500
+                    broadcast = true
+                    bind(InetSocketAddress(0))
+                }
                 val requestData = "DISCOVER_KLIPPSHELL_MASTER".toByteArray(Charsets.UTF_8)
                 val broadcastPacket = DatagramPacket(requestData, requestData.size, InetAddress.getByName("255.255.255.255"), 9998)
                 datagramSocket.send(broadcastPacket)
@@ -321,24 +325,29 @@ class CompanionRemoteActivity : AppCompatActivity() {
                 val responseStr = String(receivePacket.data, 0, receivePacket.length, Charsets.UTF_8).trim()
                 if (responseStr.isNotEmpty()) {
                     val json = JSONObject(responseStr)
-                    val discoveredIp = if (json.has("ip")) json.getString("ip") else receivePacket.address.hostAddress
+                    var discoveredIp = json.optString("ip", "").trim()
+                    if (discoveredIp.isEmpty() || discoveredIp == "127.0.0.1") {
+                        discoveredIp = receivePacket.address.hostAddress ?: ""
+                    }
                     val liveModel = if (json.has("model")) json.getString("model") else null
                     val liveName = if (json.has("name")) json.getString("name") else null
 
-                    withContext(Dispatchers.Main) {
-                        isConnected = true
-                        targetMasterIp = discoveredIp
-                        etTargetTvIp.setText(discoveredIp)
-                        prefs.edit().putString("last_master_tv_ip", discoveredIp).apply()
+                    if (discoveredIp.isNotEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            isConnected = true
+                            targetMasterIp = discoveredIp
+                            etTargetTvIp.setText(discoveredIp)
+                            prefs.edit().putString("last_master_tv_ip", discoveredIp).apply()
 
-                        tvRemoteStatus.text = getString(R.string.remote_status_connected)
-                        tvRemoteStatus.setTextColor(Color.parseColor("#4CAF50"))
-                        updatePrinterNameDisplay("online", liveModel, liveName)
+                            tvRemoteStatus.text = getString(R.string.remote_status_connected)
+                            tvRemoteStatus.setTextColor(Color.parseColor("#4CAF50"))
+                            updatePrinterNameDisplay("online", liveModel, liveName)
+                        }
+                        return@launch
                     }
-                    return@launch
                 }
             } catch (e: Exception) {
-                Log.d("KlippShell", "Auto Discovery passiv abgelaufen")
+                Log.d("KlippShell", "Auto Discovery fehlgeschlagen oder Timeout: ${e.message}")
             } finally {
                 try { datagramSocket?.close() } catch (_: Exception) {}
             }
@@ -441,7 +450,11 @@ class CompanionRemoteActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             val ip = etTargetTvIp.text.toString().trim()
-            if (ip.isNotEmpty()) triggerConnectionCheck(ip) else discoverAndConnectTvAuto()
+            if (ip.isNotEmpty()) {
+                triggerConnectionCheck(ip)
+            } else {
+                discoverAndConnectTvAuto()
+            }
         }
 
         btnToggleTouchMode.setOnClickListener { vibrateFeedback(); setTouchMode(!isTouchModeActive) }
@@ -591,7 +604,9 @@ class CompanionRemoteActivity : AppCompatActivity() {
                     updatePrinterNameDisplay("online", liveModel, liveName)
                 }
             } catch (e: Exception) {
-                handleConnectionFailureFallback()
+                withContext(Dispatchers.Main) {
+                    handleConnectionFailureFallback()
+                }
             } finally {
                 try { socket?.close() } catch (_: Exception) {}
             }
@@ -599,21 +614,20 @@ class CompanionRemoteActivity : AppCompatActivity() {
     }
 
     private fun handleConnectionFailureFallback() {
-        lifecycleScope.launch(Dispatchers.Main) {
-            isConnected = false
+        isConnected = false
+        val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
+        if (currentRole == "slave") {
+            tvRemoteStatus.text = "TV offline - Schwenke auf Automatik..."
+            tvRemoteStatus.setTextColor(Color.parseColor("#FFD54F"))
 
-            val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
-            if (currentRole == "slave") {
-                tvRemoteStatus.text = "TV offline - Schwenke auf Automatik..."
-                tvRemoteStatus.setTextColor(Color.parseColor("#FFD54F"))
+            prefs.edit().putString("app_device_role", "auto").apply()
 
-                prefs.edit().putString("app_device_role", "auto").apply()
+            lifecycleScope.launch(Dispatchers.Main) {
                 delay(1500)
-
                 discoverAndConnectTvAuto()
-            } else {
-                navigateToMasterDashboard()
             }
+        } else {
+            navigateToMasterDashboard()
         }
     }
 

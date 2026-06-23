@@ -74,7 +74,11 @@ class CompanionServerManager(
 
                             if (!command.isNullOrEmpty()) {
                                 if (command == "REQUEST_PRINTER_INFO") {
-                                    val currentIp = getCurrentHostIp()
+                                    var currentIp = getCurrentHostIp()
+                                    if (currentIp.isEmpty() || currentIp == "127.0.0.1") {
+                                        currentIp = socket.localAddress?.hostAddress ?: ""
+                                    }
+
                                     val currentUrl = getCurrentActiveUrl()
                                     val currentPort = android.net.Uri.parse(currentUrl).port.takeIf { it != -1 }?.toString() ?: "7125"
                                     val printersJson = prefs.getString("printers_list", "[]") ?: "[]"
@@ -84,13 +88,20 @@ class CompanionServerManager(
 
                                     try {
                                         val arr = JSONArray(printersJson)
+                                        var found = false
                                         for (i in 0 until arr.length()) {
                                             val obj = arr.getJSONObject(i)
                                             if (obj.optString("ip") == currentIp) {
                                                 modelName = obj.optString("model", "Standard Drucker")
                                                 printerName = obj.optString("name", "KlippShell TV")
+                                                found = true
                                                 break
                                             }
+                                        }
+                                        if (!found && arr.length() > 0) {
+                                            val first = arr.getJSONObject(0)
+                                            modelName = first.optString("model", "Standard Drucker")
+                                            printerName = first.optString("name", "KlippShell TV")
                                         }
                                     } catch (_: Exception) {}
 
@@ -127,7 +138,10 @@ class CompanionServerManager(
         udpDiscoveryJob?.cancel()
         udpDiscoveryJob = scope.launch(Dispatchers.IO) {
             try {
-                udpDiscoverySocket = DatagramSocket(9998).apply { reuseAddress = true }
+                udpDiscoverySocket = DatagramSocket(null).apply {
+                    reuseAddress = true
+                    bind(InetSocketAddress(9998))
+                }
                 val buffer = ByteArray(1024)
 
                 while (isActive) {
@@ -136,7 +150,11 @@ class CompanionServerManager(
 
                     val requestMsg = String(packet.data, 0, packet.length, Charsets.UTF_8).trim()
                     if (requestMsg == "DISCOVER_KLIPPSHELL_MASTER") {
-                        val currentIp = getCurrentHostIp().takeIf { it.isNotEmpty() } ?: "127.0.0.1"
+                        var currentIp = getCurrentHostIp().takeIf { it.isNotEmpty() } ?: ""
+                        if (currentIp.isEmpty() || currentIp == "127.0.0.1") {
+                            currentIp = udpDiscoverySocket?.localAddress?.hostAddress ?: "127.0.0.1"
+                        }
+
                         val currentUrl = getCurrentActiveUrl()
                         val currentPort = android.net.Uri.parse(currentUrl).port.takeIf { it != -1 }?.toString() ?: "7125"
                         val printersJson = prefs.getString("printers_list", "[]") ?: "[]"
@@ -172,6 +190,8 @@ class CompanionServerManager(
                 }
             } catch (e: Exception) {
                 Log.e("KlippShell", "UDP Auto Discovery Server Error", e)
+            } finally {
+                try { udpDiscoverySocket?.close() } catch (_: Exception) {}
             }
         }
     }
