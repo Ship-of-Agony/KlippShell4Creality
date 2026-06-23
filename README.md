@@ -4,11 +4,15 @@ KlippShell 4 Creality
 
 KlippShell 4 Creality brings your Klipper-powered 3D printers natively to Android devices – uncompromisingly optimized for smartphones, tablets, and Android TV boxes. Comfortably monitor and control your printing processes directly from your couch, without having to open a separate web interface on your PC.
 🚀 Key Features & Highlights
+📱 Home Screen Widget (New)
+
+    🧩 Native Android Home Screen Widget Integration: Engineered a responsive application widget utilizing remote view bindings to display real-time Klipper status, current nozzle/bed temperatures, and print job progress percentages instantly without opening the main application window.
+
 📺 Tailored for Android TV & Tablets
 
     Responsive Dual-Screen Layout: Automatic side-by-side display in landscape mode (tablets/TV) featuring a persistent main menu on the left and dynamic sub-menus on the right (layout-sw600dp-land).
 
-    Optimized D-Pad Navigation: Full support for TV remote controllers backed by intelligent focus routing and Material3 feedback. Touch targets have been fine-tuned to fit the TV experience.
+    Optimized D-Pad Navigation: Full support for TV remote controllers backed by intelligent focus routing and Material3 feedback. Touch targets have been fine-tuned to fit the TV experience perfectly.
 
     Fluidd & Mainsail Escape-Hatch: Prevents the cursor from getting "trapped" inside the WebView. Pressing the BACK button on your remote instantly forces focus back to the core application overlay controls.
 
@@ -50,7 +54,7 @@ KlippShell 4 Creality brings your Klipper-powered 3D printers natively to Androi
 
     Calibrated Network Discovery: Automatic network scanner timeout extended from 350ms to a highly stable 750ms to gracefully handle packet loss on weak Wi-Fi hardware typical of budget Android TV sticks.
 
-    Complete Internationalization (i18n): Zero hardcoded text. Native localization of all statuses, toasts, and settings via dynamic strings.xml resource IDs supporting English (EN), German (DE), Spanish (ES), French (FR), Polnisch (PL), Czech (CS), and Russian (RU).
+    Complete Internationalization (i18n): Zero hardcoded text. Native localization of all statuses, toasts, and settings via dynamic strings.xml resource IDs supporting English (EN), German (DE), Spanish (ES), French (FR), Polish (PL), Czech (CS), and Russian (RU).
 
 🛠️ Technical Specifications (For Developers)
 
@@ -80,8 +84,6 @@ KlippShell 4 Creality brings your Klipper-powered 3D printers natively to Androi
 
     For support or feedback, utilize the functional "Kontakt" (Contact) field inside the settings panel to directly dispatch an email intent to the studio.
 
-    
----------------------------------
 📄 License & Open-Source Credits
 License
 
@@ -128,15 +130,15 @@ This application proudly utilizes the following open-source libraries, framework
 
     The product illustrations and device graphics used in this application originate from the official Creality repository.
 
-    CrealityOfficial/CrealityPrint: https://github.com/CrealityOfficial/CrealityPrint
+    CrealityOfficial/CrealityPrint
 
-    3D Model Assets ("Benchy"): https://cults3d.com/en/orders/160580329
+    3D Model Assets ("Benchy")
 
     The 3D Benchy placeholder model used in this application is based on the "Benchy - The jolly 3D printing torture-test" design from Cults3D / CreativeTools. The original file format was converted into the optimized GLB format using the ImageToStl platform.
 
-        Model URL: https://cults3d.com/en/orders/160580329
+        Model URL
 
-        Conversion Tool: URL https://imagetostl.com
+        Conversion Tool URL
 
 ❤️ Core Inspiration & Acknowledgements
 
