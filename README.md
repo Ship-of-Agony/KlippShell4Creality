@@ -56,6 +56,10 @@ KlippShell 4 Creality brings your Klipper-powered 3D printers natively to Androi
 
     Complete Internationalization (i18n): Zero hardcoded text. Native localization of all statuses, toasts, and settings via dynamic strings.xml resource IDs supporting English (EN), German (DE), Spanish (ES), French (FR), Polish (PL), Czech (CS), and Russian (RU).
 
+🛡️ Security & Google Certification
+
+    🛡️ Google Play Protect Certification Roadmap: KlippShell is strictly designed around official Android security policies. The code architecture is prepared for official Google Ecosystem Certification targeted for September 2026, ensuring absolute device compliance, verified sandboxing, and smooth sideloading compatibility across certified Android TV installations without OS ecosystem warnings.
+
 🛠️ Technical Specifications (For Developers)
 
     Architecture: 100% type-safe layout architecture in Kotlin, completely eliminating risky Java reflection hacks (params.javaClass.getField) inside ConstraintLayout parameters to guarantee long-term OS compatibility.
@@ -130,15 +134,15 @@ This application proudly utilizes the following open-source libraries, framework
 
     The product illustrations and device graphics used in this application originate from the official Creality repository.
 
-    CrealityOfficial/CrealityPrint
+    CrealityOfficial/CrealityPrint: https://github.com/CrealityOfficial/CrealityPrint
 
-    3D Model Assets ("Benchy")
+    3D Model Assets ("Benchy"): https://cults3d.com/en/orders/160580329
 
     The 3D Benchy placeholder model used in this application is based on the "Benchy - The jolly 3D printing torture-test" design from Cults3D / CreativeTools. The original file format was converted into the optimized GLB format using the ImageToStl platform.
 
-        Model URL
+        Model URL: https://cults3d.com/en/orders/160580329
 
-        Conversion Tool URL
+        Conversion Tool URL: https://imagetostl.com
 
 ❤️ Core Inspiration & Acknowledgements
 
