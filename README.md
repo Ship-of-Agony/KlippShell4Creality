@@ -1,5 +1,9 @@
 ![Downloads](https://img.shields.io/github/downloads/Ship-of-Agony/KlippShell4Creality/total?style=flat-square&logo=github&color=blue&cache=bust1)
 
+🔧 Bug Fixes & Known Issues
+
+    [Work in Progress] Identified and tracking bugs related to the Companion Mode. A hotfix will be deployed soon.
+
 KlippShell 4 Creality
 
 KlippShell 4 Creality brings your Klipper-powered 3D printers natively to Android devices – uncompromisingly optimized for smartphones, tablets, and Android TV boxes. Comfortably monitor and control your printing processes directly from your couch, without having to open a separate web interface on your PC.
