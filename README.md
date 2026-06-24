@@ -1,13 +1,11 @@
 ![Downloads](https://img.shields.io/github/downloads/Ship-of-Agony/KlippShell4Creality/total?style=flat-square&logo=github&color=blue&cache=bust1)
 
-🔧 Bug Fixes & Known Issues
-
-    [Work in Progress] Identified and tracking bugs related to the Companion Mode. A hotfix will be deployed soon.
-
 KlippShell 4 Creality
 
 KlippShell 4 Creality brings your Klipper-powered 3D printers natively to Android devices – uncompromisingly optimized for smartphones, tablets, and Android TV boxes. Comfortably monitor and control your printing processes directly from your couch, without having to open a separate web interface on your PC.
+
 🚀 Key Features & Highlights
+
 📱 Home Screen Widget (New)
 
     🧩 Native Android Home Screen Widget Integration: Engineered a responsive application widget utilizing remote view bindings to display real-time Klipper status, current nozzle/bed temperatures, and print job progress percentages instantly without opening the main application window.
@@ -50,6 +48,10 @@ KlippShell 4 Creality brings your Klipper-powered 3D printers natively to Androi
 
     On-Screen Display (OSD): Real-time overlay reporting temperatures and print times, fully synchronized into your target interface language without hardcoding bugs.
 
+🔧 Bug Fixes & Known Issues
+
+    [Work in Progress] Identified and tracking bugs related to the Companion Mode. A hotfix will be deployed soon.
+
 ⚙️ System & Convenience
 
     Integrated GitHub OTA Updater: Automatic, asynchronous online checking for new application releases upon startup directly via the GitHub API.
@@ -63,6 +65,7 @@ KlippShell 4 Creality brings your Klipper-powered 3D printers natively to Androi
 🛡️ Security & Google Certification
 
     🛡️ Google Play Protect Certification Roadmap: KlippShell is strictly designed around official Android security policies. The code architecture is prepared for official Google Ecosystem Certification targeted for September 2026, ensuring absolute device compliance, verified sandboxing, and smooth sideloading compatibility across certified Android TV installations without OS ecosystem warnings.
+
 
 🛠️ Technical Specifications (For Developers)
 
