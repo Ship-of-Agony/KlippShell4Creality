@@ -222,4 +222,15 @@
             android:alpha="0.45" />
     </FrameLayout>
 
+    <ImageView
+        android:id="@+id/ivVirtualCursor"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@android:drawable/ic_menu_compass"
+        android:tint="#4CAF50"
+        android:visibility="gone"
+        android:elevation="30dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

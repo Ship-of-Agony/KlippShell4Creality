@@ -524,164 +524,156 @@
         </LinearLayout>
     </ScrollView>
 
-    <ScrollView
-        android:id="@+id/scrollPanelAbout"
+    <!-- Das äußere ScrollView (scrollPanelAbout) wurde entfernt. Das Panel füllt den Raum direkt aus -->
+    <LinearLayout
+        android:id="@+id/panelAbout"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="32dp"
         android:layout_marginBottom="16dp"
-        android:scrollbars="none"
-        android:fillViewport="true"
-        android:clipChildren="false"
-        android:clipToPadding="false"
+        android:background="@drawable/bg_card"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
         android:visibility="gone"
+        tools:visibility="visible"
         app:layout_constraintStart_toEndOf="@id/guidelineCenter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle"
         app:layout_constraintBottom_toTopOf="@id/btnSettingsBack">
 
-        <LinearLayout
-            android:id="@+id/panelAbout"
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_card"
-            android:elevation="8dp"
-            android:orientation="vertical"
-            android:paddingTop="20dp"
-            android:paddingBottom="20dp"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:visibility="gone">
+            android:text="@string/about_changelog_title"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"
+            android:gravity="center_horizontal" />
+
+        <ScrollView
+            android:id="@+id/scrollChangelogBox"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input_rounded"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"
+            android:focusable="true"
+            android:scrollbars="vertical">
+            <TextView
+                android:id="@+id/tvChangelogContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="14sp" />
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/layoutAboutInnerCredits"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal|center_vertical"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/ivAboutStudioLogo"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="6dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/klippshell_logo_new" />
 
             <TextView
-                android:layout_width="match_parent"
+                android:id="@+id/tvAppVersion"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/about_changelog_title"
+                android:layout_marginBottom="3dp"
+                android:text="Version 0.0.0"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:text="@string/settings_optimized_tv"
+                android:textColor="#4CAF50"
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:text="@string/made_in_germany"
                 android:textColor="?android:attr/textColorPrimary"
-                android:textSize="18sp"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAboutContactLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/about_contact_text"
+                android:textColor="#2196F3"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="10dp"
-                android:gravity="center_horizontal" />
-
-            <ScrollView
-                android:id="@+id/scrollChangelogBox"
-                android:layout_width="match_parent"
-                android:layout_height="140dp"
-                android:background="@drawable/bg_input_rounded"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp"
+                android:clickable="true"
                 android:focusable="true"
-                android:scrollbars="vertical">
-                <TextView
-                    android:id="@+id/tvChangelogContent"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="14sp" />
-            </ScrollView>
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="6dp" />
 
-            <LinearLayout
-                android:id="@+id/layoutAboutInnerCredits"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvLicensesLink"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal|center_vertical"
-                android:layout_marginBottom="16dp"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:id="@+id/ivAboutStudioLogo"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_marginBottom="6dp"
-                    android:contentDescription="@string/app_name"
-                    android:src="@drawable/klippshell_logo_new" />
-
-                <TextView
-                    android:id="@+id/tvAppVersion"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="3dp"
-                    android:text="Version 0.0.0"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="3dp"
-                    android:text="@string/settings_optimized_tv"
-                    android:textColor="#4CAF50"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
-                    android:text="@string/made_in_germany"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvAboutContactLink"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/about_contact_text"
-                    android:textColor="#2196F3"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:padding="6dp" />
-
-                <TextView
-                    android:id="@+id/tvLicensesLink"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/license_link_text"
-                    android:textColor="#2196F3"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:padding="6dp" />
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSettingsFaq"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp"
-                android:text="FAQ"
-                android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                app:backgroundTint="#2196F3"
-                app:cornerRadius="100dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCheckUpdates"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp"
-                android:text="@string/btn_check_updates"
-                android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                app:cornerRadius="100dp" />
+                android:layout_marginTop="8dp"
+                android:text="@string/license_link_text"
+                android:textColor="#2196F3"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="6dp" />
         </LinearLayout>
-    </ScrollView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSettingsFaq"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="FAQ"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:backgroundTint="#2196F3"
+            app:cornerRadius="100dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCheckUpdates"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="@string/btn_check_updates"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:cornerRadius="100dp" />
+    </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSettingsBack"

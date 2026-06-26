@@ -26,6 +26,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.SystemClock
 import android.os.Looper
 import android.util.Log
 import android.util.Rational
@@ -111,6 +112,11 @@ class WebViewActivity : AppCompatActivity() {
 
     private lateinit var layoutScreensaver: FrameLayout
     private lateinit var ivScreensaverLogo: ImageView
+
+    // Mauszeiger-Instanzen für die TV-Anzeige
+    private var ivVirtualCursor: ImageView? = null
+    private var cursorX = 500f
+    private var cursorY = 400f
 
     private var hasTrigFirstLayer = false
     private var hasTrig50 = false
@@ -301,6 +307,9 @@ class WebViewActivity : AppCompatActivity() {
         ivScreensaverLogo = findViewById(R.id.ivScreensaverLogo)
         val defaultScreensaverDrawable = ivScreensaverLogo.drawable
 
+        // Mauszeiger-Zuweisung aus XML-Overlay
+        ivVirtualCursor = findViewById(R.id.ivVirtualCursor)
+
         isThumbnailEnabled = prefs.getBoolean("thumbnail_enabled_$hostIp", true)
 
         val thumbLayout = FrameLayout(this).apply {
@@ -362,7 +371,9 @@ class WebViewActivity : AppCompatActivity() {
         layoutOsd.bringToFront()
         layoutOsdBanner.bringToFront()
         layoutScrollRight.bringToFront()
+        ivVirtualCursor?.bringToFront()
 
+        // SERVER MANAGER INITIALISIERUNG & DIREKTER SERVER-START
         companionServerManager = CompanionServerManager(this, prefs, lifecycleScope, { command -> handleRemoteCommand(command) }, { hostIp }, { currentActiveUrl })
         thumbnailRenderHelper = ThumbnailRenderHelper { hostIp }
         screensaverManager = ScreensaverManager(layoutScreensaver, ivScreensaverLogo, defaultScreensaverDrawable, { thumbnailBitmap }, { lastPrintState }, { lastProgressPercent }, { currentGCodeFilename }, { deactivateScreensaver() })
@@ -602,6 +613,7 @@ class WebViewActivity : AppCompatActivity() {
             layoutWebButtons.visibility = View.GONE; layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE
             containerWebNotification?.visibility = View.GONE; layoutScreensaver.visibility = View.GONE; layoutScrollRight.visibility = View.GONE
             findViewById<FrameLayout>(thumbContainerId)?.visibility = View.GONE
+            ivVirtualCursor?.visibility = View.GONE
 
             val lp = webView?.layoutParams as? ConstraintLayout.LayoutParams
             if (lp != null) { lp.dimensionRatio = null; lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT; lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT; webView?.layoutParams = lp }
@@ -681,6 +693,7 @@ class WebViewActivity : AppCompatActivity() {
 
         layoutWebButtons.visibility = View.GONE; layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE
         layoutScrollRight.visibility = View.GONE; findViewById<FrameLayout>(thumbContainerId)?.visibility = View.GONE
+        ivVirtualCursor?.visibility = View.GONE
 
         screensaverManager.activateScreensaver()
     }
@@ -1171,6 +1184,34 @@ class WebViewActivity : AppCompatActivity() {
         }
         resetInactivityTimer()
         showButtons()
+
+        // ABFANGEN DER RELATIVEN MAUS-GESTEN
+        if (command.startsWith("MOUSE_MOVE;")) {
+            runOnUiThread {
+                try {
+                    val parts = command.split(";")
+                    if (parts.size >= 3) {
+                        val dx = parts[1].toFloat() * 1.6f
+                        val dy = parts[2].toFloat() * 1.6f
+
+                        val root = findViewById<ConstraintLayout>(R.id.rootLayout)
+                        val maxW = root?.width ?: 1920
+                        val maxH = root?.height ?: 1080
+
+                        cursorX = (cursorX + dx).coerceIn(0f, maxW.toFloat() - toPx(28))
+                        cursorY = (cursorY + dy).coerceIn(0f, maxH.toFloat() - toPx(28))
+
+                        ivVirtualCursor?.apply {
+                            if (visibility != View.VISIBLE) visibility = View.VISIBLE
+                            x = cursorX
+                            y = cursorY
+                        }
+                    }
+                } catch (e: Exception) { Log.e("KlippShell", "Maus-Parsing Error", e) }
+            }
+            return
+        }
+
         webView?.requestFocus()
 
         when (command) {
@@ -1178,7 +1219,20 @@ class WebViewActivity : AppCompatActivity() {
             "DPAD_DOWN" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN)
             "DPAD_LEFT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT)
             "DPAD_RIGHT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT)
-            "DPAD_OK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER)
+
+            // SIMULIERE KLICK AUF DER WEBVIEW WENN CURSOR AKTIV IST
+            "DPAD_CENTER", "DPAD_OK" -> {
+                if (ivVirtualCursor?.visibility == View.VISIBLE) {
+                    runOnUiThread {
+                        val downTime = SystemClock.uptimeMillis()
+                        val eventTime = SystemClock.uptimeMillis()
+                        webView?.dispatchTouchEvent(MotionEvent.obtain(downTime, eventTime, MotionEvent.ACTION_DOWN, cursorX, cursorY, 0))
+                        webView?.dispatchTouchEvent(MotionEvent.obtain(downTime, eventTime + 50, MotionEvent.ACTION_UP, cursorX, cursorY, 0))
+                    }
+                } else {
+                    sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER)
+                }
+            }
             "BACK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_BACK)
 
             "ZOOM_IN" -> webView?.zoomIn()

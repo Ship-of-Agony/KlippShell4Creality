@@ -36,6 +36,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.ShapeAppearanceModel
 import kotlinx.coroutines.*
+import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -47,7 +48,6 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
-import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -232,8 +232,6 @@ class CompanionRemoteActivity : AppCompatActivity() {
             setStroke(3, strokeColor)
         }
         viewTouchPadField.background = touchBackground
-
-        // Zwinge das neue Icon hart in die Button-Instanz, um Caching-Probleme zu umgehen
         btnRemoteCamera.setIconResource(R.drawable.ic_desktop_landscape_add)
     }
 
@@ -379,12 +377,12 @@ class CompanionRemoteActivity : AppCompatActivity() {
             }
             decorView.addView(benchyView)
 
-            lifecycleScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch(BehindWorkers) {
                 while (decorView.width == 0 || decorView.height == 0) delay(30)
                 val containerW = decorView.width
                 val containerH = decorView.height
                 val boatSize = (containerW * 0.45f).toInt()
-                benchyView.layoutParams = FrameLayout.LayoutParams(boatSize, boatSize)
+                withContext(Dispatchers.Main) { benchyView.layoutParams = FrameLayout.LayoutParams(boatSize, boatSize) }
 
                 var posX = (containerW - boatSize) / 2f
                 var posY = containerH * 0.35f
@@ -397,18 +395,26 @@ class CompanionRemoteActivity : AppCompatActivity() {
                     posX += speedX
                     posY += speedY
 
-                    if (posX <= 0f) { speedX = abs(speedX); posX = 0f; benchyView.scaleX = 1f }
-                    else if (posX + boatSize >= currentW) { speedX = -abs(speedX); posX = (containerW - boatSize).toFloat(); benchyView.scaleX = -1f }
+                    if (posX <= 0f) { speedX = abs(speedX); posX = 0f; withContext(Dispatchers.Main) { benchyView.scaleX = 1f } }
+                    else if (posX + boatSize >= currentW) { speedX = -abs(speedX); posX = (containerW - boatSize).toFloat(); withContext(Dispatchers.Main) { benchyView.scaleX = -1f } }
 
                     if (posY <= 0f) { speedY = abs(speedY); posY = 0f }
                     else if (posY + boatSize >= currentH) { speedY = -abs(speedY); posY = (containerH - boatSize).toFloat() }
 
-                    benchyView.x = posX
-                    benchyView.y = posY
+                    withContext(Dispatchers.Main) {
+                        benchyView.x = posX
+                        benchyView.y = posY
+                    }
                     delay(16)
                 }
             }
         } catch (e: Exception) { Log.e("KlippShell", "Benchy Background Transparenz Fehler", e) }
+    }
+
+    private object BehindWorkers : CoroutineDispatcher() {
+        override fun dispatch(context: kotlin.coroutines.CoroutineContext, block: Runnable) {
+            Dispatchers.Main.dispatch(context, block)
+        }
     }
 
     private fun applyDynamicVignetteBorder() {
@@ -442,19 +448,19 @@ class CompanionRemoteActivity : AppCompatActivity() {
             layoutDpadZone.visibility = View.GONE
             btnRemoteBackGlobal.visibility = View.GONE
             layoutTouchZone.visibility = View.VISIBLE
-            btnToggleTouchMode.visibility = View.GONE
         } else {
             layoutDpadZone.visibility = View.VISIBLE
             btnRemoteBackGlobal.visibility = View.VISIBLE
             layoutTouchZone.visibility = View.GONE
-            btnToggleTouchMode.visibility = View.VISIBLE
             btnToggleTouchMode.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
             btnToggleTouchMode.setIconResource(R.drawable.ic_trackpad_mouse)
         }
     }
 
     private fun setupListeners() {
+        // MANUELLER LUPE-SUCHBUTTON: Fokussiert ausschließlich die TV-Master-Suche (Port 9999)
         btnSearchTv.setOnClickListener {
+            vibrateFeedback()
             val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
             if (activeRole == "disabled") {
                 showCenteredPillToast(getString(R.string.autostart_disabled))
@@ -470,16 +476,18 @@ class CompanionRemoteActivity : AppCompatActivity() {
 
         btnToggleTouchMode.setOnClickListener { vibrateFeedback(); setTouchMode(!isTouchModeActive) }
         btnTouchReturnDpad.setOnClickListener { vibrateFeedback(); setTouchMode(false) }
-        btnTouchBack.setOnClickListener { sendCommandToTv("BACK") }
-        btnTouchOk.setOnClickListener { sendCommandToTv("DPAD_OK") }
 
+        // EINHEITLICHE HARDWARE-ZURÜCK SIMULATION (Token: "BACK")
+        btnTouchBack.setOnClickListener { sendCommandToTv("BACK") }
+        btnRemoteBackGlobal.setOnClickListener { sendCommandToTv("BACK") }
+
+        btnTouchOk.setOnClickListener { sendCommandToTv("DPAD_OK") }
         btnLeaveRemote.setOnClickListener { vibrateFeedback(); finish() }
         btnRemoteUp.setOnClickListener { sendCommandToTv("DPAD_UP") }
         btnRemoteDown.setOnClickListener { sendCommandToTv("DPAD_DOWN") }
         btnRemoteLeft.setOnClickListener { sendCommandToTv("DPAD_LEFT") }
         btnRemoteRight.setOnClickListener { sendCommandToTv("DPAD_RIGHT") }
         btnRemoteOk.setOnClickListener { sendCommandToTv("DPAD_OK") }
-        btnRemoteBackGlobal.setOnClickListener { sendCommandToTv("BACK") }
         btnRemoteHome.setOnClickListener { sendCommandToTv("BACK") }
 
         btnRemoteZoomIn.setOnClickListener { sendCommandToTv("ZOOM_OUT") }
@@ -496,6 +504,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
             }, 500)
         }
 
+        // TOUCHPAD KOORDINATEN-DELTA LOGIK (Keine Layout-Interferenzen)
         viewTouchPadField.setOnTouchListener { _, event ->
             val activeRole = prefs.getString("app_device_role", "auto") ?: "auto"
             if (activeRole == "disabled") return@setOnTouchListener false
@@ -505,7 +514,7 @@ class CompanionRemoteActivity : AppCompatActivity() {
                 MotionEvent.ACTION_MOVE -> {
                     val deltaX = event.x - lastTouchX
                     val deltaY = event.y - lastTouchY
-                    if (abs(deltaX) > 2 || abs(deltaY) > 2) {
+                    if (abs(deltaX) > 0.5f || abs(deltaY) > 0.5f) {
                         sendCommandToTv("MOUSE_MOVE;${deltaX.toInt()};${deltaY.toInt()}")
                         lastTouchX = event.x
                         lastTouchY = event.y
@@ -643,20 +652,29 @@ class CompanionRemoteActivity : AppCompatActivity() {
     }
 
     private fun handleConnectionFailureFallback() {
-        isConnected = false
-        val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
-        if (currentRole == "slave") {
-            tvRemoteStatus.text = "TV offline - Schwenke auf Automatik..."
-            tvRemoteStatus.setTextColor(Color.parseColor("#FFD54F"))
+        lifecycleScope.launch(Dispatchers.Main) {
+            isConnected = false
+            val currentRole = prefs.getString("app_device_role", "auto") ?: "auto"
 
-            prefs.edit().putString("app_device_role", "auto").apply()
+            // UI auf Main-Thread aktualisieren und Offline-Drucker-Namen in tvFooterInfo einblenden
+            tvRemoteStatus.text = "TV offline"
+            tvRemoteStatus.setTextColor(Color.parseColor("#E53935"))
+            updatePrinterNameDisplay("offline")
 
-            lifecycleScope.launch(Dispatchers.Main) {
-                delay(1500)
+            if (currentRole == "slave") {
+                // Im Slave-Modus ununterbrochen im Hintergrund weiter nach dem TV Master suchen
+                delay(4000)
                 discoverAndConnectTvAuto()
+            } else {
+                // Im Auto-Modus: Nur umschalten, wenn wir noch nie eine Master-IP hatten
+                if (targetMasterIp.isEmpty()) {
+                    delay(1500)
+                    navigateToMasterDashboard()
+                } else {
+                    // Haben wir eine IP, lassen wir dem User das Remote-Layout offen, damit er per Lupe neu suchen kann
+                    showCenteredPillToast("TV-Master unter $targetMasterIp nicht erreichbar")
+                }
             }
-        } else {
-            navigateToMasterDashboard()
         }
     }
 

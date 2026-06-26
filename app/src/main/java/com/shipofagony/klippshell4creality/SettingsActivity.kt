@@ -16,9 +16,9 @@ import android.text.Html
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -35,10 +35,7 @@ import androidx.work.WorkManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.ShapeAppearanceModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import java.util.Locale
 
 class SettingsActivity : AppCompatActivity() {
@@ -318,6 +315,28 @@ class SettingsActivity : AppCompatActivity() {
         btnAboutMenu.setOnClickListener {
             showSubPanel(panelAbout, 3, getString(R.string.btn_about_menu))
             loadChangelogFromAssets()
+
+            // 100% Fix für das Scrollen des inneren Kastens im Querformat / sw600dp
+            // Wir binden den TouchListener direkt an die Box (das ScrollView) und steuern die Intercepts
+            scrollChangelogBox.setOnTouchListener { view, event ->
+                when (event.action and MotionEvent.ACTION_MASK) {
+                    MotionEvent.ACTION_DOWN -> {
+                        // Verhindert absolut, dass das übergeordnete ScrollView (die rechte Kachel)
+                        // die Touch-Events klaut, sobald wir in die Changelog-Box tippen
+                        view.parent.requestDisallowInterceptTouchEvent(true)
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        view.parent.requestDisallowInterceptTouchEvent(true)
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        view.parent.requestDisallowInterceptTouchEvent(false)
+                    }
+                }
+                // Gibt false zurück, damit das scrollChangelogBox-ScrollView das Event
+                // regulär weiternutzt und den Text scrollen lässt
+                false
+            }
+
             btnSettingsFaq?.requestFocus() ?: btnCheckUpdates.requestFocus()
         }
 

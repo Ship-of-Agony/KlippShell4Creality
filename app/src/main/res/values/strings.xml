@@ -237,7 +237,11 @@ Einige TV-Hersteller blockieren Picture-in-Picture (PiP) standardmäßig. Führe
 <tt><b>adb connect [DEINE_TV_IP]:5555</b></tt><br><br>
 4. Folgenden Befehl exakt kopieren und ausführen:<br>
 <tt><b>adb shell appops set com.shipofagony.klippshell4creality PICTURE_IN_PICTURE allow</b></tt><br><br>
-5. Starte die KlippShell-App auf dem TV neu. PiP ist nun dauerhaft einsatzbereit!
+<tt><b>adb shell appops set com.shipofagony.klippshell4creality SYSTEM_ALERT_WINDOW allow</b></tt><br><br>
+<tt><b>adb shell dumpsys deviceidle whitelist +com.shipofagony.klippshell4creality</b></tt><br><br>
+5. Starte die KlippShell-App auf dem TV neu. PiP ist nun dauerhaft einsatzbereit!<br><br>
+Oder nutze einfach die KlippShellHelper Erweiterung:<br>
+<tt>https://github.com/Ship-of-Agony/KlippShell-Helper<tt>
 ]]></string>
 
     <string name="btn_advanced_trigger_tv">TV-Launcher aktualisieren</string>
