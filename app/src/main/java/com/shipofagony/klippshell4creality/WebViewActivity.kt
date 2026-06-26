@@ -28,6 +28,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.SystemClock
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.util.Rational
 import android.util.TypedValue
@@ -113,7 +114,6 @@ class WebViewActivity : AppCompatActivity() {
     private lateinit var layoutScreensaver: FrameLayout
     private lateinit var ivScreensaverLogo: ImageView
 
-    // Mauszeiger-Instanzen für die TV-Anzeige
     private var ivVirtualCursor: ImageView? = null
     private var cursorX = 500f
     private var cursorY = 400f
@@ -307,7 +307,6 @@ class WebViewActivity : AppCompatActivity() {
         ivScreensaverLogo = findViewById(R.id.ivScreensaverLogo)
         val defaultScreensaverDrawable = ivScreensaverLogo.drawable
 
-        // Mauszeiger-Zuweisung aus XML-Overlay
         ivVirtualCursor = findViewById(R.id.ivVirtualCursor)
 
         isThumbnailEnabled = prefs.getBoolean("thumbnail_enabled_$hostIp", true)
@@ -373,7 +372,6 @@ class WebViewActivity : AppCompatActivity() {
         layoutScrollRight.bringToFront()
         ivVirtualCursor?.bringToFront()
 
-        // SERVER MANAGER INITIALISIERUNG & DIREKTER SERVER-START
         companionServerManager = CompanionServerManager(this, prefs, lifecycleScope, { command -> handleRemoteCommand(command) }, { hostIp }, { currentActiveUrl })
         thumbnailRenderHelper = ThumbnailRenderHelper { hostIp }
         screensaverManager = ScreensaverManager(layoutScreensaver, ivScreensaverLogo, defaultScreensaverDrawable, { thumbnailBitmap }, { lastPrintState }, { lastProgressPercent }, { currentGCodeFilename }, { deactivateScreensaver() })
@@ -1185,7 +1183,6 @@ class WebViewActivity : AppCompatActivity() {
         resetInactivityTimer()
         showButtons()
 
-        // ABFANGEN DER RELATIVEN MAUS-GESTEN
         if (command.startsWith("MOUSE_MOVE;")) {
             runOnUiThread {
                 try {
@@ -1220,7 +1217,6 @@ class WebViewActivity : AppCompatActivity() {
             "DPAD_LEFT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT)
             "DPAD_RIGHT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT)
 
-            // SIMULIERE KLICK AUF DER WEBVIEW WENN CURSOR AKTIV IST
             "DPAD_CENTER", "DPAD_OK" -> {
                 if (ivVirtualCursor?.visibility == View.VISIBLE) {
                     runOnUiThread {

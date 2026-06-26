@@ -10,10 +10,12 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
@@ -94,7 +96,21 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (!isGranted) showCenteredPillToast(getString(R.string.autostart_disabled))
+        checkAndRequestOverlayPermission()
+    }
+
+    private val requestOverlayPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
         proceedWithAppInitialization()
+    }
+
+    private fun checkAndRequestOverlayPermission() {
+        if (!Settings.canDrawOverlays(this)) {
+            showOverlayPermissionRationaleDialog()
+        } else {
+            proceedWithAppInitialization()
+        }
     }
 
     private fun isAndroidTV(): Boolean {
@@ -213,7 +229,9 @@ class MainActivity : AppCompatActivity() {
                     startupVeil.visibility = View.GONE
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                         requestNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                    } else proceedWithAppInitialization()
+                    } else {
+                        checkAndRequestOverlayPermission()
+                    }
                 }.start()
             }
         }
@@ -562,13 +580,58 @@ class MainActivity : AppCompatActivity() {
             text = getString(R.string.perm_dialog_btn); isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, pVert, 0, pVert); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")); setTextColor(Color.WHITE); isFocusable = true
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, toPx(16)) }
             onFocusChangeListener = View.OnFocusChangeListener { v, hF -> v.animate().scaleX(if (hF) 1.04f else 1.0f).scaleY(if (hF) 1.04f else 1.0f).translationZ(if (hF) 6f else 0f).setDuration(100).start(); if (v is MaterialButton) { v.strokeWidth = if (hF) 8 else 0; v.strokeColor = if (hF) ColorStateList.valueOf(if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null } }
-            setOnClickListener { prefs.edit().putBoolean("has_shown_permissions", true).apply(); dialog.dismiss(); if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) requestNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS) else proceedWithAppInitialization() }
+            setOnClickListener { prefs.edit().putBoolean("has_shown_permissions", true).apply(); dialog.dismiss(); if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) requestNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS) else checkAndRequestOverlayPermission() }
         }
 
         val btnDecline = MaterialButton(this).apply {
             text = getString(R.string.perm_dialog_btn_decline); isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, pVert, 0, pVert); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")); setTextColor(Color.WHITE); isFocusable = true
             onFocusChangeListener = View.OnFocusChangeListener { v, hF -> v.animate().scaleX(if (hF) 1.04f else 1.0f).scaleY(if (hF) 1.04f else 1.0f).translationZ(if (hF) 6f else 0f).setDuration(100).start(); if (v is MaterialButton) { v.strokeWidth = if (hF) 8 else 0; v.strokeColor = if (hF) ColorStateList.valueOf(if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null } }
             setOnClickListener { dialog.dismiss(); finishAffinity() }
+        }
+
+        mainContainer?.addView(btnAccept); mainContainer?.addView(btnDecline)
+        dialog.show(); btnAccept.requestFocus()
+    }
+
+    private fun showOverlayPermissionRationaleDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_view, null)
+        val dialog = AlertDialog.Builder(this).setCancelable(false).setView(dialogView).create().apply { setCanceledOnTouchOutside(false); setOnKeyListener { _, keyCode, _ -> keyCode == KeyEvent.KEYCODE_BACK } }
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getString(R.string.overlay_permission_title)
+        val mainContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
+
+        val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        mainContainer?.addView(TextView(this).apply { text = getString(R.string.overlay_permission_desc); textSize = 15f; setTextColor(if (isNightMode) Color.WHITE else Color.BLACK); setPadding(toPx(24), toPx(16), toPx(24), toPx(32)); gravity = Gravity.START }, 0)
+
+        val pVert = if (isAndroidTV() || (resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE) toPx(30) else toPx(14)
+
+        val btnAccept = MaterialButton(this).apply {
+            text = getString(R.string.overlay_permission_btn); isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, pVert, 0, pVert); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50")); setTextColor(Color.WHITE); isFocusable = true
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, toPx(16)) }
+            onFocusChangeListener = View.OnFocusChangeListener { v, hF -> v.animate().scaleX(if (hF) 1.04f else 1.0f).scaleY(if (hF) 1.04f else 1.0f).translationZ(if (hF) 6f else 0f).setDuration(100).start(); if (v is MaterialButton) { v.strokeWidth = if (hF) 8 else 0; v.strokeColor = if (hF) ColorStateList.valueOf(if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null } }
+            setOnClickListener {
+                dialog.dismiss()
+                try {
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                    requestOverlayPermissionLauncher.launch(intent)
+                } catch (e: Exception) {
+                    try {
+                        val fallbackIntent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                        requestOverlayPermissionLauncher.launch(fallbackIntent)
+                    } catch (ex: Exception) {
+                        showCenteredPillToast("System-Menü konnte nicht geöffnet werden.")
+                        proceedWithAppInitialization()
+                    }
+                }
+            }
+        }
+
+        val btnDecline = MaterialButton(this).apply {
+            text = getString(R.string.perm_dialog_btn_decline); isAllCaps = false; textSize = 16f; cornerRadius = 100; setPadding(0, pVert, 0, pVert); backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935")); setTextColor(Color.WHITE); isFocusable = true
+            onFocusChangeListener = View.OnFocusChangeListener { v, hF -> v.animate().scaleX(if (hF) 1.04f else 1.0f).scaleY(if (hF) 1.04f else 1.0f).translationZ(if (hF) 6f else 0f).setDuration(100).start(); if (v is MaterialButton) { v.strokeWidth = if (hF) 8 else 0; v.strokeColor = if (hF) ColorStateList.valueOf(if (isNightMode) Color.parseColor("#FFD54F") else Color.parseColor("#0288D1")) else null } }
+            setOnClickListener { dialog.dismiss(); proceedWithAppInitialization() }
         }
 
         mainContainer?.addView(btnAccept); mainContainer?.addView(btnDecline)

@@ -3,36 +3,33 @@
 
     <string name="app_name">KlippShell</string>
     <string name="studio_name">Ship of Agony LABs</string>
-    <string name="made_in_germany">Vyrobeno s ❤️ v Německu</string>
+    <string name="made_in_germany">Made with ❤️ in Germany</string>
     <string name="btn_back">Zpět</string>
     <string name="cancel">Zrušit</string>
     <string name="dialog_cancel">Zrušit</string>
     <string name="yes_delete">Smazat</string>
     <string name="btn_later">Později</string>
     <string name="toast_saved">Uloženo ✓</string>
-    <string name="toast_fullscreen_only">Dostupné pouze v režimu celé obrazovky</string>
+    <string name="toast_fullscreen_only">K dispozici pouze v režimu celé obrazovky</string>
 
-    <string name="no_printers">Žádné uložené tiskárny</string>
+    <string name="no_printers">Nejsou uloženy žádné tiskárny</string>
     <string name="saved_printers">Uložené tiskárny</string>
     <string name="btn_add">Přidat</string>
     <string name="btn_exit">Ukončit</string>
     <string name="add_printer_up">Přidat tiskárnu ▲</string>
     <string name="add_printer_down">Přidat tiskárnu ▼</string>
-
     <string name="printer_name_hint">Název tiskárny</string>
     <string name="printer_ip_hint">IP adresa</string>
-    <string name="printer_port_hint">Port (volitelně)</string>
-    <string name="printer_model_hint">Vyberte model tiskárny</string>
+    <string name="printer_port_hint">Port (volitelný)</string>
+    <string name="printer_model_hint">Vybrat model tiskárny</string>
     <string name="search_model_hint">Hledat... (např. CR 10)</string>
-    <string name="printer_model_default">Výchozí tiskárna</string>
+    <string name="printer_model_default">Standardní tiskárna</string>
     <string name="printer_default_label">Tiskárna</string>
     <string name="printer_setup_success_format">%s úspěšně nastaveno ✓</string>
-
     <string name="choose_port">Vybrat port</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
     <string name="system_manual">Ruční zadání</string>
-
     <string name="choose_default_view_title">Výchozí rozhraní</string>
     <string name="choose_default_view">Klipper OS</string>
     <string name="view_option_camera">Živý přenos</string>
@@ -43,36 +40,31 @@
     <string name="btn_search_network">Prohledat síť</string>
     <string name="search_network">Skenovat síť</string>
     <string name="found_printers">Nalezené tiskárny</string>
-    <string name="toast_no_connection">Žádné spojení s tiskárnou</string>
+    <string name="toast_no_connection">Žádné připojení k tiskárně</string>
 
     <string name="settings_title">Nastavení</string>
     <string name="settings_optimized_tv">Optimalizováno pro Android TV</string>
     <string name="change_language">Změnit jazyk</string>
-
     <string name="theme_title">Vzhled aplikace</string>
     <string name="theme_light">Světlý</string>
     <string name="theme_dark">Tmavý</string>
     <string name="theme_system">Podle systému</string>
-
-    <string name="layout_mode_auto">Zobrazení rozvržení: AUTOMATICKY</string>
+    <string name="layout_mode_auto">Zobrazení rozvržení: AUTOMATICKÉ</string>
     <string name="layout_mode_phone">Zobrazení rozvržení: SMARTPHONE</string>
     <string name="layout_mode_tablet">Zobrazení rozvržení: TABLET</string>
-
     <string name="autostart_disabled">Přímý start: VYP</string>
     <string name="autostart_enabled">Přímý start: ZAP</string>
     <string name="toast_autostart_on">Přímý start aktivován</string>
     <string name="toast_autostart_off">Přímý start deaktivován</string>
-
-    <string name="reset_app">Resetovat aplikaci</string>
+    <string name="reset_app">Obnovit aplikaci</string>
     <string name="reset_app_title">Smazat všechna data?</string>
     <string name="reset_app_yes">Ano, smazat vše</string>
     <string name="reset_app_cancel">Zrušit</string>
 
     <string name="menu_change_camera_type">Živý přenos</string>
     <string name="toast_loading_livestream">Načítání živého přenosu...</string>
-    <string name="btn_zoom_in">Přiblížit (+)</string>
-    <string name="btn_zoom_out">Oddálit (-)</string>
-
+    <string name="btn_zoom_in">Zvětšit (+)</string>
+    <string name="btn_zoom_out">Zmenšit (-)</string>
     <string name="menu_ratio">Změnit formát obrazu</string>
     <string name="menu_ratio_title">Změnit formát obrazu</string>
     <string name="ratio_16_9">16:9 Širokoúhlý</string>
@@ -81,13 +73,13 @@
     <string name="ratio_16_9_new">16:9 Širokoúhlý</string>
     <string name="ratio_4_3_new">4:3 Standardní</string>
     <string name="ratio_1_1_new">1:1 Čtverec</string>
-
-    <string name="camera_type_html">Klipper HTML stream</string>
-    <string name="camera_type_port">Port 8080 stream</string>
-    <string name="camera_type_webcam">Stream z cesty webkamery</string>
+    <string name="camera_type_html">Klipper HTML Stream</string>
+    <string name="camera_type_port">Stream Port 8080</string>
+    <string name="camera_type_webcam">Stream cesty webkamery</string>
     <string name="camera_type_html_new">Klipper (HTML stream)</string>
-    <string name="camera_type_port_new">Port (8080 stream)</string>
-    <string name="camera_type_webcam_new">Webkamera (/webcam stream)</string>
+    <string name="camera_type_port_new">Port (stream 8080)</string>
+    <string name="camera_type_webcam_new">Webkamera (stream /webcam)</string>
+    <string name="toast_loading_dashboard">Načítání Klipper OS...</string>
 
     <string name="menu_options_title">Možnosti</string>
     <string name="menu_osd_show">Zobrazit OSD</string>
@@ -96,12 +88,11 @@
     <string name="osd_state_off">On-Screen-Display</string>
     <string name="menu_osd_style_title">Formát OSD</string>
     <string name="osd_style_box">Box</string>
-    <string name="osd_style_banner">Lišta</string>
-
-    <string name="osd_position_title">Vyberte pozici OSD</string>
-    <string name="osd_pos_top_left">Nahoře vlevo</string>
+    <string name="osd_style_banner">Spodek</string>
+    <string name="osd_position_title">Vybrat pozici OSD</string>
+    <string name="osd_pos_top_left">Vlevo nahoře</string>
     <string name="osd_pos_top_center">Nahoře uprostřed</string>
-    <string name="osd_pos_top_right">Nahoře vpravo</string>
+    <string name="osd_pos_top_right">Vpravo nahoře</string>
     <string name="osd_pos_bottom_center">Dole uprostřed</string>
     <string name="osd_pos_banner_top">Nahoře</string>
     <string name="osd_pos_banner_bottom">Dole</string>
@@ -109,13 +100,11 @@
     <string name="osd_pos_banner_right">Vpravo</string>
     <string name="toast_position_saved">Pozice uložena</string>
     <string name="toast_position_fullscreen_only">Změna je možná pouze při aktivním OSD</string>
-
-    <string name="toast_loading_dashboard">Načítání Klipper OS...</string>
     <string name="osd_printer_offline">Tiskárna offline</string>
     <string name="osd_extruder">Tryska: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_bed">Podložka: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Komora: %1$.1f°C</string>
-    <string name="osd_chamber_heater">Ohřev: %1$.1f°C / %2$.1f°C</string>
+    <string name="osd_chamber_heater">Ohřev komory: %1$.1f°C / %2$.1f°C</string>
     <string name="osd_fan_model">Ventilátor modelu: %1$.0f%%</string>
     <string name="osd_fan_aux">Pomocný ventilátor: %1$.0f%%</string>
     <string name="osd_fan_chamber">Odtahový ventilátor: %1$.0f%%</string>
@@ -123,151 +112,150 @@
     <string name="osd_time">Čas: %1$s / %2$s</string>
     <string name="menu_thumbnail_progress">Postup modelu</string>
 
+    <string name="menu_emergency_stop">NOUZOVÉ ZASTAVENÍ</string>
+    <string name="dialog_stop_title">Zastavit tiskárnu?</string>
+    <string name="dialog_stop_confirm">ANO - OKAMŽITÊ ZASTAVIT</string>
+    <string name="toast_stop_success">Nouzové zastavení odesláno!</string>
+    <string name="toast_stop_error">Chyba při odesílání: </string>
+
     <string name="menu_light_control">Osvětlení</string>
-    <string name="menu_light_on">Osvětlení Zap</string>
-    <string name="menu_light_off">Osvětlení Vyp</string>
+    <string name="menu_light_on">Osvětlení zapnuto</string>
+    <string name="menu_light_off">Osvětlení vypnuto</string>
     <string name="toast_light_error">Odesílání selhalo</string>
     <string name="toast_max_brightness">Jas zvýšen</string>
     <string name="toast_restored_brightness">Jas obnoven</string>
-
-    <string name="menu_emergency_stop">NORT_ZASTAVENÍ</string>
-    <string name="dialog_stop_title">Zastavit tiskárnu?</string>
-    <string name="dialog_stop_confirm">ANO - INHED ZASTAVIT</string>
-    <string name="toast_stop_success">Nouzové zastavení odesláno!</string>
-    <string name="toast_stop_error">Chyba při odesílání: </string>
 
     <string name="channel_error_name">Chyby a stavová hlášení</string>
     <string name="channel_info_name">Informace a milníky</string>
     <string name="settings_notify_title">Oznámení</string>
     <string name="submenu_sounds_title">Spravovat zvuky</string>
-    <string name="submenu_popups_title">Spravovat vyskakovací okna</string>
-
+    <string name="submenu_popups_title">Spravovat popupy</string>
     <string name="event_offline">Offline</string>
     <string name="event_first_layer">První vrstva</string>
-    <string name="event_50">Dosaženo 50 %</string>
-    <string name="event_75">Dosaženo 75 %</string>
-    <string name="event_90">Dosaženo 90 %</string>
+    <string name="event_50">Dosáhnuto 50%</string>
+    <string name="event_75">Dosáhnuto 75%</string>
+    <string name="event_90">Dosáhnuto 90%</string>
     <string name="event_100">Dokončeno</string>
     <string name="event_error">Chyba</string>
-
-    <string name="notify_title_offline">Ztráta spojení</string>
+    <string name="notify_title_offline">Spojení ztraceno</string>
     <string name="notify_msg_offline">Tiskárna již neodpovídá.</string>
     <string name="notify_btn_offline">Rozumím</string>
     <string name="notify_title_first_layer">První vrstva</string>
     <string name="notify_msg_first_layer">Tiskne se první vrstva.</string>
     <string name="notify_title_50">Polovina hotova!</string>
-    <string name="notify_msg_50">50 % tisku je hotovo.</string>
+    <string name="notify_msg_50">50% tisku je dokončeno.</string>
     <string name="notify_title_75">Téměř hotovo</string>
-    <string name="notify_msg_75">75 % tisku je dokončeno.</string>
-    <string name="notify_title_90">Finální fáze</string>
-    <string name="notify_msg_90">Dosáhlo se 90 % tisku.</string>
+    <string name="notify_msg_75">75% tisku je dokončeno.</string>
+    <string name="notify_title_90">Cílová rovinka</string>
+    <string name="notify_msg_90">Dosáhnuto 90% tisku.</string>
     <string name="notify_title_100">Tisk dokončen!</string>
     <string name="notify_msg_100">3D tisk byl úspěšně dokončen.</string>
     <string name="notify_title_error">Chyba Klipperu</string>
-    <string name="notify_msg_error">Tiskárna přerušila tisk s chybou.</string>
+    <string name="notify_msg_error">Tiskárna přerušila tisk z důvodu chyby.</string>
     <string name="notify_btn_error">Zavřít</string>
     <string name="notify_btn_success">Super</string>
     <string name="notify_btn_default">OK</string>
 
-    <string name="settings_role_title">Sekce Companion</string>
-    <string name="settings_role_auto">Automatická detekce</string>
+    <string name="settings_role_title">Oblast Companion</string>
+    <string name="settings_role_auto">Automatické rozpoznání</string>
     <string name="settings_role_master">TV / Monitor (Master)</string>
     <string name="settings_role_slave">Dálkové ovládání (Slave)</string>
     <string name="companion_toggle_on">Režim Companion: ZAP</string>
     <string name="companion_toggle_off">Režim Companion: VYP</string>
-
     <string name="remote_title">Dálkové ovládání KlippShell</string>
     <string name="remote_status_connected">Připojeno k TV</string>
     <string name="remote_status_disconnected">Odpojeno</string>
     <string name="remote_ip_hint">např. 192.168.178.109 (IP televizoru)</string>
-    <string name="remote_no_printer_connected">Žádná připojená tiskárna</string>
+    <string name="remote_no_printer_connected">Není připojena žádná tiskárna</string>
     <string name="remote_connected_printer">Připojená tiskárna: %1$s</string>
-
     <string name="remote_footer_offline">TV offline • Výchozí: %s</string>
     <string name="remote_footer_connecting">Hledání profilu TV tiskárny…</string>
     <string name="remote_footer_online">Živě připojeno: %s</string>
-
     <string name="btn_companion_menu">Menu Companion</string>
     <string name="btn_dpad_control">Dálkové ovládání</string>
-
     <string name="remote_dpad_up">Nahoru</string>
     <string name="remote_dpad_down">Dolů</string>
     <string name="remote_dpad_left">Doleva</string>
     <string name="remote_dpad_right">Doprava</string>
     <string name="remote_dpad_ok">Potvrdit (OK)</string>
-
     <string name="remote_shortcut_layout">Formát obrazu (Box/Lišta)</string>
     <string name="remote_shortcut_zoom_in">Zvětšit zoom</string>
     <string name="remote_shortcut_zoom_out">Zmenšit zoom</string>
     <string name="remote_shortcut_pip">Obraz v obraze (PiP)</string>
-    <string name="remote_shortcut_stream">Změnit kameru</string>
+    <string name="remote_shortcut_stream">Přepnout kameru</string>
     <string name="remote_shortcut_light">Osvětlení (LED)</string>
     <string name="remote_shortcut_estop">NOUZOVÉ ZASTAVENÍ</string>
-
-    <string name="remote_btn_estop">NOUZOVÉ\nZASTAVENÍ</string>
+    <string name="remote_btn_estop">NOUZ\nSTOP</string>
     <string name="remote_btn_bar">Lišta</string>
     <string name="remote_btn_box">Box</string>
     <string name="remote_btn_light">Osvětlení</string>
     <string name="remote_btn_back">zpět</string>
     <string name="remote_btn_camera">Kamera</string>
 
-    <string name="menu_pip_name">Obraz v obraze (PiP)</string>
+    <string name="menu_pip_name">Obraz v obraze (PIP)</string>
     <string name="menu_pip_start">Na pozadí (PiP)</string>
     <string name="pip_progress_format">Postup tisku: %1$d%%</string>
     <string name="btn_pip_close">Zavřít</string>
     <string name="btn_pip_resize">Změnit velikost</string>
-
-    <string name="menu_pip_adb_title">Odemknout PiP přes ADB</string>
-    <string name="dialog_pip_adb_guide_title">Návod pro ADB k režimu Obraz v obraze</string>
+    <string name="menu_pip_adb_title">Odemknout PIP přes ADB</string>
+    <string name="dialog_pip_adb_guide_title">Návod pro obraz v obraze (PiP) přes ADB</string>
     <string name="dialog_pip_adb_guide_text"><![CDATA[
-Někteří výrobci televizorů standardně blokují funkci Obraz v obraze (PiP). Pro její trvalé odblokování proveďte následující kroky:<br><br>
-1. Aktivujte vývojářské možnosti v TV (7x klikněte na \"Číslo sestavení\" v nastavení systému).<br>
-2. Povolte \"Ladění ADB\" ve vývojářských možnostech.<br>
-3. Otevřete příkazový řádek v PC a připojte se k TV:<br>
-<tt><b>adb connect [IP_VAŠÍ_TV]:5555</b></tt><br><br>
+Někteří výrobci televizorů standardně blokují funkci obraz v obraze (PiP). Pro trvalé odemknutí proveďte následující kroky:<br><br>
+1. Aktivujte vývojářské možnosti na TV (7x klikněte na "Číslo sestavení" v nastavení systému).<br>
+2. Aktivujte "Ladění ADB" ve vývojářských možnostech.<br>
+3. Otevřete příkazový řádek na PC a připojte se k TV:<br>
+<tt><b>adb connect [IP_VASEHO_TV]:5555</b></tt><br><br>
 4. Přesně zkopírujte a spusťte následující příkaz:<br>
 <tt><b>adb shell appops set com.shipofagony.klippshell4creality PICTURE_IN_PICTURE allow</b></tt><br><br>
-5. Restartujte aplikaci KlippShell na TV. PiP je nyní trvale připraven k použití!
+<tt><b>adb shell appops set com.shipofagony.klippshell4creality SYSTEM_ALERT_WINDOW allow</b></tt><br><br>
+<tt><b>adb shell dumpsys deviceidle whitelist +com.shipofagony.klippshell4creality</b></tt><br><br>
+5. Restartujte aplikaci KlippShell na TV. PiP is nyní trvale připraven k použití!<br><br>
+Nebo jednoduse použijte rozšíření KlippShellHelper:<br>
+<tt>https://github.com/Ship-of-Agony/KlippShell-Helper<tt>
 ]]></string>
 
-    <string name="btn_advanced_trigger_tv">Aktualizovat TV Launcher</string>
+    <string name="overlay_permission_title">Zobrazit přes ostatní aplikace</string>
+    <string name="overlay_permission_desc">Vzhledem k tomu, dass některá televizní zařízení blokují nativní obraz v obraze (PiP), KlippShell vyžaduje toto oprávnění jako zálohu. To aplikaci umožňuje zobrazit stabilní, plovoucí mini okno nad ostatními televizními aplikacemi (jako Netflix nebo Prime), což zajišťuje, dass můžete během sledování televize vždy sledovat stav tiskárny. Povolte KlippShell v následujících nastaveních systému.</string>
+    <string name="overlay_permission_btn">Povolit nyní</string>
+
+    <string name="btn_advanced_trigger_tv">Aktualizovat TV launcher</string>
     <string name="popup_advanced_sync_title">Synchronizace na pozadí</string>
-    <string name="popup_advanced_sync_msg">Načítá se stav Moonrakeru a aktualizuje se dlaždice na domovské obrazovce TV.</string>
-    <string name="menu_screensaver">Spoonřič obrazovky</string>
+    <string name="popup_advanced_sync_msg">Načítá se stav Klipperu a aktualizuje se kachel domovské obrazovky TV.</string>
+    <string name="menu_screensaver">Spořič obrazovky</string>
     <string name="screensaver_title">Automatické ztmavení po...</string>
     <string name="screensaver_now">Aktivovat ihned</string>
-    <string name="screensaver_30">30 minutách</string>
-    <string name="screensaver_60">60 minutách</string>
-    <string name="screensaver_90">90 minutách</string>
-    <string name="screensaver_120">120 minutách</string>
+    <string name="screensaver_30">30 minut</string>
+    <string name="screensaver_60">60 minut</string>
+    <string name="screensaver_90">90 minut</string>
+    <string name="screensaver_120">120 minut</string>
     <string name="screensaver_off">Deaktivováno</string>
 
-    <string name="perm_dialog_title">Síť a soukromí</string>
-    <string name="perm_dialog_msg">KlippShell vyžaduje přístup k síti pro navázání přímého rozhraní s Moonraker API vaší tiskárny a také oprávnění k oznámením, aby vám mohl posílat kritická varování a milníky tisku (např. tisk dokončen nebo chyba), zatímco sledujete televizi nebo používáte jiné aplikace. Připojení k internetu je vyžadováno pro kontroly aktualizací OTA, poskytování stavových podkladů pro Android TV Launcher a pokročilé doprovodné funkce. Bezpečnost dat je naší nejvyšší prioritou: komunikace probíhá výhradně lokálně mezi vaším zařízením a tiskárnou. Do externích serverů se nepřenášejí žádná řídicí ani telemetrická data.</string>
+    <string name="perm_dialog_title">Síť a ochrana dat</string>
+    <string name="perm_dialog_msg">KlippShell vyžaduje přístup k síti, aby mohl navázat přímé rozhraní s rozhraním Moonraker-API vaší tiskárny, a také oprávnění k oznámením, aby vám mohl posílat kritická varování a tiskové milníky (např. tisk dokončen nebo chyba), zatímco sledujete televizi nebo používáte jiné aplikace. Připojení k internetu je vyžadováno pro kontroly aktualizací OTA, poskytování stavových prostředků pro Android TV Launcher a pro pokročilé doprovodné funkce. Bezpečnost dat je naší nejvyšší prioritou: komunikace probíhá výhradně lokálně mezi vaším zařízením a tiskárnou. Žádná řídicí ani telemetrická data nejsou přenášena na externí servery.</string>
     <string name="perm_dialog_btn">Rozumím</string>
     <string name="perm_dialog_btn_decline">Odmítnout a ukončit</string>
 
     <string name="widget_printer_title">KlippShell</string>
     <string name="widget_printer_empty">Nebyly nalezeny žádné tiskárny</string>
-    <string name="widget_printer_unknown">Neznámé</string>
+    <string name="widget_printer_unknown">Neznámý</string>
     <string name="widget_remote_label">Remote</string>
     <string name="widget_remote_config_title">Vybrat tiskárnu pro dálkové ovládání</string>
-    <string name="widget_remote_name_format">Dálkové ovládání %s</string>
+    <string name="widget_remote_name_format">%s dálkové ovládání</string>
     <string name="widget_config_no_printers_error">Nejprve vytvořte tiskárny v aplikaci!</string>
     <string name="widget_remote_default_title">Dálkové ovládání</string>
 
-    <string name="btn_check_updates">Aktualizovat</string>
+    <string name="btn_check_updates">Aktualizace</string>
     <string name="submenu_update_title">Aktualizace</string>
-    <string name="btn_manual_search">Vyhledat aktualizace</string>
-    <string name="pill_auto_check_on">Při startu kontrolovat automaticky</string>
-    <string name="pill_auto_check_off">Při startu kontrolovat automaticky</string>
+    <string name="btn_manual_search">Zkontrolovat aktualizace</string>
+    <string name="pill_auto_check_on">Automaticky kontrolovat při spuštění</string>
+    <string name="pill_auto_check_off">Automaticky kontrolovat při spuštění</string>
     <string name="toast_updater_checking">Kontrola verze…</string>
     <string name="toast_updater_up_to_date">KlippShell je aktuální</string>
-    <string name="toast_updater_server_error">Aktualizační server nedostupný (404 / vypršení časového limitu)</string>
-    <string name="toast_updater_error_code">Chyba načítání (Kód: %1$d)</string>
-    <string name="update_available_title">Aktualizace na verzi %1$s je k dispozici!</string>
+    <string name="toast_updater_server_error">Aktualizační server je nedostupný (404 / časový limit)</string>
+    <string name="toast_updater_error_code">Chyba při stahování (kód: %1$d)</string>
+    <string name="update_available_title">Je k dispozici aktualizace na verzi %1$s!</string>
     <string name="btn_download_now">Stáhnout nyní</string>
-    <string name="toast_update_browser_error">Prohlížeč se nepodařilo otevřít</string>
+    <string name="toast_update_browser_error">Nepodařilo se otevřít prohlížeč</string>
     <string name="download_in_progress">Probíhá stahování…</string>
     <string name="toast_download_failed">Stahování selhalo!</string>
     <string name="toast_installation_failed">Instalace selhala!</string>
@@ -278,11 +266,11 @@ Někteří výrobci televizorů standardně blokují funkci Obraz v obraze (PiP)
     <string name="toast_email_error">Nebyla nalezena žádná e-mailová aplikace</string>
     <string name="license_link_text">Licence a autorská práva</string>
     <string name="easter_egg_success">Pro nadšence do 3D tisku, kteří nedělají kompromisy</string>
-    <string name="about_changelog_title">Seznam změn</string>
+    <string name="about_changelog_title">Změny (Changelog)</string>
     <string name="about_changelog_text"></string>
 
-    <string name="welcome_tile_title">Vítejte v KlippShell! 👋</string>
-    <string name="welcome_tile_msg">Jsme rádi, že jste tu! Chcete-li z monitorování vaší tiskárny vytěžit maximum, zde je krátký přehled hlavních funkcí aplikace KlippShell a specifik některých televizorů. KlippShell byl navržen tak, aby běžel na smartphonu, tabletu nebo uživatelsky přívětivě na Android TV.\n\n1️⃣ PRVNÍ KROKY\nNíže přidejte svou první 3D tiskárnu. Aktuálně jsou implementovány téměř všechny modely na trhu. Pokud chcete použít jinou tiskárnu na bázi Klipperu, můžete zvolit \"Custom Model\".\nPoznámka: V závislosti na modelu tiskárny a konfiguraci sítě možná budete muset ručně upravit porty a přístupy ke kameře, aby bylo zajištěno bezchybné monitorování. Automatické skenování sítě by však mělo většinu konfigurací pokrýt samo.\n⚠️ Pokud nezískáváte živý obraz z tiskárny, navštivte prosím https://github.com/DnG-Crafts/K2-Camera a nainstalujte OPRAVU (FIX). To bohužel vyžaduje root práva na tiskárně!\n💡 Tip: Dlouhé stisknutí uložené tiskárny v hlavním menu otevře možnosti změny výchozího zobrazení mezi monitorováním živého přenosu a Klipper OS, případně pro smazání tiskárny.\n\n2️⃣ CHYTRÉ ŽIVÉ OVLÁDÁNÍ\nV režimu video streamu ovládáte vše pomocí tří hlavních tlačítek dole:\n• Levé tlačítko: Otevře menu pro On-Screen-Display (OSD), video-zoom, PiP, osvětlení skříně, spořič obrazovky a formát obrazu.\n• Prostřední tlačítko: Plynule přepíná mezi Klipper OS (nástěnka) a čistým živým přenosem z kamery.\n• Pravé tlačítko: Kdykoli vás bezpečně vrátí do hlavního menu.\n\n3️⃣ REŽIM PŘÍMÉHO STARTU\nPokud jste již tiskárnu úspěšně nakonfigurovali, můžete v nastavení zvolit režim přímého startu. Ten vám umožní začít v zobrazení živého přenosu ihned při spuštění aplikace.\n\n4️⃣ REŽIM COMPANION\nS KlippShell můžete své zařízení používat jako TV nástěnku (Master) nebo jako dálkové ovládání pro smartphone (Slave). Aktivujte režim Companion v nastavení, abyste mohli pohodlně ovládat televizor ze svého smartphonu.\n\n5️⃣ OBRAZ V OBRAZE (PiP)\nAčkoli KlippShell plně podporuje PiP, někteří výrobci televizorů tuto funkci nativně odmítají nabízet. Bez obav: V nastavení najdete rozšířenou funkci s přesným návodem, jak PiP na svém televizoru snadno odemknout pomocí příkazu ADB!\n\n6️⃣ TV FUNKCE \"NOW LIVE\"\nPokud chcete používat televizní funkci \"Now Live\", může se stát, že se kvůli omezením výrobce nebude nativně zobrazovat na vaší TV nástěnce. V takovém případě doporučujeme použít alternativní TV launcher, jako je \"Projectivity Launcher\", abyste mohli tuto funkci plně využívat.</string>
+    <string name="welcome_tile_title">Vítejte v aplikaci KlippShell! 👋</string>
+    <string name="welcome_tile_msg">Jsme rádi, že jste tu! Abyste z monitorování tiskárny vytěžili maximum, přinášíme vám stručný přehled hlavních funkcí aplikace KlippShell a specifik některých televizorů. KlippShell byl navržen tak, aby fungoval na chytrém telefonu, tabletu nebo uživatelsky přívětivě na Android TV.\n\n1️⃣ PRVNÍ KROKY\nPřidejte svou první 3D tiskárnu níže. V současné době jsou integrovány téměř všechny modely na trhu. Pokud chcete použít jinou tiskárnu založenou na systému Klipper, můžete vybrat možnost \"Custom Model\".\nPoznámka: V závislosti na modelu tiskárny a konfiguraci sítě může být nutné ručně upravit porty a přístupy ke kameře, aby bylo zaručeno správné monitorování. Automatické skenování sítě by však mělo většinu konfigurací pokrýt automaticky.\n⚠️ Pokud nemáte živý obraz z tiskárny, navštivte stránku https://github.com/DnG-Crafts/K2-Camera a nainstalujte FIX. To bohužel vyžaduje root práva na tiskárně!\n💡 Tip: Dlouhým stisknutím klávesy v hlavním menu na jednu z uložených tiskáren otevřete možnosti pro změnu výchozího zobrazení mezi monitorováním živého přenosu a Klipper OS nebo pro smazání této tiskárny.\n\n2️⃣ CHYTRÉ ŽIVÉ OVLÁDÁNÍ\nV režimu video streamu ovládáte vše pomocí tří spodních hlavních tlačítek:\n• Levé tlačítko: Otevře nabídku pro On-Screen-Display (OSD), video zoom, PiP, osvětlení skříně, spořič obrazovky a formát obrazu.\n• Prostřední tlačítko: Plynule přepíná mezi Klipper OS (dashboard) a čistým živým přenosem z kamery.\n• Pravé tlačítko: Kdykoli vás bezpečně vrátí do hlavního menu.\n\n3️⃣ REŽIM PŘÍMÉHO SPUŠTĚNÍ\nPokud jste již tiskárnu úspěšně nakonfigurovali, můžete v nastavení zvolit režim přímého spuštění. To vám umožní spustit zobrazení živého přenosu přímo při spuštění aplikace.\n\n4️⃣ REŽIM COMPANION\nS aplikací KlippShell můžete zařízení používat jako TV dashboard (Master) oder jako dálkové ovládání chytrého telefonu (Slave). Aktivujte režim Companion v nastavení, abyste mohli televizor pohodlně ovládat z chytrého telefonu.\n\n5️⃣ OBRAZ V OBRAZE (PiP)\nAčkoli KlippShell PiP plně podporuje, někteří výrobci televizorů odmítají tuto funkci nativně nabízet. Žádný strach: V nastavení najdete pokročilou funkci s přesným návodem, jak PiP na televizoru snadno odemknout pomocí příkazu ADB!\n\n6️⃣ FUNKCE TV \"NOW LIVE\"\nPokud chcete používat funkci TV \"Now Live\", z důvodu omezení výrobce se může stát, že se nativně nezobrazí na vašem TV dashboardu. V takovém případě doporučujeme použít alternativní TV launcher, například \"Projectivity Launcher\", abyste si tuto funkci mohli plně vychutnat.</string>
     <string name="welcome_tile_btn">Rozumím a skrýt</string>
 
 </resources>

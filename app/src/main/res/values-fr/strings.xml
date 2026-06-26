@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- BLOCK 1: ANWENDUNGS-BASIS & DIALOG-KONTROLLE -->
     <string name="app_name">KlippShell</string>
     <string name="studio_name">Ship of Agony LABs</string>
     <string name="made_in_germany">Fait avec ❤️ en Allemagne</string>
@@ -12,67 +13,63 @@
     <string name="toast_saved">Enregistré ✓</string>
     <string name="toast_fullscreen_only">Disponible uniquement en mode plein écran</string>
 
+    <!-- BLOCK 2: HAUPTMENÜ & DRUCKERVERWALTUNG -->
     <string name="no_printers">Aucune imprimante enregistrée</string>
     <string name="saved_printers">Imprimantes enregistrées</string>
     <string name="btn_add">Ajouter</string>
     <string name="btn_exit">Quitter</string>
     <string name="add_printer_up">Ajouter une imprimante ▲</string>
     <string name="add_printer_down">Ajouter une imprimante ▼</string>
-
     <string name="printer_name_hint">Nom de l\'imprimante</string>
     <string name="printer_ip_hint">Adresse IP</string>
     <string name="printer_port_hint">Port (Optionnel)</string>
     <string name="printer_model_hint">Sélectionner le modèle d\'imprimante</string>
     <string name="search_model_hint">Rechercher... (ex. CR 10)</string>
-    <string name="printer_model_default">Imprimante par défaut</string>
+    <string name="printer_model_default">Imprimante standard</string>
     <string name="printer_default_label">Imprimante</string>
     <string name="printer_setup_success_format">%s configurée avec succès ✓</string>
-
     <string name="choose_port">Sélectionner le port</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
     <string name="system_manual">Saisie manuelle</string>
-
-    <string name="choose_default_view_title">Interface par défaut</string>
+    <string name="choose_default_view_title">Interface standard</string>
     <string name="choose_default_view">Klipper OS</string>
     <string name="view_option_camera">Flux en direct</string>
     <string name="view_option_interface">Klipper OS</string>
-    <string name="toast_view_changed_success">Vue par défaut modifiée ✓</string>
+    <string name="toast_view_changed_success">Vue standard modifiée ✓</string>
     <string name="reset_confirm_msg">Voulez-vous vraiment supprimer cette imprimante ?</string>
 
+    <!-- BLOCK 3: NETZWERK-SCANNER -->
     <string name="btn_search_network">Rechercher sur le réseau</string>
     <string name="search_network">Scanner le réseau</string>
     <string name="found_printers">Imprimantes trouvées</string>
     <string name="toast_no_connection">Aucune connexion à l\'imprimante</string>
 
+    <!-- BLOCK 4: GLOBALE EINSTELLUNGEN -->
     <string name="settings_title">Paramètres</string>
     <string name="settings_optimized_tv">Optimisé pour Android TV</string>
     <string name="change_language">Changer de langue</string>
-
     <string name="theme_title">Design de l\'application</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
     <string name="theme_system">Selon le système</string>
-
-    <string name="layout_mode_auto">Vue de la mise en page : AUTOMATIQUE</string>
-    <string name="layout_mode_phone">Vue de la mise en page : SMARTPHONE</string>
-    <string name="layout_mode_tablet">Vue de la mise en page : TABLETTE</string>
-
-    <string name="autostart_disabled">Démarrage direct : OFF</string>
-    <string name="autostart_enabled">Démarrage direct : ON</string>
+    <string name="layout_mode_auto">Mode d\'affichage : AUTOMATIQUE</string>
+    <string name="layout_mode_phone">Mode d\'affichage : SMARTPHONE</string>
+    <string name="layout_mode_tablet">Mode d\'affichage : TABLETTE</string>
+    <string name="autostart_disabled">Démarrage direct : DESACTIVÉ</string>
+    <string name="autostart_enabled">Démarrage direct : ACTIVÉ</string>
     <string name="toast_autostart_on">Démarrage direct activé</string>
     <string name="toast_autostart_off">Démarrage direct désactivé</string>
-
     <string name="reset_app">Réinitialiser l\'application</string>
     <string name="reset_app_title">Supprimer toutes les données ?</string>
     <string name="reset_app_yes">Oui, tout supprimer</string>
     <string name="reset_app_cancel">Annuler</string>
 
+    <!-- BLOCK 5: STREAM- & VIDEO-STEUERUNG -->
     <string name="menu_change_camera_type">Flux en direct</string>
     <string name="toast_loading_livestream">Chargement du flux en direct...</string>
     <string name="btn_zoom_in">Zoom (+)</string>
     <string name="btn_zoom_out">Zoom (-)</string>
-
     <string name="menu_ratio">Changer le format d\'image</string>
     <string name="menu_ratio_title">Changer le format d\'image</string>
     <string name="ratio_16_9">16:9 Écran large</string>
@@ -81,23 +78,23 @@
     <string name="ratio_16_9_new">16:9 Écran large</string>
     <string name="ratio_4_3_new">4:3 Standard</string>
     <string name="ratio_1_1_new">1:1 Carré</string>
-
     <string name="camera_type_html">Flux HTML Klipper</string>
     <string name="camera_type_port">Flux Port 8080</string>
-    <string name="camera_type_webcam">Flux chemin Webcam</string>
+    <string name="camera_type_webcam">Flux Chemin Webcam</string>
     <string name="camera_type_html_new">Klipper (Flux HTML)</string>
     <string name="camera_type_port_new">Port (Flux 8080)</string>
     <string name="camera_type_webcam_new">Webcam (Flux /webcam)</string>
+    <string name="toast_loading_dashboard">Chargement de Klipper OS...</string>
 
+    <!-- BLOCK 6: ON-SCREEN-DISPLAY (OSD) OPTIONEN & DATEN -->
     <string name="menu_options_title">Options</string>
     <string name="menu_osd_show">Afficher l\'OSD</string>
     <string name="menu_osd_hide">Masquer l\'OSD</string>
     <string name="osd_state_on">On-Screen-Display</string>
     <string name="osd_state_off">On-Screen-Display</string>
-    <string name="menu_osd_style_title">Format de l\'OSD</string>
+    <string name="menu_osd_style_title">Format OSD</string>
     <string name="osd_style_box">Boîte</string>
     <string name="osd_style_banner">Bandeau</string>
-
     <string name="osd_position_title">Choisir la position de l\'OSD</string>
     <string name="osd_pos_top_left">Haut Gauche</string>
     <string name="osd_pos_top_center">Haut Milieu</string>
@@ -108,48 +105,47 @@
     <string name="osd_pos_banner_left">Gauche</string>
     <string name="osd_pos_banner_right">Droite</string>
     <string name="toast_position_saved">Position enregistrée</string>
-    <string name="toast_position_fullscreen_only">Modification uniquement possible si l\'OSD est actif</string>
-
-    <string name="toast_loading_dashboard">Chargement de Klipper OS...</string>
-    <string name="osd_printer_offline">Imprimante hors ligne</string>
+    <string name="toast_position_fullscreen_only">Modification possible uniquement avec l\'OSD actif</string>
+    <string name="osd_printer_offline">Imprimante Hors-ligne</string>
     <string name="osd_extruder">Buse : %1$.1f°C / %2$.1f°C</string>
     <string name="osd_bed">Lit : %1$.1f°C / %2$.1f°C</string>
     <string name="osd_chamber_sensor">Chambre : %1$.1f°C</string>
     <string name="osd_chamber_heater">Chauffage : %1$.1f°C / %2$.1f°C</string>
     <string name="osd_fan_model">Ventilateur pièce : %1$.0f%%</string>
-    <string name="osd_fan_aux">Ventilateur aux. : %1$.0f%%</string>
-    <string name="osd_fan_chamber">Ventilateur extraction : %1$.0f%%</string>
+    <string name="osd_fan_aux">Ventilateur auxiliaire : %1$.0f%%</string>
+    <string name="osd_fan_chamber">Ventilateur d\'extraction : %1$.0f%%</string>
     <string name="osd_progress_label">Progression : %1$s</string>
     <string name="osd_time">Temps : %1$s / %2$s</string>
-    <string name="menu_thumbnail_progress">Progression modèle</string>
+    <string name="menu_thumbnail_progress">Progression du modèle</string>
 
-    <string name="menu_light_control">Éclairage</string>
-    <string name="menu_light_on">Éclairage Allumé</string>
-    <string name="menu_light_off">Éclairage Éteint</string>
-    <string name="toast_light_error">Échec de l\'envoi</string>
-    <string name="toast_max_brightness">Luminosité augmentée</string>
-    <string name="toast_restored_brightness">Luminosité restaurée</string>
-
+    <!-- BLOCK 7: NOT-AUS & SICHERHEIT -->
     <string name="menu_emergency_stop">ARRÊT D\'URGENCE</string>
     <string name="dialog_stop_title">Arrêter l\'imprimante ?</string>
     <string name="dialog_stop_confirm">OUI - ARRÊTER IMMÉDIATEMENT</string>
     <string name="toast_stop_success">Arrêt d\'urgence envoyé !</string>
     <string name="toast_stop_error">Erreur lors de l\'envoi : </string>
 
-    <string name="channel_error_name">Messages d\'erreur et d\'état</string>
-    <string name="channel_info_name">Informations et étapes clés</string>
+    <!-- BLOCK 8: HARDWARE- & LICHTSTEUERUNG -->
+    <string name="menu_light_control">Éclairage</string>
+    <string name="menu_light_on">Éclairage activé</string>
+    <string name="menu_light_off">Éclairage désactivé</string>
+    <string name="toast_light_error">Échec de l\'envoi</string>
+    <string name="toast_max_brightness">Luminosité augmentée</string>
+    <string name="toast_restored_brightness">Luminosité restaurée</string>
+
+    <!-- BLOCK 9: SYSTEM-BENACHRICHTIGUNGEN & ALERTE -->
+    <string name="channel_error_name">Erreurs &amp; Notifications d\'état</string>
+    <string name="channel_info_name">Informations &amp; Étape clés</string>
     <string name="settings_notify_title">Notifications</string>
     <string name="submenu_sounds_title">Gérer les sons</string>
     <string name="submenu_popups_title">Gérer les popups</string>
-
-    <string name="event_offline">Hors ligne</string>
+    <string name="event_offline">Hors-ligne</string>
     <string name="event_first_layer">Première couche</string>
-    <string name="event_50">50% atteints</string>
-    <string name="event_75">75% atteints</string>
-    <string name="event_90">90% atteints</string>
+    <string name="event_50">50% atteint</string>
+    <string name="event_75">75% atteint</string>
+    <string name="event_90">90% atteint</string>
     <string name="event_100">Terminé</string>
     <string name="event_error">Erreur</string>
-
     <string name="notify_title_offline">Connexion perdue</string>
     <string name="notify_msg_offline">L\'imprimante ne répond plus.</string>
     <string name="notify_btn_offline">Compris</string>
@@ -169,70 +165,75 @@
     <string name="notify_btn_success">Super</string>
     <string name="notify_btn_default">OK</string>
 
+    <!-- BLOCK 10: COMPANION & NETZWERK-FERNBEDIENUNG -->
     <string name="settings_role_title">Espace Companion</string>
     <string name="settings_role_auto">Détection automatique</string>
     <string name="settings_role_master">TV / Moniteur (Maître)</string>
     <string name="settings_role_slave">Télécommande (Esclave)</string>
-    <string name="companion_toggle_on">Mode Companion : ON</string>
-    <string name="companion_toggle_off">Mode Companion : OFF</string>
-
+    <string name="companion_toggle_on">Mode Companion : ACTIVÉ</string>
+    <string name="companion_toggle_off">Mode Companion : DESACTIVÉ</string>
     <string name="remote_title">Télécommande KlippShell</string>
     <string name="remote_status_connected">Connecté à la TV</string>
     <string name="remote_status_disconnected">Déconnecté</string>
     <string name="remote_ip_hint">ex. 192.168.178.109 (IP TV)</string>
     <string name="remote_no_printer_connected">Aucune imprimante connectée</string>
     <string name="remote_connected_printer">Imprimante connectée : %1$s</string>
-
-    <string name="remote_footer_offline">TV hors ligne • Par défaut : %s</string>
-    <string name="remote_footer_connecting">Recherche du profil d\'imprimante TV…</string>
+    <string name="remote_footer_offline">TV hors-ligne • Standard : %s</string>
+    <string name="remote_footer_connecting">Recherche du profil de l\'imprimante TV…</string>
     <string name="remote_footer_online">Connecté en direct : %s</string>
-
     <string name="btn_companion_menu">Menu Companion</string>
     <string name="btn_dpad_control">Télécommande</string>
-
     <string name="remote_dpad_up">Vers le haut</string>
     <string name="remote_dpad_down">Vers le bas</string>
     <string name="remote_dpad_left">Vers la gauche</string>
     <string name="remote_dpad_right">Vers la droite</string>
     <string name="remote_dpad_ok">Confirmer (OK)</string>
-
     <string name="remote_shortcut_layout">Format d\'image (Boîte/Bandeau)</string>
-    <string name="remote_shortcut_zoom_in">Augmenter le zoom</string>
-    <string name="remote_shortcut_zoom_out">Diminuer le zoom</string>
+    <string name="remote_shortcut_zoom_in">Agrandir le zoom</string>
+    <string name="remote_shortcut_zoom_out">Réduire le zoom</string>
     <string name="remote_shortcut_pip">Picture-in-Picture (PiP)</string>
     <string name="remote_shortcut_stream">Changer de caméra</string>
     <string name="remote_shortcut_light">Éclairage (LED)</string>
     <string name="remote_shortcut_estop">ARRÊT D\'URGENCE</string>
-
-    <string name="remote_btn_estop">ARRÊT\nURGENT</string>
+    <string name="remote_btn_estop">ARRÊT\nURGENCE</string>
     <string name="remote_btn_bar">Bandeau</string>
     <string name="remote_btn_box">Boîte</string>
     <string name="remote_btn_light">Éclairage</string>
     <string name="remote_btn_back">retour</string>
     <string name="remote_btn_camera">Caméra</string>
 
-    <string name="menu_pip_name">Incrustation d\'image (PiP)</string>
-    <string name="menu_pip_start">Passer en arrière-plan (PiP)</string>
-    <string name="pip_progress_format">Progression de l\'impression : %1$d%%</string>
+    <!-- BLOCK 11: PICTURE-IN-PICTURE (PIP) & ADB -->
+    <string name="menu_pip_name">Image dans l\'image (PIP)</string>
+    <string name="menu_pip_start">En arrière-plan (PiP)</string>
+    <string name="pip_progress_format">Progression : %1$d%%</string>
     <string name="btn_pip_close">Fermer</string>
-    <string name="btn_pip_resize">Redimensionner</string>
-
-    <string name="menu_pip_adb_title">Activer le PiP via ADB</string>
-    <string name="dialog_pip_adb_guide_title">Instructions ADB pour le Picture-in-Picture</string>
+    <string name="btn_pip_resize">Changer la taille</string>
+    <string name="menu_pip_adb_title">Débloquer le PiP via ADB</string>
+    <string name="dialog_pip_adb_guide_title">Instructions ADB Picture-in-Picture</string>
     <string name="dialog_pip_adb_guide_text"><![CDATA[
-Certains fabricants de TV bloquent le Picture-in-Picture (PiP) par défaut. Suivez ces étapes pour le débloquer définitivement :<br><br>
-1. Activez les Options pour les développeurs sur la TV (cliquez 7 fois sur \"Numéro de build\" dans les paramètres système).<br>
-2. Activez le \"Débogage ADB\" dans les options développeurs.<br>
-3. Ouvrez une invite de commande sur votre PC et connectez-vous à la TV :<br>
-<tt><b>adb connect [VOTRE_IP_TV]:5555</b></tt><br><br>
-4. Copiez et exécutez exactement la commande suivante :<br>
+Certains fabricants de TV bloquent le Picture-in-Picture (PiP) par défaut. Suivez ces étapes pour le débloquer de manière permanente :<br><br>
+1. Activez les options développeur sur la TV (cliquez 7x sur "Numéro de build" dans les paramètres système).<br>
+2. Activez le "Débogage ADB" dans les options développeur.<br>
+3. Ouvrez une invite de commandes sur votre PC et connectez-vous à la TV :<br>
+<tt><b>adb connect [IP_DE_VOTRE_TV]:5555</b></tt><br><br>
+4. Copiez et exécutez exactement les commandes suivantes :<br>
 <tt><b>adb shell appops set com.shipofagony.klippshell4creality PICTURE_IN_PICTURE allow</b></tt><br><br>
-5. Redémarrez l\'application KlippShell sur la TV. Le PiP est désormais opérationnel de façon permanente !
+<tt><b>adb shell appops set com.shipofagony.klippshell4creality SYSTEM_ALERT_WINDOW allow</b></tt><br><br>
+<tt><b>adb shell dumpsys deviceidle whitelist +com.shipofagony.klippshell4creality</b></tt><br><br>
+5. Redémarrez l\'application KlippShell sur la TV. Le PiP est désormais opérationnel de façon permanente !<br><br>
+Ou utilisez simplement l\'extension KlippShellHelper :<br>
+<tt>https://github.com/Ship-of-Agony/KlippShell-Helper<tt>
 ]]></string>
 
+    <!-- BLOCK 12: SYSTEM-OVERLAY BERECHTIGUNGEN (PIP FALLBACK ERSTEINRICHTUNG) -->
+    <string name="overlay_permission_title">Afficher par-dessus d\'autres applications</string>
+    <string name="overlay_permission_desc">Étant donné que certains téléviseurs bloquent le Picture-in-Picture (PiP) natif, KlippShell a besoin de cette autorisation comme solution de secours. Cela permet à l\'application d\'afficher une mini-fenêtre flottante stable par-dessus d\'autres applications TV (comme Netflix ou Prime), afin que vous puissiez toujours garder un œil sur l\'état de votre imprimante tout en regardant la télévision. Veuillez activer KlippShell dans les paramètres système suivants.</string>
+    <string name="overlay_permission_btn">Activer maintenant</string>
+
+    <!-- BLOCK 13: LAUNCHER WORKER & AUTOMATISCHE ABDUNKLUNG -->
     <string name="btn_advanced_trigger_tv">Mettre à jour le lanceur TV</string>
     <string name="popup_advanced_sync_title">Synchronisation en arrière-plan</string>
-    <string name="popup_advanced_sync_msg">Le statut de Moonraker est récupéré et la tuile de l\'écran d\'accueil de la TV est mise à jour.</string>
+    <string name="popup_advanced_sync_msg">Le statut Moonraker est en cours de récupération et la tuile de l\'écran d\'accueil TV est mise à jour.</string>
     <string name="menu_screensaver">Écran de veille</string>
     <string name="screensaver_title">Assombrissement automatique après...</string>
     <string name="screensaver_now">Activer immédiatement</string>
@@ -242,11 +243,13 @@ Certains fabricants de TV bloquent le Picture-in-Picture (PiP) par défaut. Suiv
     <string name="screensaver_120">120 minutes</string>
     <string name="screensaver_off">Désactivé</string>
 
+    <!-- BLOCK 14: DATENSCHUTZ- & ERSTEINRICHTUNGS-RATIONALE -->
     <string name="perm_dialog_title">Réseau &amp; Confidentialité</string>
-    <string name="perm_dialog_msg">KlippShell nécessite un accès réseau pour établir une interface directe avec l\'API Moonraker de votre imprimante, ainsi que l\'autorisation pour les notifications afin de vous envoyer des alertes critiques et des étapes d\'impression (par ex. impression terminée ou erreur) pendant que vous regardez la télévision ou utilisez d\'autres applications. Une connexion Internet est requise pour les vérifications de mise à jour OTA, la mise à disposition d\'éléments de statut pour le lanceur Android TV ainsi que pour les fonctionnalités avancées de l\'application complémentaire. La sécurité des données est notre priorité absolue : la communication s\'effectue exclusivement au niveau local entre votre appareil et l\'imprimante. Aucune donnée de contrôle ou de télémétrie n\'est transmise à des serveurs externes.</string>
+    <string name="perm_dialog_msg">KlippShell nécessite un accès au réseau pour établir une interface directe avec l\'API Moonraker de votre imprimante, ainsi que l\'autorisation pour les notifications afin de vous envoyer des alertes critiques et des étapes d\'impression (par exemple, impression terminée ou erreur) pendant que vous regardez la télévision ou utilisez d\'autres applications. Une connexion Internet est requise pour les vérifications de mise à jour OTA, la mise à disposition des ressources d\'état pour le lanceur Android TV ainsi que pour les fonctions avancées du mode Companion. La sécurité des données est notre priorité absolue : la communication s\'effectue exclusivement localement entre votre appareil et l\'imprimante. Aucune donnée de contrôle ou de télémétrie n\'est transmise à des serveurs externes.</string>
     <string name="perm_dialog_btn">Compris</string>
     <string name="perm_dialog_btn_decline">Refuser et quitter</string>
 
+    <!-- BLOCK 15: TV LAUNCHER- WIDGET- & KACHELRES-STRINGS -->
     <string name="widget_printer_title">KlippShell</string>
     <string name="widget_printer_empty">Aucune imprimante trouvée</string>
     <string name="widget_printer_unknown">Inconnu</string>
@@ -256,7 +259,8 @@ Certains fabricants de TV bloquent le Picture-in-Picture (PiP) par défaut. Suiv
     <string name="widget_config_no_printers_error">Veuillez d\'abord créer une imprimante dans l\'application !</string>
     <string name="widget_remote_default_title">Télécommande</string>
 
-    <string name="btn_check_updates">Mettre à jour</string>
+    <!-- BLOCK 16: VERSIONIERUNG & MANUELLE OTA-UPDATE-ENGINE -->
+    <string name="btn_check_updates">Mise à jour</string>
     <string name="submenu_update_title">Mise à jour</string>
     <string name="btn_manual_search">Rechercher des mises à jour</string>
     <string name="pill_auto_check_on">Vérifier automatiquement au démarrage</string>
@@ -267,22 +271,24 @@ Certains fabricants de TV bloquent le Picture-in-Picture (PiP) par défaut. Suiv
     <string name="toast_updater_error_code">Erreur lors de la récupération (Code : %1$d)</string>
     <string name="update_available_title">Mise à jour vers la version %1$s disponible !</string>
     <string name="btn_download_now">Télécharger maintenant</string>
-    <string name="toast_update_browser_error">Le navigateur n\'a pas pu être ouvert</string>
+    <string name="toast_update_browser_error">Impossible d\'ouvrir le navigateur</string>
     <string name="download_in_progress">Téléchargement en cours…</string>
     <string name="toast_download_failed">Téléchargement échoué !</string>
     <string name="toast_installation_failed">Installation échouée !</string>
 
+    <!-- BLOCK 17: CREDITS, CONTROLS & CHANGELOG -->
     <string name="btn_about_menu">À propos de KlippShell</string>
     <string name="about_contact_text">Projet sur GitHub • Support par e-mail</string>
     <string name="about_contact_option">Contact</string>
-    <string name="toast_email_error">Aucune application d\'e-mail trouvée</string>
+    <string name="toast_email_error">Aucune application de messagerie trouvée</string>
     <string name="license_link_text">Licences &amp; Droits d\'auteur</string>
     <string name="easter_egg_success">Pour les passionnés d\'impression 3D qui ne font aucun compromis</string>
     <string name="about_changelog_title">Changelog</string>
     <string name="about_changelog_text"></string>
 
+    <!-- BLOCK 18: WELCOME-TILE INITIAL INFORMATIONSCENTRUM -->
     <string name="welcome_tile_title">Bienvenue sur KlippShell ! 👋</string>
-    <string name="welcome_tile_msg">Ravi de vous compter parmi nous ! Afin de tirer le meilleur parti de la surveillance de votre imprimante, voici un bref aperçu des fonctionnalités clés de KlippShell et des spécificités de certains téléviseurs. KlippShell a été conçu pour fonctionner sur smartphone, tablette ou de manière intuitive sur Android TV.\n\n1️⃣ PREMIÈRES ÉTAPES\nAjoutez votre première imprimante 3D ci-dessous. Actuellement, presque tous les modèles du marché sont intégrés. Si vous souhaitez utiliser une autre imprimante basée sur Klipper, vous pouvez choisir \"Custom Model\".\nRemarque : Selon le modèle de votre imprimante et la configuration de votre réseau, vous devrez peut-être ajuster manuellement vos ports et accès caméra pour garantir une surveillance parfaite. Le scan réseau automatique devrait toutefois gérer la plupart des configurations de lui-même.\n⚠️ Si vous n\'obtenez pas d\'image en direct de l\'imprimante, veuillez vous rendre sur https://github.com/DnG-Crafts/K2-Camera et installer le FIX. Cela nécessite malheureusement les droits root sur l\'imprimante !\n💡 Astuce : Un appui long dans le menu principal sur l\'une de vos imprimantes enregistrées ouvre les options pour basculer la vue par défaut entre la surveillance du flux en direct et Klipper OS, ou pour supprimer cette imprimante.\n\n2️⃣ CONTRÔLE INTELLIGENT EN DIRECT\nEn mode flux vidéo, vous contrôlez tout via trois boutons principaux inférieurs :\n• Bouton gauche : Ouvre le menu pour l\'affichage à l\'écran (OSD), le zoom vidéo, le PiP, l\'éclairage du boîtier, l\'économiseur d\'écran et le format d\'image.\n• Bouton central : Bascule de manière transparente entre Klipper OS (tableau de bord) et le flux en direct de la caméra seule.\n• Bouton droit : Vous ramène en toute sécurité au menu principal à tout moment.\n\n3️⃣ MODE DÉMARRAGE DIRECT\nSi vous avez déjà configuré une imprimante avec succès, vous pouvez choisir le mode démarrage direct dans les paramètres. Celui-ci vous permet de commencer directement dans la vue du flux en direct dès le lancement de l\'application.\n\n4️⃣ LE MODE COMPANION\nAvec KlippShell, vous pouvez utiliser votre appareil comme tableau de bord TV (Master) ou comme télécommande pour smartphone (Slave). Activez le mode Companion dans les paramètres pour contrôler confortablement votre téléviseur depuis votre smartphone.\n\n5️⃣ PICTURE-IN-PICTURE (PiP)\nBien que KlippShell prenne entièrement en charge le PiP, certains fabricants de TV refusent de proposer cette fonctionnalité nativement. Ne vous inquiétez pas : vous trouverez dans les paramètres une fonction avancée avec des instructions précises pour débloquer facilement le PiP sur votre téléviseur via une commande ADB !\n\n6️⃣ FONCTION TV \"NOW LIVE\"\nSi vous souhaitez utiliser la fonction TV \"Now Live\", il se peut que les restrictions du fabricant l\'empêchent de s\'afficher nativement sur votre tableau de bord TV. Dans ce cas, nous vous recommandons d\'utiliser un lanceur TV alternatif tel que \"Projectivity Launcher\" sur votre téléviseur pour profiter pleinement de cette fonction.</string>
+    <string name="welcome_tile_msg">Ravi de vous compter parmi nous ! Pour que vous puissiez tirer le meilleur parti de la surveillance de votre imprimante, voici un bref aperçu des fonctionnalités clés de KlippShell et des spécificités de certains téléviseurs. KlippShell a été conçu pour fonctionner sur smartphone, tablette ou de manière intuitive sur Android TV.\n\n1️⃣ PREMIÈRES ÉTAPES\nAjoutez votre première imprimante 3D ci-dessous. Actuellement, presque tous les modèles du marché sont intégrés. Si vous souhaitez utiliser une autre imprimante basée sur Klipper, vous pouvez choisir \"Custom Model\".\nRemarque : Selon le modèle de votre imprimante et votre configuration réseau, vous devrez peut-être ajuster manuellement vos ports et vos accès caméra pour garantir un suivi optimal. Cependant, le scan automatique du réseau devrait gérer la plupart des configurations de lui-même.\n⚠️ Si vous n\'obtenez pas d\'image en direct de l\'imprimante, veuillez consulter https://github.com/DnG-Crafts/K2-Camera et installer le FIX. Cela nécessite malheureusement des droits root sur l\'imprimante !\n💡 Astuce : Un appui long dans le menu principal sur l\'une de vos imprimantes enregistrées ouvre les options permettant de basculer la vue standard entre le flux de surveillance en direct et Klipper OS, ou de supprimer cette imprimante.\n\n2️⃣ CONTRÔLE INTELLIGENT EN DIRECT\nEn mode flux vidéo, vous contrôlez tout via trois boutons principaux en bas :\n• Bouton gauche : Ouvre le menu pour l\'affichage à l\'écran (OSD), le zoom vidéo, le PiP, l\'éclairage du boîtier, l\'économiseur d\'écran et le format d\'image.\n• Bouton du milieu : Bascule de manière transparente entre Klipper OS (Tableau de bord) et le flux de la caméra en direct pur.\n• Bouton droit : Vous ramène en toute sécurité au menu principal à tout moment.\n\n3️⃣ MODE DÉMARRAGE DIRECT\nSi vous avez déjà configuré une imprimante avec succès, vous pouvez choisir le mode de démarrage direct dans les paramètres. Cela vous permet de commencer directement dans la vue du flux en direct dès le lancement de l\'application.\n\n4️⃣ LE MODE COMPANION\nAvec KlippShell, vous pouvez utiliser votre appareil comme tableau de bord TV (Maître) ou comme télécommande de smartphone (Esclave). Activez le mode Companion dans les paramètres pour contrôler confortablement votre téléviseur depuis votre smartphone.\n\n5️⃣ PICTURE-IN-PICTURE (PiP)\nBien que KlippShell prenne entièrement en charge le PiP, certains fabricants de téléviseurs refusent de proposer cette fonctionnalité nativement. Ne vous inquiétez pas : dans les paramètres, vous trouverez une fonction avancée avec un guide précis sur la façon de débloquer le PiP sur votre téléviseur très simplement via une commande ADB !\n\n6️⃣ FONCTION TV \"NOW LIVE\"\nSi vous souhaitez utiliser la fonction TV \"Now Live\", il se peut qu\'en raison de restrictions du fabricant, elle ne s\'affiche pas nativement sur votre tableau de bord TV. Dans ce cas, nous vous recommandons d\'utiliser un lanceur TV alternatif tel que \"Projectivity Launcher\" sur votre téléviseur pour profiter pleinement de cette fonction.</string>
     <string name="welcome_tile_btn">Compris &amp; Masquer</string>
 
 </resources>
