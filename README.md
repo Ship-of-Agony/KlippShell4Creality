@@ -1,4 +1,24 @@
-![Downloads](https://img.shields.io/github/downloads/Ship-of-Agony/KlippShell4Creality/total?style=flat-square&logo=github&color=blue&cache=bust1)
+<p align="center">
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.shipofagony.klippshell4creality%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FShip-of-Agony%2FKlippShell4Creality%22%2C%22author%22%3A%22Ship-of-Agony%22%2C%22name%22%3A%22KlippShell4Creality%22%2C%22preferredApkIndex%22%3A0%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Afalse%2C%5C%22fallbackToOlderReleases%5C%22%3Atrue%2C%5C%22filterReleaseTitlesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22filterReleaseNotesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22verifyLatestTag%5C%22%3Afalse%2C%5C%22sortMethodChoice%5C%22%3A%5C%22date%5C%22%2C%5C%22useLatestAssetDateAsReleaseDate%5C%22%3Afalse%2C%5C%22releaseTitleAsVersion%5C%22%3Afalse%2C%5C%22trackOnly%5C%22%3Afalse%2C%5C%22versionExtractionRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22matchGroupToUse%5C%22%3A%5C%22%5C%22%2C%5C%22versionDetection%5C%22%3Atrue%2C%5C%22releaseDateAsVersion%5C%22%3Afalse%2C%5C%22useVersionCodeAsOSVersion%5C%22%3Afalse%2C%5C%22apkFilterRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22invertAPKFilter%5C%22%3Afalse%2C%5C%22autoApkFilterByArch%5C%22%3Atrue%2C%5C%22appName%5C%22%3A%5C%22%5C%22%2C%5C%22appAuthor%5C%22%3A%5C%22%5C%22%2C%5C%22shizukuPretendToBeGooglePlay%5C%22%3Afalse%2C%5C%22allowInsecure%5C%22%3Afalse%2C%5C%22exemptFromBackgroundUpdates%5C%22%3Afalse%2C%5C%22skipUpdateNotifications%5C%22%3Afalse%2C%5C%22about%5C%22%3A%5C%22%5C%22%2C%5C%22refreshBeforeDownload%5C%22%3Afalse%2C%5C%22includeZips%5C%22%3Afalse%2C%5C%22zippedApkFilterRegEx%5C%22%3A%5C%22%5C%22%7D%22%2C%22overrideSource%22%3Anull%7D">
+    <img 
+      src="https://github.com/ImranR98/Obtainium/blob/main/assets/graphics/badge_obtainium.png?raw=true" 
+      alt="Add to Obtainium" 
+      width="182" />
+  </a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
+  <img src="https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
+  <img src="https://img.shields.io/badge/Target-Phone%20%7C%20Android%20TV-FF4500?style=for-the-badge&logo=android" alt="Target: Phone & Android TV" />
+  <a href="https://www.apache.org/licenses/LICENSE-2.0">
+    <img src="https://img.shields.io/badge/License-Apache_2.0-D22128?style=for-the-badge&logo=apache&logoColor=white" alt="License: Apache 2.0" />
+  </a>
+  <a href="https://github.com/Ship-of-Agony/KlippShell4Creality/releases">
+    <img src="https://img.shields.io/github/downloads/Ship-of-Agony/KlippShell4Creality/total?style=for-the-badge&color=2ea44f&logo=github&logoColor=white" alt="Total Downloads" />
+  </a>
+</p>
+
 
 # KlippShell 4 Creality
 
@@ -138,3 +158,4 @@ This application proudly utilizes the following open-source libraries, framework
 
 ## ❤️ Core Inspiration & Acknowledgements
 * **KlippHub by DnG Crafts:** This application is heavily inspired by the great project KlippHub. This sparked the vision of being able to conveniently monitor a 3D printer on the TV right from the comfort of the couch. Special thanks go to DnG for the tireless support, as well as for all the other valuable contributions (such as the Cfs RFID application) for the entire 3D printing community!
+* **Development Support:** Google Gemini (AI) – for assistance in error analysis, code refactoring, and resolving complex crashes.
