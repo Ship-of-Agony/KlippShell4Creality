@@ -1,0 +1,96 @@
+v0.9.2.230626-rc
+
+• New update for the public
+• Added widget
+• UI optimized
+• Bug fixes in various code blocks
+• Restructuring of Webwiew.kt
+• Restructuring of SettingsAcity.kt
+• Remote Control Manager is better developed and more user-friendly
+• Google Play Protect Certification
+
+v0.9.1.190626-rc
+
+• Added TV search dialog for model selection
+• Tolerant G-code/model search implemented
+• Memory polling optimized for Moonraker
+
+v0.9.170626-rc
+
+Fine-tuned Three.js camera view and centering for optimal Benchy alignment
+• Updated third-party open-source credits with 3D model and conversion tool attributions
+• Added stylized blue FAQ button to smartphone and tablet settings panels
+• Implemented scrollable FAQ dialog reading dynamically from native text assets
+• Resolved compiler layout lifecycle crashes and brace syntax mismatches in SettingsActivity
+• Replaced hardcoded remote controller text with a dynamic multi-state connection footer
+• Implemented local printer profile fallback for offline remote control states
+• Multi-language string assets localized for international connection statuses (EN, CS, PL, RU, ES, FR, DE)
+
+v0.8.9.140626-rc
+
+• Discrete Multi-Channel Notifications & Proactive OS Registration: Implemented two separate, user-configurable notification channels (NotificationChannel) to comply with modern Android TV guidelines. Segregated alerts into high-priority heads-up banners for critical printer events ("Fehler & Statusmeldungen") and standard background notifications ("Informationen & Meilensteine"). Channels are now registered proactively during activity startup (onCreate), making them instantly visible and controllable within the Android system settings without requiring a prior event. The POST_NOTIFICATIONS runtime permission was anchored in the manifest and seamlessly coupled with the onboarding privacy disclosure dialog.
+• Type-Safe Layout Architecture & Reflection Elimination: Restructured the layout parameter assignment for the exit button (btnExitApp) within MainActivity.kt. A risky Java reflection hack (params.javaClass.getField) that manipulated private fields of the ConstraintLayout library was completely eliminated and replaced with compile-time checked, type-safe cast assignments to ConstraintLayout.LayoutParams to guarantee layout compatibility across future system updates.
+• Comprehensive i18n Toast Synchronization & Localization: Cleaned up residual untranslated text fragments inside the video toggle logic (btnToggle) within WebViewActivity.kt. The toast alerts now dynamically load fully translated resource IDs (R.string.toast_loading_dashboard and R.string.toast_loading_livestream) using getString() instead of hardcoded strings, ensuring a flawless internationalization experience across all 7 targeting languages.
+• Dynamic Color Synchronization & Design Integrity: Removed all hardcoded hex color values from the centered pill toasts and the OSD background configurations (both compact box and flexible banner layouts). Backgrounds and borders now pull their structural color values programmatically via ContextCompat.getColor() from adaptive resource IDs (R.color.pill_normal_inactive and R.color.pill_normal_inactive_text), guaranteeing a flawless visual integration across both light and dark display modes.
+• Network Scan Timeout Calibration: Optimized the connection timeout within the automatic printer broadcast scanner (searchNetworkForPrinters) from a brittle 350ms to a highly stable 750ms. This calibration gracefully handles packet drops and latency spikes typical of weak Wi-Fi hardware antennas in budget Android TV sticks, drastically increasing the printer auto-discovery rate without causing any noticeable delay to the parallelized scanning task.
+• Compiler Integrity & Syntax Clean-up: Resolved critical Kotlin compilation errors encountered during refactoring within WebViewActivity.kt. Eliminated accidental duplicate updateOsdTextForm method declarations, fixed broken brace nesting scopes that had hidden the fetchMoonrakerData method, corrected an illegal wildcard variable reference inside the log catch block, and restored misplaced state-tracking variables to ensure absolute build integrity.
+
+v0.8.9.120626-rc
+
+• Dynamic Onboarding & Welcome Guide: Implemented a highly visible, dismissible welcome tile for first-time users natively injected into the printer list. It provides a structured 6-point guide covering Master/Slave concepts, D-Pad live control bindings, Direct Start, Companion Mode, PiP ADB unlocking, and recommendations for alternative Android TV launchers (e.g., Projectivity Launcher) to bypass manufacturer restrictions.
+• Auto-Discovery Companion Mode (Master/Slave): Engineered a robust network architecture allowing smartphones to act as seamless remote controls for Android TV dashboards. Features a background subnet scanner (port 9999) that instantly discovers the TV Master, establishes a smart TCP handshake, and auto-synchronizes the active Klipper printer configuration without requiring manual IP entry.
+• Hardware PiP Restriction Bypass & ADB Guide: Developed a code-level bypass (hasSystemFeature override) for Android TV devices that falsely block Picture-in-Picture capabilities. Added a dedicated, fully localized settings menu containing a code-formatted (<tt>) step-by-step terminal guide to permanently force PiP overlay permissions via AppOps.
+• Unified Settings Architecture: Completely restructured the settings layout for both portrait (mobile) and landscape (tablet/TV) modes to follow a logical, user-centric flow. Eliminated redundant UI elements, improved D-Pad focus routing, and integrated the new PiP and Auto-Start toggles seamlessly into the main UI pipeline.
+• Compiler & Layout Stability Fixes: Resolved critical AAPT2 resource linking crashes caused by invalid layout attributes (layout_constraintStart_toUnified), fixed Kotlin compilation errors related to read-only property reassignments (replaced with setLineSpacing), and restored truncated core methods (savePrinter) to ensure absolute build integrity.
+
+v0.8.8.110626-rc
+
+• Moonraker Milestone System: Activated the background worker to live-track print progress and issue unique milestone notifications (First Layer, 50%, 75%, 90%, 100%) per file.
+• Notification Customization: Bound background alerts directly to menu toggles to guarantee sounds and popups only fire when explicitly enabled by the user.
+• Autostart Mode: Implemented an auto-skip mechanism to bypass the dashboard overview on fresh launch, with a safety pause if multiple printers are detected.
+• Loop Prevention: Saved the execution state within the savedInstanceState bundle to eliminate infinite autostart loops when returning from the WebView activity.
+• Material3 & UI Polish: Embedded the new button into standard and split-screen layouts, utilizing clean Material3 styling with fully wired D-Pad remote focus feedback.
+• Launcher Deep-Link Fix: Registered the klippshell:// scheme via a view intent filter in the manifest to resolve target SDK registration blockades in the TV launcher provider.
+• Internationalization: Fully localized all newly introduced settings text, toasts, and popups into German, English, Polish, Spanish, French, Russian, and Czech.
+• OTA & Build Maintenance: Increased the application versionCode to 14 to provide reliable over-the-air update support and adjusted the version signature fallbacks.
+
+v0.8.7.090626-rc
+
+• Picture-in-Picture (PiP) Mode: Implemented full native PiP support for background multitasking, allowing users to monitor print progress via a floating overlay with real-time status tracking (tvPipProgress) and dedicated remote control actions (Maximize/Resize) on supported Android TV and mobile platforms.
+• Fluidd Dashboard Navigation Trap: Resolved a critical focus trapping issue where the Android WebView would swallow all D-Pad remote events inside the Fluidd interface, preventing users from navigating back down to the application overlay buttons. Implemented a hardware key event escape hatch: pressing the BACK button on the remote now instantly forces focus back to the "Close" button.
+• Fluidd Video Stream Freeze: Fixed an issue where the camera stream inside Fluidd would load as a frozen single frame. Enabled WebRTC permission requests and modified WebView configurations (loadsImagesAutomatically, allowContentAccess, and full LAYER_TYPE_HARDWARE enforcement for dashboard views) to allow continuous MJPEG and WebRTC stream decoding.
+• Navigation performance lag: Stripped out the aggressive DOM mutation observer from the JavaScript injection layer that previously caused UI stuttering and scroll lag when navigating massive web layouts like Fluidd on low-resource TV boxes.
+• Left Sidebar Polish: Added a CSS override to hide the heavy 18px blue TV scrollbar inside Fluidd's left navigation drawer (.v-navigation-drawer), keeping the UI clean and preserving space while maintaining the prominent scrollbar for the main dashboard content.
+• Internal: Suppressed non-critical Lint warnings and deprecated API notifications across MainActivity and WebViewActivity for a cleaner build environment.
+
+
+v0.8.6.070626-rc
+
+• Responsive Dual-Screen Layout: Implemented an automatic side-by-side dashboard for tablets and Android TV devices for improved navigation.
+• Persistent Main Menu: The navigation list remains visible on the left side, while sub-menus open instantly in the right column.
+• Enhanced Input Support: Optimized touch and D-Pad focus management ensures all elements are fully interactive across all screen sizes.
+• Automatic Dashboard Startup: The primary sub-menu now loads automatically in landscape mode, providing an immediate full-screen experience.
+
+
+v0.8.5.070626-rc
+
+• OTA Updater Optimization: Implemented automatic, silent update checks upon application startup.
+• UI Polish: Expanded the "About" menu frame for better ergonomics on TV displays.
+• Dialog Enhancement: Increased the size of the license and changelog text boxes for improved readability.
+• Legal Clarification: Revised and refined the license and copyright information dialogs.
+
+
+v0.8.5.050626-rc
+
+• Added GitHub OTA Updater: Implemented asynchronous online checking for new app releases directly via the GitHub API
+• Integrated License Viewer: Added new TV-optimized, scrollable readme dialog for open source licenses and copyrights
+• Layout cleanup: Removed redundant UI text in the About section for a cleaner look on Android TV, while keeping the logo Easter egg in its entirety
+• Kotlin null safety & type safety increased: All string operations when reading out the package information are secured in a null-safe manner using safe calls
+• UI focus & color corrections: Interactive buttons and dialog actions adjusted in color to match the KlippShell design
+
+
+v0.8.4.300526-rc
+
+• Added TV search dialog for model selection
+• Tolerant G-code/model search implemented
+• Memory polling optimized for Moonraker

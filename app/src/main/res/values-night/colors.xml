@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Deine bestehenden App-Farben für die Nacht -->
+    <color name="primary_material">#37474F</color>
+    <color name="secondary_material">#546E7A</color>
+
+    <!-- Inaktive normale Pillen nachts: Tiefes Anthrazit -->
+    <color name="pill_normal_inactive">#1E1E1E</color>
+    <color name="pill_normal_inactive_text">#757575</color>
+
+    <!-- Inaktive Fehler-Pillen nachts: Dunkles Weinrot (bleibt rot!) -->
+    <color name="pill_error_inactive">#B71C1C</color>
+    <color name="pill_error_inactive_text">#FFCDD2</color>
+</resources>

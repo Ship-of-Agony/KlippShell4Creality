@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: transparent;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+    </style>
+    <!-- Nutzt die originalen Bibliotheken -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+<script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+    // Deine originalen Wunsch-Werte für Abstand und Höhe
+    camera.position.set(0, 10, 85);
+
+    // FIX: Antialiasing eingeschaltet (true) und native Pixeldichte wiederhergestellt für gestochen scharfe Kanten!
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setClearColor(0x000000, 0);
+    document.body.appendChild(renderer.domElement);
+
+    renderer.localClippingEnabled = true;
+
+    // Einfaches Umgebungslicht (Reicht völlig aus und kostet fast 0 Leistung)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+    scene.add(ambientLight);
+
+    const pivotGroup = new THREE.Group();
+    scene.add(pivotGroup);
+
+    let minY = 0, maxY = 0;
+    let currentProgress = 1.0;
+
+    const localPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+
+    const loader = new THREE.GLTFLoader();
+    loader.load('benchy_boat.glb', function (gltf) {
+        const solidModel = gltf.scene;
+        solidModel.updateMatrixWorld(true);
+
+        const box = new THREE.Box3();
+        solidModel.traverse(function (child) {
+            if (child.isMesh) {
+                child.geometry.computeBoundingBox();
+                const localBox = child.geometry.boundingBox.clone();
+                localBox.applyMatrix4(child.matrixWorld);
+                box.union(localBox);
+            }
+        });
+
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        minY = box.min.y - center.y;
+        maxY = box.max.y - center.y;
+
+        const solidOffsetGroup = new THREE.Group();
+        solidOffsetGroup.position.set(-center.x, -center.y, -center.z);
+        solidOffsetGroup.add(solidModel);
+
+        solidModel.traverse(function (child) {
+            if (child.isMesh) {
+                // Extrem schnelles Material ohne schwere Shader-Berechnungen
+                child.material = new THREE.MeshLambertMaterial({
+                    color: 0x00E5FF,             // Schickes KlippShell-Cyan
+                    clippingPlanes: [localPlane],
+                    transparent: true,
+                    opacity: 0.80,               // Schön dezent transparent über dem Video
+                    side: THREE.DoubleSide       // Sorgt dafür, dass man das Boot auch von innen sieht
+                });
+            }
+        });
+
+        // Einzelnes Modell spart 50% Rechenlast auf der Box!
+        pivotGroup.add(solidOffsetGroup);
+
+        // Dein Wunsch-Höhenwert -4
+        camera.lookAt(0, -4, 0);
+        updatePlaneConstant();
+    });
+
+    function updatePlaneConstant() {
+        if (minY !== undefined && maxY !== undefined) {
+            localPlane.constant = minY + (maxY - minY) * currentProgress;
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (pivotGroup) {
+            // Rotiert gemütlich im Hintergrund
+            pivotGroup.rotation.y -= 0.003;
+        }
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.updateBenchyProgress = function(progress) {
+        currentProgress = progress;
+        updatePlaneConstant();
+    };
+
+    window.addEventListener('resize', function () {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+</body>
+</html>
