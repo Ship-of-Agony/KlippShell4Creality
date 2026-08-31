@@ -4,6 +4,14 @@
       src="https://github.com/ImranR98/Obtainium/blob/main/assets/graphics/badge_obtainium.png?raw=true" 
       alt="Add to Obtainium" 
       width="182" />
+
+  <p align="center">
+  <a href="https://github.com/Ship-of-Agony/KlippShell4Creality/releases">
+    <img src="https://img.shields.io/github/v/release/Ship-of-Agony/KlippShell4Creality?style=flat-square&logo=github" alt="Latest Release">
+  </a>
+  <img src="https://img.shields.io/badge/Android-7.0%2B%20(API%2024)-3DDC84?logo=android&logoColor=white&style=flat-square" alt="Android minSdk">
+  <img src="https://img.shields.io/badge/targetSdk-API%2034-blue?logo=android&logoColor=white&style=flat-square" alt="Android targetSdk">
+</p>
   </a>
 </p>
 
