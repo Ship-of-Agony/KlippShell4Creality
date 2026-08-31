@@ -55,7 +55,7 @@ This fix injects the required parameters into Moonraker and provides an alternat
 
 ### 🖼️ Picture-in-Picture (PiP) & Companion Mode
 * **True Native Picture-in-Picture (PiP):** Monitor your print progress via a floating overlay (complete with real-time `tvPipProgress` state tracking) while running other apps on your TV or mobile platform.
-* **Automated ADB Restriction Bypass:** Need to unlock advanced permissions like PiP or Overlays on restricted TV platforms? You can use our official desktop automation companion tool, the [KlippShell Helper](https://github.com/Ship-of-Agony/KlippShell-Helper), to configure your TV in seconds.
+* **Automated ADB Restriction Bypass:** Need to unlock advanced permissions like PiP or Overlays on restricted TV platforms? You can use our official desktop automation companion tool, the **[KlippShell Helper](https://github.com/Ship-of-Agony/KlippShell-Helper)**, to configure your TV in seconds.
 * **Auto-Discovery Companion Mode (Master/Slave):** Seamlessly use your smartphone as a remote control for your Android TV dashboard. A background subnet scanner (port 9999) instantly discovers the TV Master, establishes a smart TCP handshake, and synchronizes the active printer profile without manual IP entry.
 
 ### 🔧 Printer Management & Visualization
@@ -83,7 +83,7 @@ The helper application runs on your Windows PC and uses automated ADB commands t
 2. **TV Overlay / System Alert Window** (`SYSTEM_ALERT_WINDOW`)
 3. **Doze Whitelist** (Prevents Android from killing the background monitoring service)
 
-*Note: It includes a built-in localization engine supporting EN, DE, ES, FR, PL, CS, and RU, alongside an automated reset/undo option.*
+*Note: It includes a built-in localization engine supporting **EN, DE, ES, FR, PL, CS, and RU,** alongside an automated reset/undo option.*
 
 ---
 
@@ -134,9 +134,9 @@ The helper application runs on your Windows PC and uses automated ADB commands t
 ---
 
 ## 📂 Getting Started & Installation
-1. Grab the latest APK release over at the **Releases** section.
+1. Grab the latest APK release over at the **[GitHub Releases](https://github.com/Ship-of-Agony/KlippShell4Creality/releases)** section.
 2. Upon first launch, an interactive 6-point onboarding guide will seamlessly introduce you to Master/Slave setups, D-Pad mappings, and PiP ADB workflows directly within the printer list view.
-3. *(Optional)* If your TV platform restricts Picture-in-Picture or Overlays, download the standalone desktop tool from the [KlippShell Helper Repository](https://github.com/Ship-of-Agony/KlippShell-Helper) to automatically authorize these advanced permissions.
+3. *(Optional)* If your TV platform restricts Picture-in-Picture or Overlays, download the standalone desktop tool from the **[KlippShell Helper Repository](https://github.com/Ship-of-Agony/KlippShell-Helper)** to automatically authorize these advanced permissions.
 4. For support or feedback, utilize the functional "Kontakt" (Contact) field inside the settings panel to directly dispatch an email intent to the studio.
 
 ---
