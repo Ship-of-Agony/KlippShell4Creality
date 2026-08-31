@@ -79,8 +79,20 @@ The helper application runs on your Windows PC and uses automated ADB commands t
 
 ---
 
-## 🔧 Bug Fixes & Known Issues
-* **[Work in Progress]** Identified and tracking bugs related to the Companion Mode. A hotfix will be deployed soon.
+## 🛠️ Bug Fixes & Known Issues
+
+ ##  Current Work in Progress & Roadmap
+
+### 🐛 Bug Fixes
+- [ ] **Android TV Notification Dialogs:** Fix confirmation focus and click handling – dialogs currently cannot be dismissed/confirmed via remote control (D-Pad/OK) after appearing.
+- [ ] **Advanced Mode ("Secret Mode"):** Resolve errors and improve stability for advanced configuration features.
+
+### ⚙️ UI & Core Features
+- [ ] **Main Menu:** Implement an edit function for previously added printers (IP, name, port, etc.).
+- [ ] **Companion Mode:** Improve connection stability, data synchronization, and overall handling.
+
+### 📖 Documentation & FAQ
+- [ ] **FAQ / Help Section:** Add direct URL links to the *KlippShell Helper App*.
 
 ---
 
