@@ -27,6 +27,11 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=BuRwzd4q0IU" target="_blank">
+    <img src="https://raw.githubusercontent.com/Ship-of-Agony/KlippShell4Creality/master/Screenshot/thumbnail.jpeg" alt="KlippShell – 3D Printer TV Control" width="720" />
+  </a>
+</p>
 
 # KlippShell 4 Creality
 
