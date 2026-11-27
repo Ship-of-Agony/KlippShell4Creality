@@ -98,10 +98,7 @@ The helper application runs on your Windows PC and uses automated ADB commands t
 
 ## 🗺️ Roadmap & Upcoming Features
 
-### ⚙️ UI & Core Features
-
-### 📖 Documentation & FAQ
-- [ ] **FAQ / Help Section:** Add direct clickable URL links to the *KlippShell Helper App*.
+### ⚙️ UI & Core Features, BugFixes.
 
 ---
 
