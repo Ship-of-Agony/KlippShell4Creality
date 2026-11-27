@@ -3,8 +3,8 @@ package com.shipofagony.klippshell4creality
 import android.app.Activity
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -60,18 +60,21 @@ object NotificationManager {
                     webContainer.removeAllViews()
                     webContainer.addView(notifyView)
 
-                    notifyView.bringToFront()
-                    notifyView.elevation = 50.toPx(context).toFloat()
-                    notifyView.translationZ = 50.toPx(context).toFloat()
-
+                    // Container selbst ganz nach vorne über WebView, OSD, Buttons & Cursor holen
                     webContainer.visibility = View.VISIBLE
+                    webContainer.elevation = 60.toPx(context).toFloat()
+                    webContainer.translationZ = 60.toPx(context).toFloat()
+                    webContainer.bringToFront()
+
+                    notifyView.elevation = 60.toPx(context).toFloat()
+                    notifyView.translationZ = 60.toPx(context).toFloat()
+                    notifyView.bringToFront()
 
                     val slideIn = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left)
                     notifyView.startAnimation(slideIn)
 
                     val btnDismiss = notifyView.findViewById<MaterialButton>(R.id.btnNotifyDismiss)
-                    btnDismiss.isFocusable = true
-                    btnDismiss.requestFocus()
+                    applyTvFocusLock(btnDismiss)
                     return
                 }
             }
@@ -96,20 +99,44 @@ object NotificationManager {
                 notifyView.layoutParams = lp
                 rootLayout.addView(notifyView)
 
+                notifyView.elevation = 60.toPx(context).toFloat()
+                notifyView.translationZ = 60.toPx(context).toFloat()
                 notifyView.bringToFront()
-                notifyView.elevation = 50.toPx(context).toFloat()
-                notifyView.translationZ = 50.toPx(context).toFloat()
 
                 val slideIn = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left)
                 notifyView.startAnimation(slideIn)
 
                 val btnDismiss = notifyView.findViewById<MaterialButton>(R.id.btnNotifyDismiss)
-                btnDismiss.isFocusable = true
-                btnDismiss.requestFocus()
+                applyTvFocusLock(btnDismiss)
             }
 
         } catch (e: Exception) {
             Log.e("KlippShell", "Fehler beim Anzeigen des Live-Popups", e)
+        }
+    }
+
+    private fun applyTvFocusLock(btnDismiss: MaterialButton) {
+        btnDismiss.isFocusable = true
+        btnDismiss.isFocusableInTouchMode = true
+        btnDismiss.nextFocusUpId = btnDismiss.id
+        btnDismiss.nextFocusDownId = btnDismiss.id
+        btnDismiss.nextFocusLeftId = btnDismiss.id
+        btnDismiss.nextFocusRightId = btnDismiss.id
+
+        btnDismiss.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+            v.animate()
+                .scaleX(if (hasFocus) 1.05f else 1.0f)
+                .scaleY(if (hasFocus) 1.05f else 1.0f)
+                .setDuration(120)
+                .start()
+            if (v is MaterialButton) {
+                v.strokeWidth = if (hasFocus) 6 else 0
+                v.strokeColor = if (hasFocus) ColorStateList.valueOf(Color.WHITE) else null
+            }
+        }
+
+        btnDismiss.post {
+            btnDismiss.requestFocus()
         }
     }
 

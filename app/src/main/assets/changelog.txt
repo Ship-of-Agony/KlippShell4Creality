@@ -1,3 +1,13 @@
+v0.9.3.261126-rc
+
+• Printer Preset: Added Creality K3
+• Edit Saved Printers: Saved printer profiles can now be edited directly
+• TV Stability: Significantly improved overall stability and reduced memory usage on Android TV devices
+• Bugfix (Companion Remote & Touchpad): Improved cursor navigation and menu responsiveness
+• Bugfix (Android TV & Advanced Mode): Resolved navigation loops, panel overlaps, and portrait orientation locks
+• Print Preview Thumbnails: Improved G-code header extraction for real object previews
+• UI Fixes: General visual and layout refinements
+
 v0.9.2.230626-rc
 
 • New update for the public

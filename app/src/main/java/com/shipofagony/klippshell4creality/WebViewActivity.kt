@@ -1,5 +1,9 @@
 package com.shipofagony.klippshell4creality
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.graphics.drawable.GradientDrawable
 import androidx.appcompat.app.AlertDialog
 import android.annotation.SuppressLint
@@ -15,6 +19,8 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.BitmapDrawable
@@ -26,6 +32,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.SystemClock
 import android.os.Looper
 import android.util.Log
 import android.util.Rational
@@ -36,9 +43,9 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.webkit.WebSettings
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -53,22 +60,23 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
-import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Suppress("DEPRECATION", "Lint", "ClickableViewAccessibility", "SetJavaScriptEnabled", "SetTextI18n", "LocalSuppress")
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "SetTextI18n", "DefaultLocale", "NewApi")
-class WebViewActivity : AppCompatActivity() {
+class WebViewActivity : AppCompatActivity(), KlippShellApp.CompanionCommandHandler {
 
     private fun toPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
     }
 
     private var webView: WebView? = null
-    private var webView3D: WebView? = null
     private lateinit var layoutOsd: View
     private lateinit var layoutOsdBanner: View
     private lateinit var layoutWebButtons: LinearLayout
@@ -112,6 +120,11 @@ class WebViewActivity : AppCompatActivity() {
     private lateinit var layoutScreensaver: FrameLayout
     private lateinit var ivScreensaverLogo: ImageView
 
+    private var ivVirtualCursor: ImageView? = null
+    private var cursorX = 500f
+    private var cursorY = 400f
+
+    private var hasInitializedPrintState = false
     private var hasTrigFirstLayer = false
     private var hasTrig50 = false
     private var hasTrig75 = false
@@ -137,6 +150,11 @@ class WebViewActivity : AppCompatActivity() {
     private var fanAuxRotationAngle = 0f
     private var fanChamberRotationAngle = 0f
 
+    private var staticOsdIconsApplied = false
+    private var boxFanIconsInitialized = false
+    private var bannerFanIconsInitialized = false
+    private var fallbackBenchyBitmap: Bitmap? = null
+
     private val uiHandler = Handler(Looper.getMainLooper())
     private val hideUiRunnable = Runnable { hideButtons() }
     private val immersiveTimeout = 5000L
@@ -155,15 +173,16 @@ class WebViewActivity : AppCompatActivity() {
     private val channelInfoId = "klippshell_info_channel"
 
     private var isThumbnailEnabled = true
-    private var isBenchyShowing = false
     private var currentGCodeFilename = ""
-    private var thumbnailBitmap: android.graphics.Bitmap? = null
+    private var thumbnailBitmap: Bitmap? = null
     private val thumbContainerId = View.generateViewId()
+    private var ivThumbPulse: ImageView? = null
     private var ivThumbBackground: ImageView? = null
     private var ivThumbForeground: ImageView? = null
     private var clipDrawable: ClipDrawable? = null
+    private var thumbPulseAnimator: AnimatorSet? = null
+    private var isThumbPulseActive = false
 
-    private lateinit var companionServerManager: CompanionServerManager
     private lateinit var thumbnailRenderHelper: ThumbnailRenderHelper
     private lateinit var screensaverManager: ScreensaverManager
     private lateinit var moonrakerPollManager: MoonrakerPollManager
@@ -171,6 +190,25 @@ class WebViewActivity : AppCompatActivity() {
 
     private val hostIp: String
         get() = Uri.parse(currentActiveUrl).host ?: ""
+
+    override fun onCompanionCommand(command: String): Boolean {
+        handleRemoteCommand(command)
+        return true
+    }
+
+    override fun getCompanionLiveState(): JSONObject {
+        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+        return JSONObject().apply {
+            put("isVideoMode", isCameraMode)
+            put("isOsdOn", isOsdEnabled)
+            put("isPipMode", isInPiP)
+            put("osdStyle", prefs.getString("osd_style_$hostIp", "box") ?: "box")
+        }
+    }
+
+    override fun getCompanionPrinterIp(): String = hostIp
+
+    override fun getCompanionActiveUrl(): String = currentActiveUrl
 
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
@@ -247,7 +285,7 @@ class WebViewActivity : AppCompatActivity() {
         }
     }
 
-    private fun sendNativeSystemNotification(title: String, message: String, targetChannelId: String, bitmap: android.graphics.Bitmap? = null) {
+    private fun sendNativeSystemNotification(title: String, message: String, targetChannelId: String, bitmap: Bitmap? = null) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as AndroidNotificationManager
         registerNotificationChannels()
 
@@ -269,10 +307,146 @@ class WebViewActivity : AppCompatActivity() {
             builder.setLargeIcon(bitmap)
             builder.setStyle(NotificationCompat.BigPictureStyle()
                 .bigPicture(bitmap)
-                .bigLargeIcon(null as android.graphics.Bitmap?))
+                .bigLargeIcon(null as Bitmap?))
         }
 
         notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
+    }
+
+    private fun updateFocusNavigationForMode() {
+        btnMenu.nextFocusLeftId = R.id.btnWebMenu
+        btnMenu.nextFocusRightId = R.id.btnWebToggle
+        btnToggle.nextFocusLeftId = R.id.btnWebMenu
+        btnToggle.nextFocusRightId = R.id.btnWebClose
+        btnClose.nextFocusLeftId = R.id.btnWebToggle
+        btnClose.nextFocusRightId = R.id.btnWebClose
+
+        if (isCameraMode) {
+            webView?.isFocusable = false
+            webView?.isFocusableInTouchMode = false
+            webView?.clearFocus()
+
+            btnMenu.nextFocusUpId = R.id.btnWebMenu
+            btnMenu.nextFocusDownId = R.id.btnWebMenu
+            btnToggle.nextFocusUpId = R.id.btnWebToggle
+            btnToggle.nextFocusDownId = R.id.btnWebToggle
+            btnClose.nextFocusUpId = R.id.btnWebClose
+            btnClose.nextFocusDownId = R.id.btnWebClose
+
+            btnToggle.post { btnToggle.requestFocus() }
+        } else {
+            webView?.isFocusable = true
+            webView?.isFocusableInTouchMode = true
+
+            btnMenu.nextFocusUpId = R.id.webView
+            btnMenu.nextFocusDownId = R.id.btnWebMenu
+            btnToggle.nextFocusUpId = R.id.webView
+            btnToggle.nextFocusDownId = R.id.btnWebToggle
+            btnClose.nextFocusUpId = R.id.webView
+            btnClose.nextFocusDownId = R.id.btnWebClose
+        }
+    }
+
+    private fun getOrCreateFallbackBenchyBitmap(): Bitmap {
+        fallbackBenchyBitmap?.let { if (!it.isRecycled) return it }
+        val sizePx = (120 * resources.displayMetrics.density).toInt().coerceAtLeast(64)
+        val drawableRes = resources.getIdentifier("ic_benchy_2d", "drawable", packageName)
+            .takeIf { it != 0 } ?: R.mipmap.ic_launcher
+        val drawable = ContextCompat.getDrawable(this, drawableRes)?.mutate()
+        val bmp = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        if (drawable != null) {
+            val canvas = Canvas(bmp)
+            drawable.setBounds(0, 0, sizePx, sizePx)
+            drawable.draw(canvas)
+        }
+        fallbackBenchyBitmap = bmp
+        return bmp
+    }
+
+    private fun startThumbnailPulseAnimation() {
+        val pulseView = ivThumbPulse ?: return
+        if (isThumbPulseActive && thumbPulseAnimator?.isRunning == true) return
+        stopThumbnailPulseAnimation()
+
+        isThumbPulseActive = true
+        pulseView.visibility = View.VISIBLE
+        pulseView.alpha = 0f
+
+        val fadeIn = ObjectAnimator.ofFloat(pulseView, View.ALPHA, 0f, 0.55f).apply {
+            duration = 650L
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val fadeOut = ObjectAnimator.ofFloat(pulseView, View.ALPHA, 0.55f, 0f).apply {
+            duration = 850L
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+
+        val set = AnimatorSet().apply {
+            playSequentially(fadeIn, fadeOut)
+            startDelay = 2400L
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    if (isThumbPulseActive && !isFinishing && !isDestroyed) {
+                        animation.start()
+                    }
+                }
+            })
+        }
+        thumbPulseAnimator = set
+        set.start()
+    }
+
+    private fun stopThumbnailPulseAnimation() {
+        isThumbPulseActive = false
+        thumbPulseAnimator?.removeAllListeners()
+        thumbPulseAnimator?.cancel()
+        thumbPulseAnimator = null
+        ivThumbPulse?.alpha = 0f
+        ivThumbPulse?.visibility = View.GONE
+    }
+
+    private fun updateThumbnailPulseState() {
+        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+        val shouldPulse = isActivityInForeground &&
+                isThumbnailEnabled &&
+                isCameraMode &&
+                !isInPiP &&
+                !screensaverManager.isVisible() &&
+                lastPrintState == "printing"
+
+        if (shouldPulse) {
+            startThumbnailPulseAnimation()
+        } else {
+            stopThumbnailPulseAnimation()
+        }
+    }
+
+    private fun applyStaticOsdIconsAndColors() {
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val textColor = if (isNight) Color.WHITE else Color.BLACK
+        val padPx = (6 * resources.displayMetrics.density).toInt()
+
+        val boxViews = arrayOf(tvOsdExtruder, tvOsdBed, tvOsdChamberSensor, tvOsdChamberHeater, tvOsdFanModel, tvOsdFanAux, tvOsdFanChamber, tvOsdProgress, tvOsdTime)
+        val bannerViews = arrayOf(tvOsdExtruderBanner, tvOsdBedBanner, tvOsdChamberSensorBanner, tvOsdChamberHeaterBanner, tvOsdFanModelBanner, tvOsdFanAuxBanner, tvOsdFanChamberBanner, tvOsdProgressBanner, tvOsdTimeBanner)
+
+        boxViews.forEach { tv -> tv?.setTextColor(textColor); tv?.compoundDrawablePadding = padPx }
+        bannerViews.forEach { tv -> tv?.setTextColor(textColor); tv?.compoundDrawablePadding = padPx }
+
+        tvOsdExtruder?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.fluid_24, isNight), null, null, null)
+        tvOsdBed?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.windshield_defrost_rear_24, isNight), null, null, null)
+        tvOsdChamberSensor?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.bottom_navigation_24, isNight), null, null, null)
+        tvOsdChamberHeater?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.thermostat_24, isNight), null, null, null)
+        tvOsdProgress?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.ic_progress_clock, isNight), null, null, null)
+        tvOsdTime?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.hourglass_top_24, isNight), null, null, null)
+
+        tvOsdExtruderBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.fluid_24, isNight), null, null, null)
+        tvOsdBedBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.windshield_defrost_rear_24, isNight), null, null, null)
+        tvOsdChamberSensorBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.bottom_navigation_24, isNight), null, null, null)
+        tvOsdChamberHeaterBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.thermostat_24, isNight), null, null, null)
+        tvOsdProgressBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.ic_progress_clock, isNight), null, null, null)
+        tvOsdTimeBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.hourglass_top_24, isNight), null, null, null)
+
+        staticOsdIconsApplied = true
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -301,6 +475,8 @@ class WebViewActivity : AppCompatActivity() {
         ivScreensaverLogo = findViewById(R.id.ivScreensaverLogo)
         val defaultScreensaverDrawable = ivScreensaverLogo.drawable
 
+        ivVirtualCursor = findViewById(R.id.ivVirtualCursor)
+
         isThumbnailEnabled = prefs.getBoolean("thumbnail_enabled_$hostIp", true)
 
         val thumbLayout = FrameLayout(this).apply {
@@ -318,31 +494,13 @@ class WebViewActivity : AppCompatActivity() {
             isFocusable = false
         }
 
-        webView3D = WebView(this).apply {
+        ivThumbPulse = ImageView(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-            setBackgroundColor(Color.TRANSPARENT)
-            isFocusable = false
-            isClickable = false
-            isFocusableInTouchMode = false
-
-            webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    val progressFloat = if (lastPrintState == "printing" || lastPrintState == "complete") lastProgressPercent.coerceIn(0.0, 1.0) else 1.0
-                    view?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress($progressFloat);", null)
-                }
-            }
-
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.allowFileAccess = true
-            settings.allowContentAccess = true
-            settings.allowFileAccessFromFileURLs = true
-            settings.allowUniversalAccessFromFileURLs = true
-            settings.blockNetworkImage = true
-            settings.loadsImagesAutomatically = false
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
+            alpha = 0f
+            visibility = View.GONE
         }
-
         ivThumbBackground = ImageView(this).apply {
             layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             scaleType = ImageView.ScaleType.CENTER_CROP
@@ -352,7 +510,7 @@ class WebViewActivity : AppCompatActivity() {
             scaleType = ImageView.ScaleType.CENTER_CROP
         }
 
-        thumbLayout.addView(webView3D)
+        thumbLayout.addView(ivThumbPulse)
         thumbLayout.addView(ivThumbBackground)
         thumbLayout.addView(ivThumbForeground)
         rootLayout?.addView(thumbLayout)
@@ -362,8 +520,8 @@ class WebViewActivity : AppCompatActivity() {
         layoutOsd.bringToFront()
         layoutOsdBanner.bringToFront()
         layoutScrollRight.bringToFront()
+        ivVirtualCursor?.bringToFront()
 
-        companionServerManager = CompanionServerManager(this, prefs, lifecycleScope, { command -> handleRemoteCommand(command) }, { hostIp }, { currentActiveUrl })
         thumbnailRenderHelper = ThumbnailRenderHelper { hostIp }
         screensaverManager = ScreensaverManager(layoutScreensaver, ivScreensaverLogo, defaultScreensaverDrawable, { thumbnailBitmap }, { lastPrintState }, { lastProgressPercent }, { currentGCodeFilename }, { deactivateScreensaver() })
         moonrakerPollManager = MoonrakerPollManager({ hostIp }, { currentActiveUrl }, { response -> handleMoonrakerResponse(response) })
@@ -387,6 +545,7 @@ class WebViewActivity : AppCompatActivity() {
                         else { layoutOsd.visibility = View.VISIBLE; layoutOsdBanner.visibility = View.GONE }
                         moonrakerPollManager.startPolling(lifecycleScope) { hasTrigOffline }
                     } else { layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE; moonrakerPollManager.stopPolling() }
+                    applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
                 }
                 is WebViewMenuHelper.MenuAction.ChangeOsdStyle -> {
                     showPillDialog(getSafeString("menu_osd_style_title", "OSD Stil"), arrayOf(getSafeString("osd_style_box", "Kompakte Box"), getSafeString("osd_style_banner", "Flexible Leiste"))) { styleIndex ->
@@ -401,13 +560,23 @@ class WebViewActivity : AppCompatActivity() {
                     prefs.edit().putBoolean("thumbnail_enabled_$hostIp", isThumbnailEnabled).apply()
                     val tView = findViewById<FrameLayout>(thumbContainerId)
                     if (isThumbnailEnabled && isCameraMode) { tView?.visibility = View.VISIBLE; setupProgressThumbnailDrawables(thumbnailBitmap) }
-                    else { tView?.visibility = View.GONE }
+                    else { tView?.visibility = View.GONE; stopThumbnailPulseAnimation() }
                     applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
                 }
                 is WebViewMenuHelper.MenuAction.EnterPip -> enterPipMode()
                 is WebViewMenuHelper.MenuAction.ToggleLight -> { isLightOn = !isLightOn; sendLightCommand(isLightOn) }
                 is WebViewMenuHelper.MenuAction.ShowScreensaverConfig -> {
-                    showScreensaverPillDialog(getSafeString("screensaver_title", "Timeout"), arrayOf(getSafeString("screensaver_now", "Jetzt"), "30 Min", "60 Min", "90 Min", "120 Min", getSafeString("screensaver_off", "Aus"))) { tIdx ->
+                    showScreensaverPillDialog(
+                        getSafeString("screensaver_title", "Timeout"),
+                        arrayOf(
+                            getSafeString("screensaver_now", "Jetzt"),
+                            getSafeString("screensaver_30", "30 Min"),
+                            getSafeString("screensaver_60", "60 Min"),
+                            getSafeString("screensaver_90", "90 Min"),
+                            getSafeString("screensaver_120", "120 Min"),
+                            getSafeString("screensaver_off", "Aus")
+                        )
+                    ) { tIdx ->
                         val newTimeout = when (tIdx) {
                             0 -> { screensaverManager.setInstantActive(true); activateScreensaver(); return@showScreensaverPillDialog }
                             1 -> 30 * 60 * 1000L; 2 -> 60 * 60 * 1000L; 3 -> 90 * 60 * 1000L; 4 -> 120 * 60 * 1000L; else -> 0L
@@ -423,13 +592,27 @@ class WebViewActivity : AppCompatActivity() {
                 is WebViewMenuHelper.MenuAction.ChangeCameraType -> {
                     val localInitialPort = Uri.parse(currentActiveUrl).port.takeIf { it != -1 } ?: 7125
                     val savedDashboardPort = prefs.getInt("saved_dashboard_port_$hostIp", localInitialPort)
-                    showPillDialog(getSafeString("menu_change_camera_type", "Kamera-Typ"), arrayOf("Web-Ansicht", "Stream Port 8080", "Webcam-Pfad")) { camIdx -> loadStreamOrUrl(when(camIdx) { 0 -> "http://$hostIp:$savedDashboardPort/camera.html"; 1 -> "http://$hostIp:8080/?action=stream"; else -> "http://$hostIp:$savedDashboardPort/webcam/?action=stream" }, 56.25f) }
+                    showPillDialog(
+                        getSafeString("menu_change_camera_type", "Kamera-Typ"),
+                        arrayOf(
+                            getSafeString("camera_type_html", "Klipper HTML Stream"),
+                            getSafeString("camera_type_port", "Port 8080 Stream"),
+                            getSafeString("camera_type_webcam", "Webcam-Pfad Stream")
+                        )
+                    ) { camIdx ->
+                        loadStreamOrUrl(
+                            when (camIdx) {
+                                0 -> "http://$hostIp:$savedDashboardPort/camera.html"
+                                1 -> "http://$hostIp:8080/?action=stream"
+                                else -> "http://$hostIp:$savedDashboardPort/webcam/?action=stream"
+                            },
+                            56.25f
+                        )
+                    }
                 }
                 is WebViewMenuHelper.MenuAction.EmergencyStop -> sendEmergencyStop()
             }
         }
-
-        companionServerManager.startServers()
 
         rootLayout?.let { root ->
             ViewCompat.setOnApplyWindowInsetsListener(root) { view, windowInsets ->
@@ -460,6 +643,7 @@ class WebViewActivity : AppCompatActivity() {
         tvOsdTimeBanner = findViewById(R.id.tvOsdTimeBanner)
 
         applySeichterOsdBackground()
+        applyStaticOsdIconsAndColors()
 
         webView?.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
@@ -468,8 +652,8 @@ class WebViewActivity : AppCompatActivity() {
             false
         }
 
-        webView?.isFocusable = true
         webView?.setOnKeyListener { _, keyCode, event ->
+            if (isCameraMode) return@setOnKeyListener false
             if (event.action == MotionEvent.ACTION_DOWN) {
                 when (keyCode) {
                     KeyEvent.KEYCODE_DPAD_DOWN -> { webView?.evaluateJavascript("window.scrollBy(0, 150);", null); showButtons(); true }
@@ -501,7 +685,6 @@ class WebViewActivity : AppCompatActivity() {
 
         val allButtons = arrayOf(btnMenu, btnToggle, btnClose, btnScrollRightUp, btnScrollRightDown)
         allButtons.forEach { btn -> btn.isFocusable = true; btn.alpha = 0.8f; btn.onFocusChangeListener = tvFocusListener }
-        arrayOf(btnMenu, btnToggle, btnClose).forEach { it.nextFocusUpId = R.id.webView }
 
         webView?.settings?.apply {
             javaScriptEnabled = true; domStorageEnabled = true
@@ -536,8 +719,27 @@ class WebViewActivity : AppCompatActivity() {
         btnMenu.setOnLongClickListener {
             if (isCameraMode && isOsdEnabled) {
                 val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
-                val positionOptions = if (osdStyle == "banner") arrayOf(getSafeString("osd_pos_banner_top", "Oben"), getSafeString("osd_pos_banner_bottom", "Unten"), getSafeString("osd_pos_banner_left", "Links"), getSafeString("osd_pos_banner_right", "Rechts")) else arrayOf("Oben Links", "Oben Mitte", "Oben Rechts", "Unten Mitte")
-                showPillDialog(getSafeString("osd_position_title", "OSD Position"), positionOptions) { index -> val posStr = if (osdStyle == "banner") when(index) { 0 -> "top"; 1 -> "bottom"; 2 -> "left"; else -> "right" } else when(index) { 0 -> "top_left"; 1 -> "top_center"; 2 -> "top_right"; else -> "bottom_center" }; prefs.edit().putString("osd_position_$hostIp", posStr).apply(); applyOsdPositionAndStyle(posStr); showCenteredPillToast(getSafeString("toast_saved", "Gespeichert ✓")) }
+                val positionOptions = if (osdStyle == "banner") {
+                    arrayOf(
+                        getSafeString("osd_pos_banner_top", "Oben"),
+                        getSafeString("osd_pos_banner_bottom", "Unten"),
+                        getSafeString("osd_pos_banner_left", "Links"),
+                        getSafeString("osd_pos_banner_right", "Rechts")
+                    )
+                } else {
+                    arrayOf(
+                        getSafeString("osd_pos_top_left", "Oben Links"),
+                        getSafeString("osd_pos_top_center", "Oben Mitte"),
+                        getSafeString("osd_pos_top_right", "Oben Rechts"),
+                        getSafeString("osd_pos_bottom_center", "Unten Mitte")
+                    )
+                }
+                showPillDialog(getSafeString("osd_position_title", "OSD Position"), positionOptions) { index ->
+                    val posStr = if (osdStyle == "banner") when(index) { 0 -> "top"; 1 -> "bottom"; 2 -> "left"; else -> "right" } else when(index) { 0 -> "top_left"; 1 -> "top_center"; 2 -> "top_right"; else -> "bottom_center" }
+                    prefs.edit().putString("osd_position_$hostIp", posStr).apply()
+                    applyOsdPositionAndStyle(posStr)
+                    showCenteredPillToast(getSafeString("toast_saved", "Gespeichert ✓"))
+                }
                 true
             } else { showCenteredPillToast(getSafeString("toast_fullscreen_only", "Nur im Vollbildmodus verfügbar")); true }
         }
@@ -549,9 +751,67 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         btnToggle.setOnLongClickListener {
-            if (isCameraMode) { showPillDialog("Standard-Port", arrayOf("Creality OS (4408)", "MainSail/Fluidd (7125)")) { whichDash -> prefs.edit().putInt("saved_dashboard_port_$hostIp", if (whichDash == 0) 4408 else 7125).apply(); loadStreamOrUrl("http://$hostIp:" + if (whichDash == 0) "4408" else "7125", 56.25f) }; true } else false
+            if (isCameraMode) {
+                showPillDialog(
+                    getSafeString("choose_port", "Port auswählen"),
+                    arrayOf(
+                        getSafeString("system_creality", "Creality OS (4408)"),
+                        getSafeString("system_standard", "Klipper Standard (7125)")
+                    )
+                ) { whichDash ->
+                    prefs.edit().putInt("saved_dashboard_port_$hostIp", if (whichDash == 0) 4408 else 7125).apply()
+                    loadStreamOrUrl("http://$hostIp:" + if (whichDash == 0) "4408" else "7125", 56.25f)
+                }
+                true
+            } else false
         }
         btnClose.setOnClickListener { finish() }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
+        if (isInPiP) return super.dispatchKeyEvent(event)
+
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            if (screensaverManager.isVisible()) {
+                deactivateScreensaver()
+                return true
+            }
+            resetInactivityTimer()
+
+            if (containerWebNotification?.visibility == View.VISIBLE) {
+                return super.dispatchKeyEvent(event)
+            }
+
+            val isDpadKey = event.keyCode in listOf(
+                KeyEvent.KEYCODE_DPAD_UP,
+                KeyEvent.KEYCODE_DPAD_DOWN,
+                KeyEvent.KEYCODE_DPAD_LEFT,
+                KeyEvent.KEYCODE_DPAD_RIGHT,
+                KeyEvent.KEYCODE_DPAD_CENTER,
+                KeyEvent.KEYCODE_ENTER
+            )
+
+            if (isDpadKey) {
+                val buttonsHidden = layoutWebButtons.visibility != View.VISIBLE || layoutWebButtons.alpha < 0.5f
+                showButtons()
+
+                if (isCameraMode) {
+                    val hasButtonFocus = currentFocus == btnMenu || currentFocus == btnToggle || currentFocus == btnClose
+                    if (buttonsHidden || !hasButtonFocus) {
+                        btnToggle.requestFocus()
+                        return true
+                    }
+                    if (event.keyCode == KeyEvent.KEYCODE_DPAD_UP || event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                        return true
+                    }
+                } else if (buttonsHidden && (event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || event.keyCode == KeyEvent.KEYCODE_ENTER)) {
+                    btnToggle.requestFocus()
+                    return true
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     private fun resetInactivityTimer() {
@@ -598,10 +858,12 @@ class WebViewActivity : AppCompatActivity() {
         if (isInPictureInPictureMode) {
             uiHandler.removeCallbacks(hideUiRunnable)
             screensaverManager.stopTimer()
+            stopThumbnailPulseAnimation()
 
             layoutWebButtons.visibility = View.GONE; layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE
             containerWebNotification?.visibility = View.GONE; layoutScreensaver.visibility = View.GONE; layoutScrollRight.visibility = View.GONE
             findViewById<FrameLayout>(thumbContainerId)?.visibility = View.GONE
+            ivVirtualCursor?.visibility = View.GONE
 
             val lp = webView?.layoutParams as? ConstraintLayout.LayoutParams
             if (lp != null) { lp.dimensionRatio = null; lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT; lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT; webView?.layoutParams = lp }
@@ -635,7 +897,10 @@ class WebViewActivity : AppCompatActivity() {
                 if (osdStyle == "banner") layoutOsdBanner.visibility = View.VISIBLE else layoutOsd.visibility = View.VISIBLE
                 moonrakerPollManager.startPolling(lifecycleScope) { hasTrigOffline }
             }
-            if (isThumbnailEnabled && isCameraMode) findViewById<FrameLayout>(thumbContainerId)?.visibility = View.VISIBLE
+            if (isThumbnailEnabled && isCameraMode) {
+                findViewById<FrameLayout>(thumbContainerId)?.visibility = View.VISIBLE
+                updateThumbnailPulseState()
+            }
 
             val lp = webView?.layoutParams as? ConstraintLayout.LayoutParams
             if (lp != null) {
@@ -653,16 +918,32 @@ class WebViewActivity : AppCompatActivity() {
         super.onStart()
         isActivityInForeground = true
         if (isOsdEnabled && isCameraMode) moonrakerPollManager.startPolling(lifecycleScope) { hasTrigOffline }
+        updateThumbnailPulseState()
     }
 
     override fun onResume() {
         super.onResume()
         val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
-        if (!isInPiP) { showButtons(); resetInactivityTimer(); btnToggle.post { btnToggle.requestFocus() } }
+        if (!isInPiP) {
+            showButtons()
+            resetInactivityTimer()
+            updateThumbnailPulseState()
+            btnToggle.post { btnToggle.requestFocus() }
+        }
     }
 
-    override fun onPause() { screensaverManager.stopTimer(); super.onPause() }
-    override fun onStop() { isActivityInForeground = false; super.onStop() }
+    override fun onPause() {
+        screensaverManager.stopTimer()
+        stopThumbnailPulseAnimation()
+        super.onPause()
+    }
+
+    override fun onStop() {
+        isActivityInForeground = false
+        stopThumbnailPulseAnimation()
+        super.onStop()
+    }
+
     override fun onUserInteraction() { super.onUserInteraction(); if (screensaverManager.isVisible()) deactivateScreensaver() }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -678,9 +959,11 @@ class WebViewActivity : AppCompatActivity() {
         val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
         if (isInPiP) return
         screensaverManager.stopTimer(); uiHandler.removeCallbacks(hideUiRunnable)
+        stopThumbnailPulseAnimation()
 
         layoutWebButtons.visibility = View.GONE; layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE
         layoutScrollRight.visibility = View.GONE; findViewById<FrameLayout>(thumbContainerId)?.visibility = View.GONE
+        ivVirtualCursor?.visibility = View.GONE
 
         screensaverManager.activateScreensaver()
     }
@@ -694,7 +977,10 @@ class WebViewActivity : AppCompatActivity() {
             if (osdStyle == "banner") layoutOsdBanner.visibility = View.VISIBLE else layoutOsd.visibility = View.VISIBLE
         }
         if (!isCameraMode) layoutScrollRight.visibility = View.VISIBLE
-        if (isThumbnailEnabled && isCameraMode) findViewById<FrameLayout>(thumbContainerId)?.visibility = View.VISIBLE
+        if (isThumbnailEnabled && isCameraMode) {
+            findViewById<FrameLayout>(thumbContainerId)?.visibility = View.VISIBLE
+            updateThumbnailPulseState()
+        }
         showButtons(); btnToggle.requestFocus()
     }
 
@@ -711,7 +997,11 @@ class WebViewActivity : AppCompatActivity() {
         }
         val container = FrameLayout(this).apply { addView(pillView) }
         rootLayout.addView(container)
-        Handler(Looper.getMainLooper()).postDelayed({ rootLayout.removeView(container) }, 2200)
+        uiHandler.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                try { rootLayout.removeView(container) } catch (_: Exception) {}
+            }
+        }, 2200)
     }
 
     private fun getProgressiveStepSpeed(speed: Double): Float {
@@ -751,15 +1041,57 @@ class WebViewActivity : AppCompatActivity() {
         layoutOsd.background = bg; layoutOsdBanner.background = bg
     }
 
+    private fun replaceThumbnailBitmap(newBitmap: Bitmap?) {
+        val oldBitmap = thumbnailBitmap
+        if (oldBitmap === newBitmap) return
+        ivThumbPulse?.setImageBitmap(null)
+        ivThumbBackground?.setImageBitmap(null)
+        ivThumbForeground?.setImageDrawable(null)
+        clipDrawable = null
+        thumbnailBitmap = newBitmap
+        if (oldBitmap != null && oldBitmap !== fallbackBenchyBitmap && !oldBitmap.isRecycled) {
+            oldBitmap.recycle()
+        }
+    }
+
     private fun resetPrintTriggers() {
+        stopThumbnailPulseAnimation()
+        hasInitializedPrintState = false
         hasTrigFirstLayer = false; hasTrig50 = false; hasTrig75 = false; hasTrig90 = false; hasTrig100 = false; hasTrigOffline = false
         lastPrintState = ""; lastExtruderTemp = -1.0; lastExtruderTarget = -1.0; lastBedTemp = -1.0; lastBedTarget = -1.0
         lastChamberTemp = -1.0; lastChamberHeaterTemp = -1.0; lastChamberHeaterTarget = -1.0; lastFanModelSpeed = -1.0; lastFanAuxSpeed = -1.0; lastFanChamberSpeed = -1.0
         lastProgressPercent = -1.0; heartbeatTick = 0
 
-        currentGCodeFilename = ""; thumbnailBitmap = null; clipDrawable = null
-        ivThumbBackground?.setImageBitmap(null); ivThumbForeground?.setImageDrawable(null)
-        webView3D?.visibility = View.GONE; webView3D?.loadUrl("about:blank"); isBenchyShowing = false
+        currentGCodeFilename = ""
+        replaceThumbnailBitmap(null)
+    }
+
+    private fun hasReachedFirstLayer(
+        currentState: String,
+        progress: Double,
+        duration: Int,
+        currentLayer: Int,
+        gcodeZ: Double
+    ): Boolean {
+        if (currentState == "complete" || progress >= 0.999) return true
+        if (currentLayer >= 1 && (progress > 0.002 || gcodeZ > 0.0)) return true
+        if (gcodeZ >= 0.08 && progress > 0.002) return true
+        return progress >= 0.02 || (progress >= 0.01 && duration >= 120)
+    }
+
+    private fun syncInitialMilestoneTriggers(
+        currentState: String,
+        progress: Double,
+        duration: Int,
+        currentLayer: Int,
+        gcodeZ: Double
+    ) {
+        val isCompleted = currentState == "complete" || progress >= 0.999
+        hasTrigFirstLayer = hasReachedFirstLayer(currentState, progress, duration, currentLayer, gcodeZ)
+        hasTrig50 = isCompleted || progress >= 0.50
+        hasTrig75 = isCompleted || progress >= 0.75
+        hasTrig90 = isCompleted || progress >= 0.90
+        hasTrig100 = isCompleted
     }
 
     private fun sendLightCommand(turnOn: Boolean) {
@@ -827,6 +1159,7 @@ class WebViewActivity : AppCompatActivity() {
             setupProgressThumbnailDrawables(thumbnailBitmap)
         } else {
             layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE; moonrakerPollManager.stopPolling()
+            stopThumbnailPulseAnimation()
             findViewById<FrameLayout>(thumbContainerId)?.visibility = View.GONE
             btnMenu.text = "⚠"; btnMenu.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
             btnMenu.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#E53935"))
@@ -834,46 +1167,71 @@ class WebViewActivity : AppCompatActivity() {
             val lp = webView?.layoutParams as? ConstraintLayout.LayoutParams
             if (lp != null) { lp.dimensionRatio = null; lp.width = ConstraintLayout.LayoutParams.MATCH_PARENT; lp.height = ConstraintLayout.LayoutParams.MATCH_PARENT; webView?.layoutParams = lp }
         }
+        updateFocusNavigationForMode()
         webView?.loadUrl(url)
     }
 
-    private fun setupProgressThumbnailDrawables(bitmap: android.graphics.Bitmap?) {
+    private fun setupProgressThumbnailDrawables(bitmap: Bitmap?) {
         val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
         val tView = findViewById<FrameLayout>(thumbContainerId)
 
-        if (bitmap != null) {
-            isBenchyShowing = false; webView3D?.visibility = View.GONE; webView3D?.loadUrl("about:blank")
-            ivThumbBackground?.visibility = View.VISIBLE; ivThumbForeground?.visibility = View.VISIBLE
-            ivThumbBackground?.setImageBitmap(bitmap); ivThumbBackground?.alpha = 0.35f; ivThumbBackground?.rotation = 0f; ivThumbBackground?.rotationY = 0f
+        val activeBitmap = bitmap ?: getOrCreateFallbackBenchyBitmap()
+        ivThumbPulse?.setImageBitmap(activeBitmap)
+        ivThumbBackground?.visibility = View.VISIBLE
+        ivThumbForeground?.visibility = View.VISIBLE
+        ivThumbBackground?.setImageBitmap(activeBitmap)
+        ivThumbBackground?.alpha = if (bitmap != null) 0.35f else 0.45f
+        ivThumbBackground?.rotation = 0f
+        ivThumbBackground?.rotationY = 0f
 
-            val tintedDrawable = BitmapDrawable(resources, bitmap).apply { setColorFilter(Color.argb(140, 33, 150, 243), PorterDuff.Mode.SRC_ATOP) }
-            val clip = ClipDrawable(tintedDrawable, Gravity.BOTTOM, ClipDrawable.VERTICAL)
-            ivThumbForeground?.setImageDrawable(clip); this.clipDrawable = clip
-            clip.level = (lastProgressPercent.coerceIn(0.0, 1.0) * 10000).toInt()
-        } else {
-            ivThumbBackground?.visibility = View.GONE; ivThumbForeground?.visibility = View.GONE
-            ivThumbBackground?.setImageDrawable(null); ivThumbForeground?.setImageDrawable(null); this.clipDrawable = null
-            webView3D?.visibility = View.VISIBLE
-            if (!isBenchyShowing) { isBenchyShowing = true; webView3D?.loadUrl("file:///android_asset/benchy.html") }
-            webView3D?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress(${if (lastPrintState == "printing" || lastPrintState == "complete") lastProgressPercent.coerceIn(0.0, 1.0) else 1.0});", null)
+        val tintedDrawable = BitmapDrawable(resources, activeBitmap).apply {
+            setColorFilter(Color.argb(140, 33, 150, 243), PorterDuff.Mode.SRC_ATOP)
         }
-        if (isThumbnailEnabled && isCameraMode && !isInPiP) tView?.visibility = View.VISIBLE else tView?.visibility = View.GONE
+        val clip = ClipDrawable(tintedDrawable, Gravity.BOTTOM, ClipDrawable.VERTICAL)
+        ivThumbForeground?.setImageDrawable(clip)
+        this.clipDrawable = clip
+
+        val fillProgress = if (bitmap != null || lastPrintState == "printing" || lastPrintState == "complete") {
+            lastProgressPercent.coerceIn(0.0, 1.0)
+        } else {
+            1.0
+        }
+        clip.level = (fillProgress * 10000).toInt()
+
+        if (isThumbnailEnabled && isCameraMode && !isInPiP) {
+            tView?.visibility = View.VISIBLE
+            updateThumbnailPulseState()
+        } else {
+            tView?.visibility = View.GONE
+            stopThumbnailPulseAnimation()
+        }
         applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
     }
 
     private fun handleMoonrakerResponse(responseText: String) {
         if (responseText.isEmpty()) {
             if (!isInPictureInPictureMode && isActivityInForeground) {
-                if (tvOsdProgress?.text != getString(R.string.osd_printer_offline)) {
-                    tvOsdProgress?.text = getString(R.string.osd_printer_offline); tvOsdProgress?.setTextColor(Color.parseColor("#E53935")); tvOsdTime?.text = ""
-                    tvOsdProgressBanner?.text = getString(R.string.osd_printer_offline); tvOsdProgressBanner?.setTextColor(Color.parseColor("#E53935")); tvOsdTimeBanner?.text = ""
+                val offlineText = getString(R.string.osd_printer_offline)
+                if (tvOsdProgress?.text != offlineText) {
+                    tvOsdProgress?.text = offlineText; tvOsdProgress?.setTextColor(Color.parseColor("#E53935")); tvOsdTime?.text = ""
+                    tvOsdProgressBanner?.text = offlineText; tvOsdProgressBanner?.setTextColor(Color.parseColor("#E53935")); tvOsdTimeBanner?.text = ""
                 }
             }
-            if (!hasTrigOffline) { hasTrigOffline = true; triggerPopup("offline", "Offline", "Offline") }
+            if (hasInitializedPrintState && !hasTrigOffline) {
+                hasTrigOffline = true
+                triggerPopup("offline", "Offline", "Offline")
+            }
             return
         }
 
-        if (hasTrigOffline) { hasTrigOffline = false; webView?.post { webView?.reload() } }
+        if (hasTrigOffline) {
+            hasTrigOffline = false
+            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val normalColor = if (isNight) Color.WHITE else Color.BLACK
+            tvOsdProgress?.setTextColor(normalColor)
+            tvOsdProgressBanner?.setTextColor(normalColor)
+            webView?.post { webView?.reload() }
+        }
         hasTrigOffline = false
 
         heartbeatTick = if (heartbeatTick >= 5) 1 else heartbeatTick + 1
@@ -922,83 +1280,76 @@ class WebViewActivity : AppCompatActivity() {
             val currentState = printStats?.optString("state", "") ?: ""
             val filename = printStats?.optString("filename", "") ?: ""
             val duration = printStats?.optInt("print_duration", 0) ?: 0
+            val currentLayer = printStats?.optJSONObject("info")?.optInt("current_layer", 0) ?: 0
+            val gcodePos = status.optJSONObject("gcode_move")?.optJSONArray("gcode_position")
+            val gcodeZ = gcodePos?.optDouble(2, 0.0) ?: 0.0
             lastProgressPercent = progress
 
             if (currentState == "printing" && filename.isNotEmpty() && filename != currentGCodeFilename) {
                 currentGCodeFilename = filename
                 lifecycleScope.launch {
                     val bitmap = thumbnailRenderHelper.fetchGCodeThumbnailMetadata(filename)
-                    if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) { thumbnailBitmap = bitmap; setupProgressThumbnailDrawables(thumbnailBitmap) }
+                    if (!this@WebViewActivity.isFinishing && !this@WebViewActivity.isDestroyed) {
+                        replaceThumbnailBitmap(bitmap)
+                        setupProgressThumbnailDrawables(thumbnailBitmap)
+                    } else {
+                        bitmap?.let { if (!it.isRecycled) it.recycle() }
+                    }
                 }
             }
 
-            if (currentState == "printing" && (lastPrintState in listOf("standby", "complete") || lastPrintState.isEmpty())) { hasTrigFirstLayer = false; hasTrig50 = false; hasTrig75 = false; hasTrig90 = false; hasTrig100 = false }
             val stateChanged = (lastPrintState != currentState)
-            lastPrintState = currentState
 
-            if (currentState == "printing" || currentState == "complete") {
-                if (!hasTrigFirstLayer && (progress >= 0.015 || duration >= 90)) { hasTrigFirstLayer = true; triggerPopup("first_layer", "First Layer", "First Layer") }
-                if (!hasTrig50 && progress >= 0.50) { hasTrig50 = true; triggerPopup("50", "50%", "50%") }
-                if (!hasTrig75 && progress >= 0.75) { hasTrig75 = true; triggerPopup("75", "75%", "75%") }
-                if (!hasTrig90 && progress >= 0.90) { hasTrig90 = true; triggerPopup("90", "90%", "90%") }
-                if (!hasTrig100 && (currentState == "complete" || progress >= 0.999)) { hasTrig100 = true; triggerPopup("100", "100%", "100%") }
+            if (!hasInitializedPrintState) {
+                hasInitializedPrintState = true
+                lastPrintState = currentState
+                syncInitialMilestoneTriggers(currentState, progress, duration, currentLayer, gcodeZ)
+            } else {
+                if (currentState == "printing" && (lastPrintState in listOf("standby", "complete", "cancelled", "error") || lastPrintState.isEmpty())) {
+                    hasTrigFirstLayer = false; hasTrig50 = false; hasTrig75 = false; hasTrig90 = false; hasTrig100 = false
+                }
+                lastPrintState = currentState
+
+                if (currentState == "printing" || currentState == "complete") {
+                    if (!hasTrigFirstLayer && hasReachedFirstLayer(currentState, progress, duration, currentLayer, gcodeZ)) {
+                        hasTrigFirstLayer = true
+                        triggerPopup("first_layer", "First Layer", "First Layer")
+                    }
+                    if (!hasTrig50 && progress >= 0.50) { hasTrig50 = true; triggerPopup("50", "50%", "50%") }
+                    if (!hasTrig75 && progress >= 0.75) { hasTrig75 = true; triggerPopup("75", "75%", "75%") }
+                    if (!hasTrig90 && progress >= 0.90) { hasTrig90 = true; triggerPopup("90", "90%", "90%") }
+                    if (!hasTrig100 && (currentState == "complete" || progress >= 0.999)) { hasTrig100 = true; triggerPopup("100", "100%", "100%") }
+                }
             }
+
+            updateThumbnailPulseState()
 
             val tView = findViewById<FrameLayout>(thumbContainerId)
             val isInPiP = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
             val shouldShowThumb = isThumbnailEnabled && isCameraMode && !isInPiP
 
             if (currentState == "printing" || currentState == "complete") {
-                if (thumbnailBitmap != null) clipDrawable?.level = (progress * 10000).toInt()
-                else webView3D?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress(${progress.coerceIn(0.0, 1.0)});", null)
+                val steppedLevel = (((progress.coerceIn(0.0, 1.0) * 10.0).toInt() / 10.0) * 10000).toInt()
+                clipDrawable?.level = steppedLevel
                 if (tView != null) { tView.visibility = if (shouldShowThumb) View.VISIBLE else View.GONE; if (stateChanged && thumbnailBitmap == null) setupProgressThumbnailDrawables(null) }
             } else {
                 currentGCodeFilename = ""
-                if (thumbnailBitmap != null || !isBenchyShowing) { thumbnailBitmap = null; setupProgressThumbnailDrawables(null) }
-                webView3D?.evaluateJavascript("if (window.updateBenchyProgress) window.updateBenchyProgress(1.0);", null)
+                if (thumbnailBitmap != null) { replaceThumbnailBitmap(null); setupProgressThumbnailDrawables(null) }
+                clipDrawable?.level = 10000
                 if (tView != null) tView.visibility = if (shouldShowThumb) View.VISIBLE else View.GONE
             }
 
-            if (!isInPictureInPictureMode && isActivityInForeground) {
+            if (!isInPictureInPictureMode && isActivityInForeground && isOsdEnabled) {
+                if (!staticOsdIconsApplied) applyStaticOsdIconsAndColors()
+
                 val osdStyle = prefs.getString("osd_style_$hostIp", "box") ?: "box"
+                val isBanner = (osdStyle == "banner")
                 val savedPos = prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center"
-                val divider = if (osdStyle == "banner" && savedPos != "left" && savedPos != "right") "  •  " else ""
                 val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
-                val boxViews = arrayOf(tvOsdExtruder, tvOsdBed, tvOsdChamberSensor, tvOsdChamberHeater, tvOsdFanModel, tvOsdFanAux, tvOsdFanChamber, tvOsdProgress, tvOsdTime)
-                val bannerViews = arrayOf(tvOsdExtruderBanner, tvOsdBedBanner, tvOsdChamberSensorBanner, tvOsdChamberHeaterBanner, tvOsdFanModelBanner, tvOsdFanAuxBanner, tvOsdFanChamberBanner, tvOsdProgressBanner, tvOsdTimeBanner)
-
-                boxViews.forEach { tv -> tv?.setTextColor(if (isNight) Color.WHITE else Color.BLACK) }
-                bannerViews.forEach { tv -> tv?.setTextColor(if (isNight) Color.WHITE else Color.BLACK) }
-
-                tvOsdExtruder?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.fluid_24, isNight), null, null, null)
-                tvOsdBed?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.windshield_defrost_rear_24, isNight), null, null, null)
-                tvOsdChamberSensor?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.bottom_navigation_24, isNight), null, null, null)
-                tvOsdChamberHeater?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.thermostat_24, isNight), null, null, null)
-                tvOsdExtruderBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.fluid_24, isNight), null, null, null)
-                tvOsdBedBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.windshield_defrost_rear_24, isNight), null, null, null)
-                tvOsdChamberSensorBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.bottom_navigation_24, isNight), null, null, null)
-                tvOsdChamberHeaterBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.thermostat_24, isNight), null, null, null)
 
                 if (fanModelSpeed > 0.0) fanModelRotationAngle = (fanModelRotationAngle + getProgressiveStepSpeed(fanModelSpeed)) % 360f
                 if (fanAuxSpeed > 0.0) fanAuxRotationAngle = (fanAuxRotationAngle - getProgressiveStepSpeed(fanAuxSpeed)) % 360f
                 if (fanChamberSpeed > 0.0) fanChamberRotationAngle = (fanChamberRotationAngle + getProgressiveStepSpeed(fanChamberSpeed)) % 360f
-
-                tvOsdFanModel?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanModelRotationAngle, isNight), null, null, null)
-                tvOsdFanAux?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanAuxRotationAngle, isNight), null, null, null)
-                tvOsdFanChamber?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanChamberRotationAngle, isNight), null, null, null)
-                tvOsdFanModelBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanModelRotationAngle, isNight), null, null, null)
-                tvOsdFanAuxBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanAuxRotationAngle, isNight), null, null, null)
-                tvOsdFanChamberBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanChamberRotationAngle, isNight), null, null, null)
-
-                tvOsdProgress?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.ic_progress_clock, isNight), null, null, null)
-                tvOsdTime?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.hourglass_top_24, isNight), null, null, null)
-                tvOsdProgressBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.ic_progress_clock, isNight), null, null, null)
-                tvOsdTimeBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareOsdIcon(this, R.drawable.hourglass_top_24, isNight), null, null, null)
-
-                val padPx = (6 * resources.displayMetrics.density).toInt()
-                boxViews.forEach { it?.compoundDrawablePadding = padPx }; bannerViews.forEach { it?.compoundDrawablePadding = padPx }
-                val boxDivider = if ((layoutOsd as? LinearLayout)?.orientation == LinearLayout.HORIZONTAL) "  •  " else ""
 
                 val extStr = getSafeString("osd_extruder", "Extruder: %.1f° / %.1f°")
                 val bedStr = getSafeString("osd_bed", "Bett: %.1f° / %.1f°")
@@ -1009,30 +1360,54 @@ class WebViewActivity : AppCompatActivity() {
                 val fanChmStr = getSafeString("osd_fan_chamber", "K-Lüfter: %.0f%%")
                 val prgStr = getSafeString("osd_progress_label", "Fortschritt: %s")
                 val timeStr = getSafeString("osd_time", "Zeit: %s / %s")
-
-                tvOsdExtruder?.text = " " + String.format(extStr, tempExtruder, targetExtruder) + boxDivider
-                tvOsdBed?.text = " " + String.format(bedStr, tempBed, targetBed) + boxDivider
-                tvOsdChamberSensor?.visibility = View.VISIBLE; tvOsdChamberSensor?.text = " " + String.format(chSnsStr, tempChamber) + boxDivider
-                tvOsdChamberHeater?.visibility = View.VISIBLE; tvOsdChamberHeater?.text = " " + String.format(chHtrStr, tempChamberHeater, targetChamberHeater) + boxDivider
-                tvOsdFanModel?.text = " " + String.format(fanMdlStr, fanModelSpeed) + boxDivider
-                tvOsdFanAux?.text = " " + String.format(fanAuxStr, fanAuxSpeed) + boxDivider
-                tvOsdFanChamber?.text = " " + String.format(fanChmStr, fanChamberSpeed)
                 val progressText = String.format(Locale.getDefault(), "%.1f%%", progress * 100)
-                tvOsdProgress?.text = " " + String.format(prgStr, progressText) + boxDivider
                 val timeDigits = String.format(Locale.getDefault(), "%02d:%02d", duration / 60, duration % 60)
-                tvOsdTime?.text = " " + String.format(timeStr, timeDigits, "--:--") + " " + ".".repeat(heartbeatTick)
 
-                tvOsdExtruderBanner?.text = " " + String.format(extStr, tempExtruder, targetExtruder) + divider
-                tvOsdBedBanner?.text = " " + String.format(bedStr, tempBed, targetBed) + divider
-                tvOsdChamberSensorBanner?.visibility = View.VISIBLE; tvOsdChamberSensorBanner?.text = " " + String.format(chSnsStr, tempChamber) + divider
-                tvOsdChamberHeaterBanner?.visibility = View.VISIBLE; tvOsdChamberHeaterBanner?.text = " " + String.format(chHtrStr, tempChamberHeater, targetChamberHeater) + divider
-                tvOsdFanModelBanner?.text = " " + String.format(fanMdlStr, fanModelSpeed) + divider
-                tvOsdFanAuxBanner?.text = " " + String.format(fanAuxStr, fanAuxSpeed) + divider
-                tvOsdFanChamberBanner?.text = " " + String.format(fanChmStr, fanChamberSpeed) + divider
-                tvOsdProgressBanner?.text = " " + String.format(prgStr, progressText) + divider
-                tvOsdTimeBanner?.text = " " + String.format(timeStr, timeDigits, "--:--") + " " + ".".repeat(heartbeatTick)
+                if (isBanner) {
+                    val divider = if (savedPos != "left" && savedPos != "right") "  •  " else ""
+                    if (fanModelSpeed > 0.0 || !bannerFanIconsInitialized) {
+                        tvOsdFanModelBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanModelRotationAngle, isNight), null, null, null)
+                    }
+                    if (fanAuxSpeed > 0.0 || !bannerFanIconsInitialized) {
+                        tvOsdFanAuxBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanAuxRotationAngle, isNight), null, null, null)
+                    }
+                    if (fanChamberSpeed > 0.0 || !bannerFanIconsInitialized) {
+                        tvOsdFanChamberBanner?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanChamberRotationAngle, isNight), null, null, null)
+                    }
+                    bannerFanIconsInitialized = true
 
-                layoutOsd.invalidate(); layoutOsdBanner.invalidate()
+                    tvOsdExtruderBanner?.text = " " + String.format(extStr, tempExtruder, targetExtruder) + divider
+                    tvOsdBedBanner?.text = " " + String.format(bedStr, tempBed, targetBed) + divider
+                    tvOsdChamberSensorBanner?.visibility = View.VISIBLE; tvOsdChamberSensorBanner?.text = " " + String.format(chSnsStr, tempChamber) + divider
+                    tvOsdChamberHeaterBanner?.visibility = View.VISIBLE; tvOsdChamberHeaterBanner?.text = " " + String.format(chHtrStr, tempChamberHeater, targetChamberHeater) + divider
+                    tvOsdFanModelBanner?.text = " " + String.format(fanMdlStr, fanModelSpeed) + divider
+                    tvOsdFanAuxBanner?.text = " " + String.format(fanAuxStr, fanAuxSpeed) + divider
+                    tvOsdFanChamberBanner?.text = " " + String.format(fanChmStr, fanChamberSpeed) + divider
+                    tvOsdProgressBanner?.text = " " + String.format(prgStr, progressText) + divider
+                    tvOsdTimeBanner?.text = " " + String.format(timeStr, timeDigits, "--:--") + " " + ".".repeat(heartbeatTick)
+                } else {
+                    val boxDivider = if ((layoutOsd as? LinearLayout)?.orientation == LinearLayout.HORIZONTAL) "  •  " else ""
+                    if (fanModelSpeed > 0.0 || !boxFanIconsInitialized) {
+                        tvOsdFanModel?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanModelRotationAngle, isNight), null, null, null)
+                    }
+                    if (fanAuxSpeed > 0.0 || !boxFanIconsInitialized) {
+                        tvOsdFanAux?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanAuxRotationAngle, isNight), null, null, null)
+                    }
+                    if (fanChamberSpeed > 0.0 || !boxFanIconsInitialized) {
+                        tvOsdFanChamber?.setCompoundDrawablesWithIntrinsicBounds(prepareRotatedFanIcon(this, R.drawable.mode_fan_24, fanChamberRotationAngle, isNight), null, null, null)
+                    }
+                    boxFanIconsInitialized = true
+
+                    tvOsdExtruder?.text = " " + String.format(extStr, tempExtruder, targetExtruder) + boxDivider
+                    tvOsdBed?.text = " " + String.format(bedStr, tempBed, targetBed) + boxDivider
+                    tvOsdChamberSensor?.visibility = View.VISIBLE; tvOsdChamberSensor?.text = " " + String.format(chSnsStr, tempChamber) + boxDivider
+                    tvOsdChamberHeater?.visibility = View.VISIBLE; tvOsdChamberHeater?.text = " " + String.format(chHtrStr, tempChamberHeater, targetChamberHeater) + boxDivider
+                    tvOsdFanModel?.text = " " + String.format(fanMdlStr, fanModelSpeed) + boxDivider
+                    tvOsdFanAux?.text = " " + String.format(fanAuxStr, fanAuxSpeed) + boxDivider
+                    tvOsdFanChamber?.text = " " + String.format(fanChmStr, fanChamberSpeed)
+                    tvOsdProgress?.text = " " + String.format(prgStr, progressText) + boxDivider
+                    tvOsdTime?.text = " " + String.format(timeStr, timeDigits, "--:--") + " " + ".".repeat(heartbeatTick)
+                }
             }
         } catch (_: Exception) {}
     }
@@ -1077,14 +1452,28 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         if (isThumbnailEnabled && isCameraMode) {
-            constraintSet.constrainWidth(thumbContainerId, (120 * resources.displayMetrics.density).toInt()); constraintSet.constrainHeight(thumbContainerId, (120 * resources.displayMetrics.density).toInt())
-            if (osdStyle == "banner") {
+            constraintSet.constrainWidth(thumbContainerId, (120 * resources.displayMetrics.density).toInt())
+            constraintSet.constrainHeight(thumbContainerId, (120 * resources.displayMetrics.density).toInt())
+            val thumbBottomMargin = 30
+            if (osdStyle == "banner" && isOsdEnabled) {
                 when (position) {
-                    "bottom" -> { constraintSet.connect(thumbContainerId, ConstraintSet.BOTTOM, targetLayoutId, ConstraintSet.TOP, 30); constraintSet.connect(thumbContainerId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, 40) }
-                    "left" -> { constraintSet.connect(thumbContainerId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140); constraintSet.connect(thumbContainerId, ConstraintSet.START, targetLayoutId, ConstraintSet.END, 30) }
-                    else -> { constraintSet.connect(thumbContainerId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140); constraintSet.connect(thumbContainerId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, 40) }
+                    "bottom" -> {
+                        constraintSet.connect(thumbContainerId, ConstraintSet.BOTTOM, targetLayoutId, ConstraintSet.TOP, 30)
+                        constraintSet.connect(thumbContainerId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, 40)
+                    }
+                    "left" -> {
+                        constraintSet.connect(thumbContainerId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, thumbBottomMargin)
+                        constraintSet.connect(thumbContainerId, ConstraintSet.START, targetLayoutId, ConstraintSet.END, 30)
+                    }
+                    else -> {
+                        constraintSet.connect(thumbContainerId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, thumbBottomMargin)
+                        constraintSet.connect(thumbContainerId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, 40)
+                    }
                 }
-            } else { constraintSet.connect(thumbContainerId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 140); constraintSet.connect(thumbContainerId, ConstraintSet.START, android.R.id.content, ConstraintSet.START, 40) }
+            } else {
+                constraintSet.connect(thumbContainerId, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, thumbBottomMargin)
+                constraintSet.connect(thumbContainerId, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START, 40)
+            }
         } else constraintSet.setVisibility(thumbContainerId, ConstraintSet.GONE)
 
         constraintSet.applyTo(root)
@@ -1129,7 +1518,9 @@ class WebViewActivity : AppCompatActivity() {
             }
             container?.addView(btn)
         }
+        dialog.setOnDismissListener { KlippShellApp.instance?.registerActiveDialog(null) }
         dialog.show()
+        KlippShellApp.instance?.registerActiveDialog(dialog)
     }
 
     private fun showScreensaverPillDialog(title: String, items: Array<String>, onSelected: (Int) -> Unit) {
@@ -1160,7 +1551,30 @@ class WebViewActivity : AppCompatActivity() {
             }
             container?.addView(btn)
         }
+        dialog.setOnDismissListener { KlippShellApp.instance?.registerActiveDialog(null) }
         dialog.show()
+        KlippShellApp.instance?.registerActiveDialog(dialog)
+    }
+
+    private fun performVirtualCursorClick() {
+        runOnUiThread {
+            val cursorView = ivVirtualCursor ?: return@runOnUiThread
+            val location = IntArray(2)
+            cursorView.getLocationInWindow(location)
+            val clickX = location[0].toFloat() + toPx(4)
+            val clickY = location[1].toFloat() + toPx(4)
+
+            val downTime = SystemClock.uptimeMillis()
+            val downEvent = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, clickX, clickY, 0)
+            val upEvent = MotionEvent.obtain(downTime, downTime + 45, MotionEvent.ACTION_UP, clickX, clickY, 0)
+            try {
+                window.decorView.dispatchTouchEvent(downEvent)
+                window.decorView.dispatchTouchEvent(upEvent)
+            } finally {
+                downEvent.recycle()
+                upEvent.recycle()
+            }
+        }
     }
 
     private fun handleRemoteCommand(command: String) {
@@ -1171,14 +1585,76 @@ class WebViewActivity : AppCompatActivity() {
         }
         resetInactivityTimer()
         showButtons()
-        webView?.requestFocus()
+
+        if (command.startsWith("SCROLL;")) {
+            val dy = command.substringAfter("SCROLL;").toIntOrNull() ?: return
+            runOnUiThread {
+                webView?.evaluateJavascript("window.scrollBy(0, $dy);", null)
+            }
+            return
+        }
+
+        if (command.startsWith("MOUSE_MOVE;")) {
+            runOnUiThread {
+                try {
+                    val parts = command.split(";")
+                    if (parts.size >= 3) {
+                        val dx = parts[1].toFloat() * 1.8f
+                        val dy = parts[2].toFloat() * 1.8f
+
+                        val root = findViewById<ConstraintLayout>(R.id.rootLayout)
+                        val maxW = root?.width ?: 1920
+                        val maxH = root?.height ?: 1080
+
+                        cursorX = (cursorX + dx).coerceIn(0f, (maxW - toPx(28)).toFloat().coerceAtLeast(0f))
+                        cursorY = (cursorY + dy).coerceIn(0f, (maxH - toPx(28)).toFloat().coerceAtLeast(0f))
+
+                        ivVirtualCursor?.apply {
+                            if (visibility != View.VISIBLE) visibility = View.VISIBLE
+                            bringToFront()
+                            x = cursorX
+                            y = cursorY
+                        }
+                    }
+                } catch (e: Exception) { Log.e("KlippShell", "Maus-Parsing Error", e) }
+            }
+            return
+        }
 
         when (command) {
-            "DPAD_UP" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_UP)
-            "DPAD_DOWN" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN)
-            "DPAD_LEFT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT)
-            "DPAD_RIGHT" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT)
-            "DPAD_OK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER)
+            "HIDE_CURSOR" -> {
+                ivVirtualCursor?.visibility = View.GONE
+            }
+            "MOUSE_CLICK" -> {
+                if (ivVirtualCursor?.visibility == View.VISIBLE) {
+                    performVirtualCursorClick()
+                } else {
+                    sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER)
+                }
+            }
+            "DPAD_UP" -> {
+                ivVirtualCursor?.visibility = View.GONE
+                sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_UP)
+            }
+            "DPAD_DOWN" -> {
+                ivVirtualCursor?.visibility = View.GONE
+                sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN)
+            }
+            "DPAD_LEFT" -> {
+                ivVirtualCursor?.visibility = View.GONE
+                sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT)
+            }
+            "DPAD_RIGHT" -> {
+                ivVirtualCursor?.visibility = View.GONE
+                sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT)
+            }
+            "DPAD_CENTER", "DPAD_OK" -> {
+                if (ivVirtualCursor?.visibility == View.VISIBLE) {
+                    performVirtualCursorClick()
+                } else {
+                    sendLocalKeyEvent(KeyEvent.KEYCODE_DPAD_CENTER)
+                }
+            }
             "BACK" -> sendLocalKeyEvent(KeyEvent.KEYCODE_BACK)
 
             "ZOOM_IN" -> webView?.zoomIn()
@@ -1204,6 +1680,7 @@ class WebViewActivity : AppCompatActivity() {
                     else { layoutOsd.visibility = View.VISIBLE; layoutOsdBanner.visibility = View.GONE }
                     moonrakerPollManager.startPolling(lifecycleScope) { hasTrigOffline }
                 } else { layoutOsd.visibility = View.GONE; layoutOsdBanner.visibility = View.GONE; moonrakerPollManager.stopPolling() }
+                applyOsdPositionAndStyle(prefs.getString("osd_position_$hostIp", "bottom_center") ?: "bottom_center")
             }
             "STYLE_BOX" -> {
                 prefs.edit().putString("osd_style_$hostIp", "box").apply()
@@ -1259,20 +1736,34 @@ class WebViewActivity : AppCompatActivity() {
 
     private fun sendLocalKeyEvent(keyCode: Int) {
         runOnUiThread {
+            val prevFocus = currentFocus
             dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
             dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
+
+            val direction = when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_UP -> View.FOCUS_UP
+                KeyEvent.KEYCODE_DPAD_DOWN -> View.FOCUS_DOWN
+                KeyEvent.KEYCODE_DPAD_LEFT -> View.FOCUS_LEFT
+                KeyEvent.KEYCODE_DPAD_RIGHT -> View.FOCUS_RIGHT
+                else -> return@runOnUiThread
+            }
+
+            if (currentFocus === prevFocus && prevFocus != null) {
+                prevFocus.focusSearch(direction)?.requestFocus()
+            }
         }
     }
 
     override fun onDestroy() {
-        companionServerManager.stopServers()
+        stopThumbnailPulseAnimation()
         moonrakerPollManager.stopPolling()
         screensaverManager.destroy()
-        uiHandler.removeCallbacks(hideUiRunnable)
+        uiHandler.removeCallbacksAndMessages(null)
         try { pipReceiver?.let { unregisterReceiver(it) } } catch (_: Exception) {}
         pipReceiver = null
-        webView3D?.let { (it.parent as? ViewGroup)?.removeView(it); it.removeAllViews(); it.destroy() }
-        webView3D = null
+        replaceThumbnailBitmap(null)
+        fallbackBenchyBitmap?.let { if (!it.isRecycled) it.recycle() }
+        fallbackBenchyBitmap = null
         webView?.let { (it.parent as? ViewGroup)?.removeView(it); it.removeAllViews(); it.destroy() }
         webView = null
         super.onDestroy()

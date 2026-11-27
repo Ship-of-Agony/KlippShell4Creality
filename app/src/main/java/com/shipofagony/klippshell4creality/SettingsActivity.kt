@@ -1,5 +1,6 @@
 package com.shipofagony.klippshell4creality
 
+import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -13,12 +14,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Html
+import android.text.method.LinkMovementMethod
+import android.text.util.Linkify
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -35,13 +38,14 @@ import androidx.work.WorkManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.ShapeAppearanceModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import java.util.Locale
 
 class SettingsActivity : AppCompatActivity() {
+
+    private companion object {
+        const val HELPER_APP_URL = "https://github.com/Ship-of-Agony/KlippShell-Helper"
+    }
 
     private lateinit var scrollPanelSettings: ScrollView
     private lateinit var panelSettings: LinearLayout
@@ -65,6 +69,9 @@ class SettingsActivity : AppCompatActivity() {
     private var easterEggClickCount = 0
 
     private var isDualScreenMode = false
+    private var lastKnownOrientation = Configuration.ORIENTATION_UNDEFINED
+    private var lastKnownSmallestWidthDp = 0
+    private var isRecreating = false
 
     private var advancedHeaderView: TextView? = null
     private var advancedTvButton: MaterialButton? = null
@@ -90,6 +97,22 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun toPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
+    }
+
+    private fun isAndroidTv(): Boolean {
+        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
+        return uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+    }
+
+    private fun openExternalUrl(url: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            showCenteredPillToast(getString(R.string.toast_update_browser_error))
+        }
     }
 
     override fun attachBaseContext(newBase: Context) {
@@ -120,12 +143,25 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
+        isRecreating = false
 
-        val overrideMode = prefs.getInt("layout_mode_override", 0)
-        when (overrideMode) {
-            1 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            2 -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            else -> requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        lastKnownOrientation = resources.configuration.orientation
+        lastKnownSmallestWidthDp = resources.configuration.smallestScreenWidthDp
+
+        var overrideMode = prefs.getInt("layout_mode_override", 0)
+        // Schutz für Android TV: Hochformat darf auf TV-Geräten niemals erzwungen werden
+        if (isAndroidTv() && overrideMode == 1) {
+            overrideMode = 0
+            prefs.edit().putInt("layout_mode_override", 0).apply()
+        }
+
+        val desiredOrientation = when (overrideMode) {
+            1 -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            2 -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            else -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+        if (requestedOrientation != desiredOrientation) {
+            requestedOrientation = desiredOrientation
         }
 
         setContentView(R.layout.activity_settings)
@@ -133,11 +169,8 @@ class SettingsActivity : AppCompatActivity() {
         // Helper instanziieren
         settingsHelper = SettingsHelper(this)
 
-        isDualScreenMode = when (overrideMode) {
-            1 -> false
-            2 -> true
-            else -> findViewById<View>(R.id.guidelineCenter) != null
-        }
+        // Strikte Kopplung an das tatsächlich geladene XML-Layout (verhindert Panel-Überlagerungen)
+        isDualScreenMode = findViewById<View>(R.id.guidelineCenter) != null
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -224,6 +257,7 @@ class SettingsActivity : AppCompatActivity() {
                     prefs.edit().putString("app_device_role", "disabled").apply()
                     showCenteredPillToast(getString(R.string.companion_toggle_off) + " ✓")
                 }
+                KlippShellApp.instance?.restartCompanionServer()
                 refreshCompanionToggleAndPills(this, btnPillRoleAuto, btnPillRoleMaster, btnPillRoleSlave)
             }
         }
@@ -237,7 +271,7 @@ class SettingsActivity : AppCompatActivity() {
             val versionName = packageInfo.versionName
             findViewById<TextView>(R.id.tvAppVersion)?.text = "Version $versionName"
         } catch (e: Exception) {
-            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.8.8.110626-rc"
+            findViewById<TextView>(R.id.tvAppVersion)?.text = "Version 0.9.3.261126-rc"
         }
 
         btnThemeSelect.setOnClickListener {
@@ -260,7 +294,7 @@ class SettingsActivity : AppCompatActivity() {
             }
             prefs.edit().putInt("app_theme", targetMode).apply()
             AppCompatDelegate.setDefaultNightMode(targetMode)
-            recreate()
+            safeRecreate()
         }
         btnPillThemeLight.setOnClickListener(intentThemeClick)
         btnPillThemeDark.setOnClickListener(intentThemeClick)
@@ -299,6 +333,7 @@ class SettingsActivity : AppCompatActivity() {
                 else -> "auto"
             }
             prefs.edit().putString("app_device_role", targetRole).apply()
+            KlippShellApp.instance?.restartCompanionServer()
             btnCompanionToggleProgrammatic?.let { refreshCompanionToggleAndPills(it, btnPillRoleAuto, btnPillRoleMaster, btnPillRoleSlave) }
             showCenteredPillToast(getString(R.string.settings_role_title) + " ✓")
         }
@@ -318,6 +353,23 @@ class SettingsActivity : AppCompatActivity() {
         btnAboutMenu.setOnClickListener {
             showSubPanel(panelAbout, 3, getString(R.string.btn_about_menu))
             loadChangelogFromAssets()
+
+            // 100% Fix für das Scrollen des inneren Kastens im Querformat / sw600dp
+            scrollChangelogBox.setOnTouchListener { view, event ->
+                when (event.action and MotionEvent.ACTION_MASK) {
+                    MotionEvent.ACTION_DOWN -> {
+                        view.parent.requestDisallowInterceptTouchEvent(true)
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        view.parent.requestDisallowInterceptTouchEvent(true)
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        view.parent.requestDisallowInterceptTouchEvent(false)
+                    }
+                }
+                false
+            }
+
             btnSettingsFaq?.requestFocus() ?: btnCheckUpdates.requestFocus()
         }
 
@@ -343,9 +395,22 @@ class SettingsActivity : AppCompatActivity() {
             if (easterEggClickCount >= 7) {
                 easterEggClickCount = 0
                 ivAboutStudioLogo.animate().rotationBy(360f).setDuration(800).start()
-                prefs.edit().putBoolean("is_advanced_mode", true).apply()
-                checkAndRenderAdvancedMenu()
-                showTvDialog(getString(R.string.studio_name), arrayOf(getString(R.string.easter_egg_success)), arrayOf("#4CAF50")) {}
+                val wasAdvanced = prefs.getBoolean("is_advanced_mode", false)
+                if (!wasAdvanced) {
+                    prefs.edit().putBoolean("is_advanced_mode", true).apply()
+                    checkAndRenderAdvancedMenu()
+                    showTvDialog(getString(R.string.studio_name), arrayOf(getString(R.string.easter_egg_success)), arrayOf("#4CAF50")) {}
+                } else {
+                    prefs.edit()
+                        .putBoolean("is_advanced_mode", false)
+                        .putInt("layout_mode_override", 0)
+                        .apply()
+                    removeAdvancedMenuViews()
+                    if (requestedOrientation != ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
+                        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    }
+                    showCenteredPillToast(getString(R.string.layout_mode_auto) + " ✓")
+                }
             }
         }
 
@@ -362,7 +427,7 @@ class SettingsActivity : AppCompatActivity() {
             val contactOptions = arrayOf("GitHub Repository", getString(R.string.about_contact_option))
             showTvDialog(getString(R.string.studio_name), contactOptions, arrayOf("#4CAF50", "#2196F3")) { choice ->
                 if (choice == 0) {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Ship-of-Agony/KlippShell4Creality")))
+                    openExternalUrl("https://github.com/Ship-of-Agony/KlippShell4Creality")
                 } else {
                     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                         data = Uri.parse("mailto:")
@@ -445,9 +510,22 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private fun safeRecreate() {
+        if (!isRecreating && !isFinishing && !isDestroyed) {
+            isRecreating = true
+            recreate()
+        }
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        recreate()
+        val orientationChanged = newConfig.orientation != lastKnownOrientation
+        val swChanged = newConfig.smallestScreenWidthDp != lastKnownSmallestWidthDp
+        if ((orientationChanged || swChanged) && !isRecreating) {
+            lastKnownOrientation = newConfig.orientation
+            lastKnownSmallestWidthDp = newConfig.smallestScreenWidthDp
+            safeRecreate()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -552,7 +630,7 @@ class SettingsActivity : AppCompatActivity() {
         val textColor = if (isNight) Color.WHITE else Color.BLACK
 
         val scrollView = ScrollView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(250))
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(220))
             setPadding(12, 12, 12, 12)
             background = ContextCompat.getDrawable(this@SettingsActivity, R.drawable.bg_input_rounded)
         }
@@ -560,14 +638,40 @@ class SettingsActivity : AppCompatActivity() {
         val tvContent = TextView(this).apply {
             text = Html.fromHtml(getString(R.string.dialog_pip_adb_guide_text), Html.FROM_HTML_MODE_LEGACY)
             setTextColor(textColor)
+            setLinkTextColor(Color.parseColor("#2196F3"))
             textSize = 14f
             setLineSpacing(0f, 1.2f)
+            Linkify.addLinks(this, Linkify.WEB_URLS)
+            movementMethod = LinkMovementMethod.getInstance()
         }
 
         scrollView.addView(tvContent)
         container?.addView(scrollView)
 
         val pVert = if (isDualScreenMode) toPx(30) else toPx(14)
+
+        val helperBtn = MaterialButton(this).apply {
+            text = "KlippShell Helper (GitHub)"
+            isAllCaps = false; textSize = 16f; isFocusable = true
+            shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+            setPadding(0, pVert, 0, pVert)
+            backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
+            setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                setMargins(0, toPx(14), 0, 0)
+            }
+            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) {
+                    v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
+                    (v as MaterialButton).strokeWidth = 8
+                    v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                } else {
+                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
+                    (v as MaterialButton).strokeWidth = 0
+                }
+            }
+            setOnClickListener { openExternalUrl(HELPER_APP_URL) }
+        }
 
         val closeBtn = MaterialButton(this).apply {
             text = getString(R.string.notify_btn_default)
@@ -577,7 +681,7 @@ class SettingsActivity : AppCompatActivity() {
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
             setTextColor(Color.WHITE)
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                setMargins(0, 16, 0, 0)
+                setMargins(0, toPx(10), 0, 0)
             }
             onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                 if (hasFocus) {
@@ -595,8 +699,11 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        container?.addView(helperBtn)
         container?.addView(closeBtn)
+        dialog.setOnDismissListener { KlippShellApp.instance?.registerActiveDialog(null) }
         dialog.show()
+        KlippShellApp.instance?.registerActiveDialog(dialog)
         closeBtn.requestFocus()
     }
 
@@ -768,7 +875,12 @@ class SettingsActivity : AppCompatActivity() {
             }
             setOnClickListener {
                 val currentMode = prefs.getInt("layout_mode_override", 0)
-                val nextMode = (currentMode + 1) % 3
+                // Auf Android TV überspringen wir Modus 1 (Hochformat), damit die UI niemals einfriert
+                val nextMode = if (isAndroidTv()) {
+                    if (currentMode == 2) 0 else 2
+                } else {
+                    (currentMode + 1) % 3
+                }
                 prefs.edit().putInt("layout_mode_override", nextMode).apply()
                 updateTabletButtonVisuals(this, nextMode)
 
@@ -778,7 +890,7 @@ class SettingsActivity : AppCompatActivity() {
                     else -> getString(R.string.layout_mode_auto)
                 }
                 showCenteredPillToast("$toastText ✓")
-                recreate()
+                safeRecreate()
             }
         }
 
@@ -867,7 +979,7 @@ class SettingsActivity : AppCompatActivity() {
             prefs.edit().putBoolean(targetKey, newVal).apply()
 
             if (newVal) {
-                this@SettingsActivity.showCenteredPillToast("🔊 Ton aktiviert: " + soundTitles[index] + " ✓")
+                this@SettingsActivity.showCenteredPillToast(getString(R.string.toast_sound_enabled, soundTitles[index]))
                 try { SoundManager.playLiveNotification(targetKey) } catch (e: Exception) { Log.e("KlippShell", "SoundManager Preview trigger failed", e) }
             }
             showSoundsConfigurationDialog()
@@ -989,7 +1101,9 @@ class SettingsActivity : AppCompatActivity() {
             if (idx != -1) { group.removeViewAt(idx); group.addView(dialogScrollView, idx) }
         }
         dialog.setOnCancelListener { if (isDualScreenMode) handleBackNavigation() else initPillButtonStates() }
+        dialog.setOnDismissListener { KlippShellApp.instance?.registerActiveDialog(null) }
         dialog.show()
+        KlippShellApp.instance?.registerActiveDialog(dialog)
         firstBtn?.requestFocus()
     }
 
@@ -1056,7 +1170,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun loadChangelogFromAssets() {
         lifecycleScope.launch {
             val content = settingsHelper.loadAssetFile("changelog.txt")
-            tvChangelogContent.text = content.ifEmpty { "Changelog konnte nicht geladen werden." }
+            tvChangelogContent.text = content.ifEmpty { getString(R.string.error_changelog_load) }
         }
     }
 
@@ -1200,7 +1314,9 @@ class SettingsActivity : AppCompatActivity() {
             if (idx != -1) { group.removeViewAt(idx); group.addView(dialogScrollView, idx) }
         }
         dialog.setOnCancelListener { if (isDualScreenMode) handleBackNavigation() else initPillButtonStates() }
+        dialog.setOnDismissListener { KlippShellApp.instance?.registerActiveDialog(null) }
         dialog.show()
+        KlippShellApp.instance?.registerActiveDialog(dialog)
         firstBtn?.requestFocus()
     }
 
@@ -1241,7 +1357,7 @@ class SettingsActivity : AppCompatActivity() {
             val oldContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
 
             val dialogScrollView = ScrollView(this@SettingsActivity).apply {
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(210)).apply { setMargins(0, toPx(4), 0, toPx(4)) }
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, toPx(220)).apply { setMargins(0, toPx(4), 0, toPx(4)) }
                 isVerticalScrollBarEnabled = true
                 clipToPadding = false; clipChildren = false
             }
@@ -1255,13 +1371,35 @@ class SettingsActivity : AppCompatActivity() {
 
             val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
             val tvContent = TextView(this@SettingsActivity).apply {
-                text = content.ifEmpty { "FAQ konnte nicht geladen werden." }
+                text = content.ifEmpty { getString(R.string.error_faq_load) }
                 setTextColor(if (isNight) Color.WHITE else Color.BLACK)
+                setLinkTextColor(Color.parseColor("#2196F3"))
                 textSize = 14f
+                Linkify.addLinks(this, Linkify.WEB_URLS)
+                movementMethod = LinkMovementMethod.getInstance()
             }
             scrollContainer.addView(tvContent)
 
             val pVertClose = if (isDualScreenMode) toPx(26) else toPx(14)
+
+            val helperBtn = MaterialButton(this@SettingsActivity).apply {
+                text = "KlippShell Helper (GitHub)"
+                isAllCaps = false; textSize = 16f; isFocusable = true
+                shapeAppearanceModel = ShapeAppearanceModel.builder().setAllCorners(CornerFamily.ROUNDED, 100f).build()
+                setPadding(0, pVertClose, 0, pVertClose)
+                backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
+                setTextColor(Color.WHITE)
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(16), 0, toPx(4)) }
+                onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                    if (hasFocus) {
+                        v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
+                        (v as MaterialButton).strokeWidth = 8
+                        v.strokeColor = ColorStateList.valueOf(targetBorderColor)
+                    } else { v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start(); (v as MaterialButton).strokeWidth = 0 }
+                }
+                setOnClickListener { openExternalUrl(HELPER_APP_URL) }
+            }
+            scrollContainer.addView(helperBtn)
 
             val closeBtn = MaterialButton(this@SettingsActivity).apply {
                 text = getString(R.string.notify_btn_default)
@@ -1270,7 +1408,7 @@ class SettingsActivity : AppCompatActivity() {
                 setPadding(0, pVertClose, 0, pVertClose)
                 backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
                 setTextColor(Color.WHITE)
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(16), 0, toPx(8)) }
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(8), 0, toPx(8)) }
                 onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus) {
                         v.animate().scaleX(1.04f).scaleY(1.04f).setDuration(100).start()
@@ -1291,7 +1429,9 @@ class SettingsActivity : AppCompatActivity() {
                 if (idx != -1) { group.removeViewAt(idx); group.addView(dialogScrollView, idx) }
             }
             dialog.setOnCancelListener { if (isDualScreenMode) handleBackNavigation() else initPillButtonStates() }
+            dialog.setOnDismissListener { KlippShellApp.instance?.registerActiveDialog(null) }
             dialog.show()
+            KlippShellApp.instance?.registerActiveDialog(dialog)
             closeBtn.requestFocus()
         }
     }
@@ -1385,10 +1525,7 @@ class SettingsActivity : AppCompatActivity() {
         val options = arrayOf(getString(R.string.btn_download_now), getString(R.string.btn_later))
         showTvDialog(getString(R.string.update_available_title, newVersion), options) { index ->
             if (index == 0 && downloadUrl.isNotEmpty()) {
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                    startActivity(intent)
-                } catch (e: Exception) { showCenteredPillToast(getString(R.string.toast_update_browser_error)) }
+                openExternalUrl(downloadUrl)
             } else { findViewById<MaterialButton>(R.id.btnCheckUpdates).requestFocus() }
         }
     }
@@ -1396,7 +1533,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun showLicensesDialog() {
         lifecycleScope.launch {
             val content = settingsHelper.loadAssetFile("licenses.txt")
-            val licenseText = content.ifEmpty { "Lizenzen konnten nicht geladen werden." }
+            val licenseText = content.ifEmpty { getString(R.string.error_licenses_load) }
 
             val dialogView = LayoutInflater.from(this@SettingsActivity).inflate(R.layout.dialog_view, null)
             val dialog = AlertDialog.Builder(this@SettingsActivity).setView(dialogView).create()
@@ -1430,7 +1567,11 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 setOnClickListener { dialog.dismiss(); tvLicensesLink.requestFocus() }
             }
-            container?.addView(closeBtn); dialog.show(); closeBtn.requestFocus()
+            container?.addView(closeBtn)
+            dialog.setOnDismissListener { KlippShellApp.instance?.registerActiveDialog(null) }
+            dialog.show()
+            KlippShellApp.instance?.registerActiveDialog(dialog)
+            closeBtn.requestFocus()
         }
     }
 

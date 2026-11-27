@@ -10,7 +10,6 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -29,7 +28,6 @@ class RemoteWidgetConfigActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Immer mit "CANCELED" starten, falls der User den Dialog abbricht
         setResult(RESULT_CANCELED)
 
         val extras = intent.extras
@@ -41,7 +39,6 @@ class RemoteWidgetConfigActivity : AppCompatActivity() {
             return
         }
 
-        // Dynamischen Auswahldialog im KlippShell-Stil aufbauen
         val prefs = getSharedPreferences("KlippShellPrefs", Context.MODE_PRIVATE)
         val jsonStr = prefs.getString("printers_list", "[]") ?: "[]"
         val printerArray = try { JSONArray(jsonStr) } catch (e: Exception) { JSONArray() }
@@ -81,11 +78,11 @@ class RemoteWidgetConfigActivity : AppCompatActivity() {
 
         val defaultBgColor = ContextCompat.getColor(this, R.color.pill_normal_inactive)
         val defaultTxtColor = ContextCompat.getColor(this, R.color.pill_normal_inactive_text)
+        val savedTvIp = prefs.getString("last_master_tv_ip", "") ?: ""
 
         for (i in 0 until printerArray.length()) {
             val obj = printerArray.getJSONObject(i)
             val name = obj.optString("name", getString(R.string.widget_printer_unknown))
-            val ip = obj.optString("ip", "")
 
             val btn = MaterialButton(this).apply {
                 text = name
@@ -101,21 +98,17 @@ class RemoteWidgetConfigActivity : AppCompatActivity() {
                 }
 
                 setOnClickListener {
-                    // Auswahl für genau dieses Widget sichern mit lokalisiertem Namensformat
                     val remoteName = getString(R.string.widget_remote_name_format, name)
 
+                    // Speichert die echte TV-Master-IP (falls bekannt) statt die Drucker-IP zu überschreiben
                     prefs.edit()
-                        .putString("widget_remote_ip_$appWidgetId", ip)
+                        .putString("widget_remote_ip_$appWidgetId", savedTvIp)
                         .putString("widget_remote_name_$appWidgetId", remoteName)
-                        // Synchronisiere auch direkt die Master-IP für die normale Remote-App
-                        .putString("last_master_tv_ip", ip)
                         .apply()
 
-                    // Widget updaten
                     val appWidgetManager = AppWidgetManager.getInstance(this@RemoteWidgetConfigActivity)
                     RemoteWidgetProvider.updateAppWidget(this@RemoteWidgetConfigActivity, appWidgetManager, appWidgetId)
 
-                    // Erfolg signalisieren
                     val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                     setResult(RESULT_OK, resultValue)
                     finish()

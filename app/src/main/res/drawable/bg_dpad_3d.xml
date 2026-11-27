@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="180dp"
+    android:height="180dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Symmetrischer äußerer 3D-Schatten (überall gleicher Abstand) -->
+    <path
+        android:pathData="M100,100 m-90,0 a90,90 0 1,0 180,0 a90,90 0 1,0 -180,0"
+        android:fillColor="#55000000" />
+
+    <!-- Dunkler Ring-Grund -->
+    <path
+        android:pathData="M100,100 m-86,0 a86,86 0 1,0 172,0 a86,86 0 1,0 -172,0"
+        android:fillColor="#0E1012" />
+
+    <!-- Dunklerer Metall-Verlauf -->
+    <path
+        android:pathData="M100,100 m-83,0 a83,83 0 1,0 166,0 a83,83 0 1,0 -166,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="100"
+                android:startY="17"
+                android:endX="100"
+                android:endY="183"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#3A3F47" />
+                <item android:offset="0.5" android:color="#24272C" />
+                <item android:offset="1.0" android:color="#15171A" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Feine Lichtkante -->
+    <path
+        android:pathData="M100,100 m-82,0 a82,82 0 1,0 164,0 a82,82 0 1,0 -164,0"
+        android:strokeWidth="1.2"
+        android:strokeColor="#2BFFFFFF"
+        android:fillColor="#00000000" />
+
+    <!-- 4 kurze diagonale Fugen nur im Ring -->
+    <path
+        android:pathData="M44,44 L70,70 M130,130 L156,156 M156,44 L130,70 M70,130 L44,156"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeColor="#0E1012" />
+
+    <!-- Mulde in der Mitte -->
+    <path
+        android:pathData="M100,100 m-41,0 a41,41 0 1,0 82,0 a41,41 0 1,0 -82,0"
+        android:fillColor="#0E1012" />
+</vector>

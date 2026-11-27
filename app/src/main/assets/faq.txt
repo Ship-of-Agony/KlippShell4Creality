@@ -44,15 +44,25 @@ Solution:
 Problem: No Picture-in-Picture (PiP) available on the TV
 -------------------------------------------------------
 Solution:
-While KlippShell fully supports PiP, some Android TV manufacturers block or refuse to support this feature natively. You can manually unlock it using the following advanced developer steps:
+Some TV manufacturers block Picture-in-Picture (PiP) by default. Follow these steps to unlock it permanently:
 
 1. Enable Developer Options on your TV (Go to TV System Settings -> About -> Click "Build Number" 7 times).
 2. Enable "ADB Debugging" inside the newly unlocked Developer Options.
-3. Open a command prompt (CMD / Terminal) on your PC and connect to your TV via network:
+3. Open a command prompt on your PC and connect to your TV:
    adb connect [YOUR_TV_IP]:5555
-4. Execute the following permission command exactly as written:
+
+4. Copy and execute the following commands exactly as written:
+
    adb shell appops set com.shipofagony.klippshell4creality PICTURE_IN_PICTURE allow
-5. Restart the KlippShell app!
+
+   adb shell appops set com.shipofagony.klippshell4creality SYSTEM_ALERT_WINDOW allow
+
+   adb shell dumpsys deviceidle whitelist +com.shipofagony.klippshell4creality
+
+5. Restart the KlippShell app on your TV. PiP is now permanently ready for use!
+
+Or simply use the KlippShellHelper extension:
+https://github.com/Ship-of-Agony/KlippShell-Helper
 
 -------------------------------------------------------
 

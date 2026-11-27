@@ -21,10 +21,10 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="320dp"
-        android:fillViewport = "true"
-        android:clipToPadding="false"
-        android:clipChildren="false">
+        android:maxHeight="360dp"
+        android:fillViewport="true"
+        android:clipToPadding="true"
+        android:clipChildren="true">
 
         <LinearLayout
             android:id="@+id/buttonContainer"
@@ -33,6 +33,8 @@
             android:orientation="vertical"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
             android:clipToPadding="false"
             android:clipChildren="false" />
     </ScrollView>
