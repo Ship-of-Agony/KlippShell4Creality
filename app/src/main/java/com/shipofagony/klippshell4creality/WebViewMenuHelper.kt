@@ -1,7 +1,6 @@
 package com.shipofagony.klippshell4creality
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -10,7 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -79,22 +77,7 @@ class WebViewMenuHelper(
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialogView.findViewById<TextView>(R.id.tvDialogTitle)?.text = getSafeString("menu_options_title", "Optionen")
 
-        val buttonContainer = dialogView.findViewById<LinearLayout>(R.id.buttonContainer)
-
-        val scrollView = ScrollView(context).apply {
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            clipToPadding = false
-            clipChildren = false
-        }
-
-        val container = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            clipToPadding = false
-            clipChildren = false
-        }
-        scrollView.addView(container)
-        buttonContainer?.addView(scrollView)
+        val container = dialogView.findViewById<LinearLayout>(R.id.buttonContainer) ?: return
 
         val btnStyleListener = View.OnFocusChangeListener { v, hF ->
             if (hF) {
@@ -107,21 +90,38 @@ class WebViewMenuHelper(
             }
         }
 
-        val cardDrawable = ContextCompat.getDrawable(context, R.drawable.bg_card)
+        fun createCardContainer(bottomMarginDp: Int = 6): LinearLayout {
+            return LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                background = ContextCompat.getDrawable(context, R.drawable.bg_card)?.mutate()
+                setPadding(toPx(14), toPx(14), toPx(14), toPx(14))
+                clipChildren = false
+                clipToPadding = false
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(0, toPx(6), 0, toPx(bottomMarginDp)) }
+            }
+        }
+
+        fun createSplitRow(): LinearLayout {
+            return LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                clipChildren = false
+                clipToPadding = false
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                weightSum = 2f
+            }
+        }
+
+        val halfGapPx = toPx(8)
 
         // 1. CARD: COMPANION & DPAD
-        val cardCompanion = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            background = cardDrawable
-            setPadding(toPx(12), toPx(12), toPx(12), toPx(12))
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(6), 0, toPx(6)) }
-        }
-
-        val companionHeaderRow = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            weightSum = 2f
-        }
+        val cardCompanion = createCardContainer()
+        val companionHeaderRow = createSplitRow()
 
         val btnCompanionMenu = MaterialButton(context).apply {
             text = getSafeString("btn_companion_menu", "Companion Menü")
@@ -130,7 +130,7 @@ class WebViewMenuHelper(
             backgroundTintList = ColorStateList.valueOf(Color.parseColor("#2196F3"))
             setTextColor(Color.WHITE)
             isFocusable = true; onFocusChangeListener = btnStyleListener
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 0; rightMargin = 8 }
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 0; rightMargin = halfGapPx }
             setOnClickListener { dialog.dismiss(); onActionSelected(MenuAction.CompanionMenu) }
         }
 
@@ -152,7 +152,7 @@ class WebViewMenuHelper(
             }
             isFocusable = isCompanionEnabled
             onFocusChangeListener = btnStyleListener
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 8; rightMargin = 0 }
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = halfGapPx; rightMargin = 0 }
             setOnClickListener { dialog.dismiss(); onActionSelected(MenuAction.DpadControl) }
         }
 
@@ -162,18 +162,8 @@ class WebViewMenuHelper(
         container.addView(cardCompanion)
 
         // 2. CARD: OSD CONTROL
-        val cardOsd = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            background = cardDrawable
-            setPadding(toPx(12), toPx(12), toPx(12), toPx(12))
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(6), 0, toPx(6)) }
-        }
-
-        val splitRow = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            weightSum = 2f
-        }
+        val cardOsd = createCardContainer()
+        val splitRow = createSplitRow()
 
         val currentOsdEnabled = isOsdEnabled()
         val btnLeftToggle = MaterialButton(context).apply {
@@ -183,7 +173,7 @@ class WebViewMenuHelper(
             backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (currentOsdEnabled) "#4CAF50" else if (isNight) "#33FFFFFF" else "#1A888888"))
             setTextColor(if (currentOsdEnabled) Color.WHITE else if (isNight) Color.WHITE else Color.BLACK)
             isFocusable = true; onFocusChangeListener = btnStyleListener
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 0; rightMargin = 8 }
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 0; rightMargin = halfGapPx }
             setOnClickListener { dialog.dismiss(); onActionSelected(MenuAction.ToggleOsd(!currentOsdEnabled)) }
         }
 
@@ -194,7 +184,7 @@ class WebViewMenuHelper(
             this.setPadding(0, toPx(14), 0, toPx(14))
             backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
             setTextColor(if (isNight) Color.WHITE else Color.BLACK); isFocusable = true; onFocusChangeListener = btnStyleListener
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 8; rightMargin = 0 }
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = halfGapPx; rightMargin = 0 }
             setOnClickListener { dialog.dismiss(); onActionSelected(MenuAction.ChangeOsdStyle) }
         }
 
@@ -204,18 +194,8 @@ class WebViewMenuHelper(
         container.addView(cardOsd)
 
         // 3. CARD: ZOOM
-        val cardZoom = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            background = cardDrawable
-            setPadding(toPx(12), toPx(12), toPx(12), toPx(12))
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(6), 0, toPx(12)) }
-        }
-
-        val splitRowZoom = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            weightSum = 2f
-        }
+        val cardZoom = createCardContainer(bottomMarginDp = 12)
+        val splitRowZoom = createSplitRow()
 
         val btnZoomOut = MaterialButton(context).apply {
             text = getSafeString("btn_zoom_out", "Zoom (-)")
@@ -224,7 +204,7 @@ class WebViewMenuHelper(
             backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
             setTextColor(if (isNight) Color.WHITE else Color.BLACK)
             isFocusable = true; onFocusChangeListener = btnStyleListener
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 0; rightMargin = 8 }
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 0; rightMargin = halfGapPx }
             setOnClickListener { onActionSelected(MenuAction.ZoomOut) }
         }
 
@@ -235,7 +215,7 @@ class WebViewMenuHelper(
             backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (isNight) "#33FFFFFF" else "#1A888888"))
             setTextColor(if (isNight) Color.WHITE else Color.BLACK)
             isFocusable = true; onFocusChangeListener = btnStyleListener
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = 8; rightMargin = 0 }
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { leftMargin = halfGapPx; rightMargin = 0 }
             setOnClickListener { onActionSelected(MenuAction.ZoomIn) }
         }
 
@@ -253,7 +233,7 @@ class WebViewMenuHelper(
             backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (currentThumbEnabled) "#4CAF50" else "#E53935"))
             setTextColor(Color.WHITE)
             isFocusable = true; onFocusChangeListener = btnStyleListener
-            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(6), 0, toPx(6)) }
             setOnClickListener { dialog.dismiss(); onActionSelected(MenuAction.ToggleThumbnail(!currentThumbEnabled)) }
         }
         container.addView(btnThumbnailToggle)
@@ -275,7 +255,7 @@ class WebViewMenuHelper(
                 backgroundTintList = ColorStateList.valueOf(Color.parseColor(if (idx == 5) "#E53935" else if (isNight) "#33FFFFFF" else "#1A888888"))
                 setTextColor(if (idx == 5) Color.WHITE else if (isNight) Color.WHITE else Color.BLACK)
                 isFocusable = true; onFocusChangeListener = btnStyleListener
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 10, 0, 10) }
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { setMargins(0, toPx(6), 0, toPx(6)) }
                 setOnClickListener {
                     dialog.dismiss()
                     when (idx) {
@@ -284,12 +264,16 @@ class WebViewMenuHelper(
                         2 -> onActionSelected(MenuAction.ShowScreensaverConfig)
                         3 -> onActionSelected(MenuAction.ChangeRatio)
                         4 -> onActionSelected(MenuAction.ChangeCameraType)
-                        5 -> triggerEmergencyStopWithConfirmation() // Abfrage aufrufen
+                        5 -> triggerEmergencyStopWithConfirmation()
                     }
                 }
             }
             container.addView(btn)
         }
+
+        dialog.setOnDismissListener { KlippShellApp.instance?.registerActiveDialog(null) }
         dialog.show()
+        KlippShellApp.instance?.registerActiveDialog(dialog)
+        btnCompanionMenu.requestFocus()
     }
 }

@@ -4,6 +4,8 @@
     xmlns:tools="http://tools.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     tools:context=".SettingsActivity">
 
     <TextView
@@ -216,6 +218,8 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone"
             tools:visibility="visible">
 
@@ -288,12 +292,16 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone">
 
             <LinearLayout
                 android:id="@+id/containerLanguageButtons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:orientation="vertical" />
         </LinearLayout>
     </ScrollView>
@@ -327,6 +335,8 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
@@ -387,6 +397,8 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
@@ -482,6 +494,8 @@
             android:paddingBottom="20dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
@@ -540,6 +554,8 @@
         android:paddingBottom="20dp"
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:visibility="gone"
         tools:visibility="visible"
         app:layout_constraintStart_toEndOf="@id/guidelineCenter"

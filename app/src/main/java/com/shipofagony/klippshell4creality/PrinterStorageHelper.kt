@@ -36,6 +36,24 @@ class PrinterStorageHelper(private val prefs: SharedPreferences) {
         }
     }
 
+    fun updatePrinter(index: Int, name: String, ip: String, port: String, model: String): Boolean {
+        return try {
+            val arr = getPrintersList()
+            if (index in 0 until arr.length()) {
+                val obj = arr.getJSONObject(index)
+                obj.put("name", name)
+                obj.put("ip", ip)
+                obj.put("port", port)
+                obj.put("model", model)
+                prefs.edit().putString("printers_list", arr.toString()).apply()
+                true
+            } else false
+        } catch (e: Exception) {
+            Log.e("KlippShell", "Error updating printer", e)
+            false
+        }
+    }
+
     fun updatePrinterView(index: Int, defaultView: String): Boolean {
         return try {
             val arr = getPrintersList()

@@ -12,10 +12,10 @@ android {
         targetSdk = 36
 
         // Versionscode erhöht für den neuen Release Candidate (Upgrade-Sicherheit)
-        versionCode = 18
+        versionCode = 19
 
-        // Aktualisierte Release-Versionsnummer vom 23. Juni 2026
-        versionName = "0.9.2.230626-rc"
+        // Aktualisierte Release-Versionsnummer vom 26. November 2026
+        versionName = "0.9.3.261126-rc"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

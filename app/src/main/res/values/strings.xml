@@ -12,14 +12,18 @@
     <string name="btn_later">Später</string>
     <string name="toast_saved">Gespeichert ✓</string>
     <string name="toast_fullscreen_only">Nur im Vollbildmodus verfügbar</string>
+    <string name="toast_system_menu_error">System-Menü konnte nicht geöffnet werden.</string>
 
     <!-- BLOCK 2: HAUPTMENÜ & DRUCKERVERWALTUNG -->
     <string name="no_printers">Keine Drucker hinterlegt</string>
     <string name="saved_printers">Gespeicherte Drucker</string>
     <string name="btn_add">Hinzufügen</string>
+    <string name="btn_edit_printer">Bearbeiten</string>
+    <string name="btn_save_changes">Speichern</string>
     <string name="btn_exit">Beenden</string>
     <string name="add_printer_up">Drucker hinzufügen ▲</string>
     <string name="add_printer_down">Drucker hinzufügen ▼</string>
+    <string name="edit_printer_title">Drucker bearbeiten ▲</string>
     <string name="printer_name_hint">Drucker Name</string>
     <string name="printer_ip_hint">IP-Adresse</string>
     <string name="printer_port_hint">Port (Optional)</string>
@@ -28,6 +32,7 @@
     <string name="printer_model_default">Standard Drucker</string>
     <string name="printer_default_label">Drucker</string>
     <string name="printer_setup_success_format">%s erfolgreich eingerichtet ✓</string>
+    <string name="toast_printer_updated">%s aktualisiert ✓</string>
     <string name="choose_port">Port auswählen</string>
     <string name="system_creality">Creality OS (4408)</string>
     <string name="system_standard">Klipper Standard (7125)</string>
@@ -139,11 +144,12 @@
     <string name="settings_notify_title">Benachrichtigungen</string>
     <string name="submenu_sounds_title">Töne verwalten</string>
     <string name="submenu_popups_title">Popups verwalten</string>
+    <string name="toast_sound_enabled">🔊 Ton aktiviert: %1$s ✓</string>
     <string name="event_offline">Offline</string>
     <string name="event_first_layer">Erste Schicht</string>
-    <string name="event_50">50% reached</string>
-    <string name="event_75">75% reached</string>
-    <string name="event_90">90% reached</string>
+    <string name="event_50">50% erreicht</string>
+    <string name="event_75">75% erreicht</string>
+    <string name="event_90">90% erreicht</string>
     <string name="event_100">Fertiggestellt</string>
     <string name="event_error">Fehler</string>
     <string name="notify_title_offline">Verbindung verloren</string>
@@ -222,7 +228,7 @@ Einige TV-Hersteller blockieren Picture-in-Picture (PiP) standardmäßig. Führe
 <tt><b>adb shell dumpsys deviceidle whitelist +com.shipofagony.klippshell4creality</b></tt><br><br>
 5. Starte die KlippShell-App auf dem TV neu. PiP ist nun dauerhaft einsatzbereit!<br><br>
 Oder nutze einfach die KlippShellHelper Erweiterung:<br>
-<tt>https://github.com/Ship-of-Agony/KlippShell-Helper<tt>
+<tt>https://github.com/Ship-of-Agony/KlippShell-Helper</tt>
 ]]></string>
 
     <!-- BLOCK 12: SYSTEM-OVERLAY BERECHTIGUNGEN (PIP FALLBACK ERSTEINRICHTUNG) -->
@@ -245,7 +251,7 @@ Oder nutze einfach die KlippShellHelper Erweiterung:<br>
 
     <!-- BLOCK 14: DATENSCHUTZ- & ERSTEINRICHTUNGS-RATIONALE -->
     <string name="perm_dialog_title">Netzwerk &amp; Datenschutz</string>
-    <string name="perm_dialog_msg">KlippShell benötigt Netzwerkzugriff, um eine direkte Schnittstelle zur Moonraker-API Ihres Druckers herzustellen, sowie die Berechtigung for Benachrichtigungen, um Ihnen kritische Warnungen und Druckmeilensteine (z. B. Druck fertiggestellt oder Fehler) zu senden, während Sie fernsehen oder andere Apps nutzen. Eine Internetverbindung ist erforderlich für OTA-Update-Prüfungen, die Bereitstellung von Status-Assets für den Android TV Launcher sowie für erweiterte Begleitfunktionen. Datensicherheit ist unsere oberste Priorität: Die Kommunikation findet ausschließlich lokal zwischen Ihrem Gerät und dem Drucker statt. Es werden keine Steuerungs- oder Telemetriedaten an externe Server übermittelt.</string>
+    <string name="perm_dialog_msg">KlippShell benötigt Netzwerkzugriff, um eine direkte Schnittstelle zur Moonraker-API Ihres Druckers herzustellen, sowie die Berechtigung für Benachrichtigungen, um Ihnen kritische Warnungen und Druckmeilensteine (z. B. Druck fertiggestellt oder Fehler) zu senden, während Sie fernsehen oder andere Apps nutzen. Eine Internetverbindung ist erforderlich für OTA-Update-Prüfungen, die Bereitstellung von Status-Assets für den Android TV Launcher sowie für erweiterte Begleitfunktionen. Datensicherheit ist unsere oberste Priorität: Die Kommunikation findet ausschließlich lokal zwischen Ihrem Gerät und dem Drucker statt. Es werden keine Steuerungs- oder Telemetriedaten an externe Server übermittelt.</string>
     <string name="perm_dialog_btn">Verstanden</string>
     <string name="perm_dialog_btn_decline">Ablehnen und Beenden</string>
 
@@ -285,8 +291,42 @@ Oder nutze einfach die KlippShellHelper Erweiterung:<br>
     <string name="easter_egg_success">Für 3D-Druck-Enthusiasten, die keine Kompromisse machen</string>
     <string name="about_changelog_title">Changelog</string>
     <string name="about_changelog_text"></string>
+    <string name="error_changelog_load">Changelog konnte nicht geladen werden.</string>
+    <string name="error_faq_load">FAQ konnte nicht geladen werden.</string>
+    <string name="error_licenses_load">Lizenzen konnten nicht geladen werden.</string>
 
-    <!-- BLOCK 18: WELCOME-TILE INITIAL INFORMATIONSCENTRUM -->
+    <!-- BLOCK 18: Remote Information Butten INFORMATION -->
+    <string name="remote_hint_estop">Not-Stopp am Drucker auslösen</string>
+    <string name="remote_hint_tv_ip">IP-Adresse des Android-TV-Geräts</string>
+    <string name="remote_hint_search_tv">TV suchen oder neu verbinden</string>
+    <string name="remote_hint_leave">Fernbedienung schließen</string>
+    <string name="remote_hint_back">Zurück-Befehl an TV senden</string>
+    <string name="remote_hint_touch_mode">Zwischen D-Pad und Touchpad wechseln</string>
+    <string name="remote_hint_dpad_up">Nach oben navigieren</string>
+    <string name="remote_hint_dpad_down">Nach unten navigieren</string>
+    <string name="remote_hint_dpad_left">Nach links navigieren</string>
+    <string name="remote_hint_dpad_right">Nach rechts navigieren</string>
+    <string name="remote_hint_dpad_ok">Auswahl / OK bestätigen</string>
+    <string name="remote_hint_touch_pad">Wischen für Mauszeiger, Tippen für Klick, 2 Finger zum Scrollen</string>
+    <string name="remote_hint_touch_back">Zurück-Befehl senden</string>
+    <string name="remote_hint_touch_return_dpad">Zurück zum D-Pad wechseln</string>
+    <string name="remote_hint_touch_ok">Mausklick an Cursor-Position ausführen</string>
+    <string name="remote_hint_stream">Zwischen Livestream und Dashboard wechseln</string>
+    <string name="remote_hint_web_menu">Optionen-Menü am TV öffnen</string>
+    <string name="remote_hint_layout">Bild-in-Bild (PiP) umschalten</string>
+    <string name="remote_hint_bar">OSD-Stil: Leiste aktivieren</string>
+    <string name="remote_hint_pip">On-Screen-Display (OSD) ein- oder ausblenden</string>
+    <string name="remote_hint_box">OSD-Stil: Box aktivieren</string>
+    <string name="remote_hint_zoom_in">Ansicht verkleinern (Zoom -)</string>
+    <string name="remote_hint_zoom_out">Ansicht vergrößern (Zoom +)</string>
+    <string name="remote_hint_home">Zurück / Startmenü</string>
+    <string name="remote_hint_camera">Kamera-Stream-Quelle wechseln</string>
+    <string name="remote_hint_sec_up">OSD nach oben verschieben</string>
+    <string name="remote_hint_sec_down">OSD nach unten verschieben</string>
+    <string name="remote_hint_sec_left">OSD nach links verschieben</string>
+    <string name="remote_hint_sec_right">OSD nach rechts verschieben</string>
+
+    <!-- BLOCK 19: WELCOME-TILE INITIAL INFORMATIONSCENTRUM -->
     <string name="welcome_tile_title">Willkommen bei KlippShell! 👋</string>
     <string name="welcome_tile_msg">Schön, dass du da bist! Damit du das Beste aus deinem Drucker-Monitoring herausholen kannst, ist hier eine kurze Übersicht zu den Kernfunktionen von KlippShell und den Besonderheiten einiger TV-Geräte. KlippShell wurde so konzipiert, dass es auf dem Smartphone, dem Tablet oder bedienerfreundlich auf dem Android TV läuft.\n\n1️⃣ ERSTE SCHRITTE\nFüge unten deinen ersten 3D-Drucker hinzu. Aktuell sind fast alle auf dem Markt befindlichen Modelle eingepflegt. Falls du einen anderen Drucker auf Klipper-Basis nutzen möchtest, kannst du \"Custom Model\" wählen.\nHinweis: Je nach Druckermodell und Netzwerk-Konfiguration musst du eventuell deine Ports und Kamera-Zugänge manuell anpassen, um ein einwandfreies Monitoring zu garantieren. Der automatische Netzwerkscan sollte jedoch die meisten Konfigurationen selbstständig abdecken.\n⚠️ Falls du kein Livebild des Druckers bekommst, schau bitte unter https://github.com/DnG-Crafts/K2-Camera vorbei und installiere den FIX. Dies erfordert leider Root-Rechte auf dem Drucker!\n💡 Tipp: Ein langer Tastendruck im Hauptmenü auf einen deiner gespeicherten Drucker öffnet die Optionen, um die Standardansicht zwischen Live-Stream Monitoring und Klipper OS zu ändern oder diesen Drucker zu löschen.\n\n2️⃣ SMARTE LIVE-STEUERUNG\nIm Videostream-Modus steuerst du alles über drei untere Haupttasten:\n• Linke Taste: Öffnet das Menü für On-Screen-Display (OSD), Video-Zoom, PiP, Gehäuse-Beleuchtung, Bildschirmschoner und Bildformat.\n• Mittlere Taste: Wechselt nahtlos zwischen Klipper OS (Dashboard) und dem reinen Kamera-Livestream.\n• Rechte Taste: Bringt dich jederzeit sicher zum Hauptmenü zurück.\n\n3️⃣ DIREKTSTART-MODUS\nWenn du einen Drucker bereits erfolgreich konfiguriert hast, kannst du in den Einstellungen den Direktstart-Modus wählen. Dieser erlaubt dir, direkt beim App-Start in der Live-Stream-Ansicht zu beginnen.\n\n4️⃣ DER COMPANION-MODUS\nMit KlippShell kannst du dein Gerät als TV-Dashboard (Master) oder als Smartphone-Fernbedienung (Slave) nutzen. Aktiviere den Companion-Modus in den Einstellungen, um deinen Fernseher komfortabel von deinem Smartphone aus zu steuern.\n\n5️⃣ PICTURE-IN-PICTURE (PiP)\nObwohl KlippShell PiP vollständig unterstützt, weigern sich einige TV-Hersteller, dieses Feature nativ anzubieten. Keine Sorge: In den Einstellungen findest du eine erweiterte Funktion mit einer präzisen Anleitung, wie du PiP auf deinem TV-Gerät ganz einfach via ADB-Befehl freischalten kannst!\n\n6️⃣ TV \"NOW LIVE\" FUNKTION\nWenn du die \"Now Live\" TV-Funktion verwenden möchtest, kann es durch Hersteller-Restriktionen vorkommen, dass diese nicht nativ auf deinem TV-Dashboard angezeigt wird. In diesem Fall empfehlen wir, einen alternativen TV-Launcher wie den \"Projectivity Launcher\" auf dem TV-Gerät zu nutzen, um in den vollen Genuss dieser Funktion zu kommen.</string>
     <string name="welcome_tile_btn">Verstanden &amp; Ausblenden</string>
